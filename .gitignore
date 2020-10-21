@@ -1,0 +1,5 @@
+.idea
+coverage.txt
+unit.coverprofile
+*_last_run.json
+.vscode
