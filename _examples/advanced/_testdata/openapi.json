@@ -208,6 +208,23 @@
         }
       }
     },
+    "/query-object":{
+      "get":{
+        "summary":"Request With Object As Query Parameter","description":"","operationId":"",
+        "parameters":[
+          {
+            "name":"in_query","in":"query","description":"Object value in query.","style":"deepObject","explode":true,
+            "schema":{"type":"object","additionalProperties":{"type":"number"},"description":"Object value in query."}
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"OK",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputQueryObject"}}}
+          }
+        }
+      }
+    },
     "/req-resp-mapping":{
       "post":{
         "summary":"Request Response Mapping",
@@ -314,6 +331,10 @@
       "AdvancedOutputPortType2":{
         "required":["data"],"type":"object",
         "properties":{"data":{"type":"object","properties":{"value":{"maxLength":7,"type":"string"}}}}
+      },
+      "AdvancedOutputQueryObject":{
+        "type":"object",
+        "properties":{"inQuery":{"type":"object","additionalProperties":{"type":"number"},"nullable":true}}
       },
       "AdvancedOutputWithJSON":{
         "type":"object",

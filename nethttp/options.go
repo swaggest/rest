@@ -22,6 +22,13 @@ func SuccessfulResponseContentType(contentType string) func(h *Handler) {
 	}
 }
 
+// SuccessStatus sets status code of successful response.
+func SuccessStatus(status int) func(h *Handler) {
+	return func(h *Handler) {
+		h.SuccessStatus = status
+	}
+}
+
 // RequestMapping creates rest.RequestMapping from struct tags.
 //
 // This can be used to decouple mapping from usecase input with additional struct.
