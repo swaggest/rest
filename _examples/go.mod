@@ -14,8 +14,8 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/swaggest/assertjson v1.3.0
 	github.com/swaggest/jsonschema-go v0.3.11
-	github.com/swaggest/openapi-go v0.2.1
-	github.com/swaggest/rest v0.0.0-20201021182107-c25bd05be4b6
+	github.com/swaggest/openapi-go v0.2.2
+	github.com/swaggest/rest v0.0.0-20201021182948-25d31f7f38d4
 	github.com/swaggest/swgui v1.0.9
 	github.com/swaggest/usecase v0.0.0-20200928062416-27f47131b0f8
 	github.com/valyala/fasthttp v1.16.0

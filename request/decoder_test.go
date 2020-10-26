@@ -138,3 +138,29 @@ func TestDecoder_Decode_json(t *testing.T) {
 	assert.Error(t, err)
 	assert.Equal(t, rest.ValidationErrors{"body": []string{"#/bodyTwo: minimum 2 items allowed, but found 1 items"}}, err)
 }
+
+func TestDecoder_Decode_queryObject(t *testing.T) {
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet,
+		"/?in_query[1]=1.0&in_query[2]=2.1&in_query[3]=0", nil)
+	assert.NoError(t, err)
+
+	df := request.NewDecoderFactory()
+
+	input := new(struct {
+		InQuery map[int]float64 `query:"in_query"`
+	})
+	dec := df.MakeDecoder(http.MethodGet, input, nil)
+
+	assert.NoError(t, dec.Decode(req, input, nil))
+	assert.Equal(t, map[int]float64{1: 1, 2: 2.1, 3: 0}, input.InQuery)
+
+	req, err = http.NewRequestWithContext(context.Background(), http.MethodGet,
+		"/?in_query[1]=1.0&in_query[2]=2.1&in_query[c]=0", nil)
+	assert.NoError(t, err)
+
+	err = dec.Decode(req, input, nil)
+	assert.Error(t, err)
+	assert.Equal(t, rest.RequestErrors{"query:in_query": []string{
+		"#: Invalid Integer Value 'c' Type 'int' Namespace 'in_query'",
+	}}, err)
+}
