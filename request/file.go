@@ -11,8 +11,10 @@ import (
 )
 
 var (
-	multipartFileType       = reflect.TypeOf((*multipart.File)(nil)).Elem()
-	multipartFileHeaderType = reflect.TypeOf((*multipart.FileHeader)(nil))
+	multipartFileType        = reflect.TypeOf((*multipart.File)(nil)).Elem()
+	multipartFilesType       = reflect.TypeOf(([]multipart.File)(nil))
+	multipartFileHeaderType  = reflect.TypeOf((*multipart.FileHeader)(nil))
+	multipartFileHeadersType = reflect.TypeOf(([]*multipart.FileHeader)(nil))
 )
 
 func decodeFiles(r *http.Request, input interface{}, _ rest.Validator) error {
@@ -35,7 +37,8 @@ func decodeFilesInStruct(r *http.Request, v reflect.Value) error {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 
-		if field.Type == multipartFileType || field.Type == multipartFileHeaderType {
+		if field.Type == multipartFileType || field.Type == multipartFileHeaderType ||
+			field.Type == multipartFilesType || field.Type == multipartFileHeadersType {
 			err := setFile(r, field, v.Field(i))
 			if err != nil {
 				return err
@@ -83,6 +86,25 @@ func setFile(r *http.Request, field reflect.StructField, v reflect.Value) error 
 
 	if field.Type == multipartFileHeaderType {
 		v.Set(reflect.ValueOf(header))
+	}
+
+	if field.Type == multipartFilesType {
+		res := make([]multipart.File, 0, len(r.MultipartForm.File[name]))
+
+		for _, h := range r.MultipartForm.File[name] {
+			f, err := h.Open()
+			if err != nil {
+				return fmt.Errorf("failed to open uploaded file %s (%s): %w", name, h.Filename, err)
+			}
+
+			res = append(res, f)
+		}
+
+		v.Set(reflect.ValueOf(res))
+	}
+
+	if field.Type == multipartFileHeadersType {
+		v.Set(reflect.ValueOf(r.MultipartForm.File[name]))
 	}
 
 	return nil
