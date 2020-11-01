@@ -56,6 +56,7 @@ func NewRouter() http.Handler {
 	r.Method(http.MethodGet, "/query-object", nethttp.NewHandler(queryObject()))
 
 	r.Method(http.MethodPost, "/file-upload", nethttp.NewHandler(fileUploader()))
+	r.Method(http.MethodPost, "/file-multi-upload", nethttp.NewHandler(fileMultiUploader()))
 	r.Method(http.MethodPost, "/json-body/{in-path}", nethttp.NewHandler(jsonBody()))
 	r.Method(http.MethodPost, "/json-body-validation/{in-path}", nethttp.NewHandler(jsonBodyValidation()))
 	r.Method(http.MethodPost, "/json-slice-body", nethttp.NewHandler(jsonSliceBody()))

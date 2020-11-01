@@ -2,6 +2,24 @@
   "openapi":"3.0.2",
   "info":{"title":"Advanced Example","description":"This app showcases a variety of features.","version":"v1.2.3"},
   "paths":{
+    "/file-multi-upload":{
+      "post":{
+        "summary":"Files Uploads With 'multipart/form-data'","description":"","operationId":"",
+        "parameters":[
+          {
+            "name":"in_query","in":"query","description":"Simple scalar value in query.",
+            "schema":{"type":"integer","description":"Simple scalar value in query."}
+          }
+        ],
+        "requestBody":{"content":{"multipart/form-data":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedUploadType2"}}}},
+        "responses":{
+          "200":{
+            "description":"OK",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInfoType2"}}}
+          }
+        }
+      }
+    },
     "/file-upload":{
       "post":{
         "summary":"File Upload With 'multipart/form-data'","description":"","operationId":"",
@@ -299,6 +317,16 @@
           "size":{"type":"integer"}
         }
       },
+      "AdvancedInfoType2":{
+        "type":"object",
+        "properties":{
+          "filenames":{"type":"array","items":{"type":"string"},"nullable":true},
+          "headers":{"type":"array","items":{"$ref":"#/components/schemas/TextprotoMIMEHeader"},"nullable":true},
+          "inQuery":{"type":"integer"},"peeks1":{"type":"array","items":{"type":"string"},"nullable":true},
+          "peeks2":{"type":"array","items":{"type":"string"},"nullable":true},"simple":{"type":"string"},
+          "sizes":{"type":"array","items":{"type":"integer"},"nullable":true}
+        }
+      },
       "AdvancedInputPortType2":{
         "required":["data"],"type":"object",
         "properties":{
@@ -360,8 +388,22 @@
           "upload2":{"$ref":"#/components/schemas/FormDataMultipartFile"}
         }
       },
+      "FormDataAdvancedUploadType2":{
+        "type":"object",
+        "properties":{
+          "simple":{"type":"string","description":"Simple scalar value in body."},
+          "uploads1":{
+            "type":"array","items":{"$ref":"#/components/schemas/FormDataMultipartFileHeader"},
+            "description":"Uploads with *multipart.FileHeader.","nullable":true
+          },
+          "uploads2":{
+            "type":"array","items":{"$ref":"#/components/schemas/FormDataMultipartFile"},
+            "description":"Uploads with multipart.File.","nullable":true
+          }
+        }
+      },
       "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
-      "FormDataMultipartFileHeader":{"type":"string","format":"binary","nullable":true},
+      "FormDataMultipartFileHeader":{"type":"string","format":"binary"},
       "RestErrResponse":{
         "type":"object",
         "properties":{
@@ -371,7 +413,7 @@
           "status":{"type":"string","description":"Status text."}
         }
       },
-      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}},"nullable":true}
+      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}}
     }
   }
 }
