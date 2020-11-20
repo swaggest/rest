@@ -1,4 +1,4 @@
-name: test
+name: bench
 on:
   push:
     tags:
@@ -10,10 +10,10 @@ on:
 env:
   GO111MODULE: "on"
 jobs:
-  test:
+  bench:
     strategy:
       matrix:
-        go-version: [ 1.13.x, 1.14.x, 1.15.x ]
+        go-version: [ 1.15.x ]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -30,13 +30,15 @@ jobs:
           key: ${{ runner.os }}-go-vendor-${{ hashFiles('**/go.mod') }}
       - name: Populate dependencies
         run: '(test -d vendor && echo vendor found) || (go mod vendor && cd _examples && go mod vendor)'
-      - name: Test
-        run: make test-unit
-      - name: Upload code coverage
-        if: matrix.go-version == '1.15.x'
-        uses: codecov/codecov-action@v1
+      - uses: actions/cache@v2
         with:
-          file: ./unit.coverprofile
-          flags: unittests
-      - name: Test Examples
-        run: make test-examples
+          path: ~/go/bin/benchstat
+          key: ${{ runner.os }}-benchstat
+      - uses: actions/cache@v2
+        with:
+          path: |
+            bench-master.txt
+            bench-examples-master.txt
+          key: ${{ runner.os }}-go-bench
+      - name: Bench
+        run: REF_NAME=${GITHUB_REF##*/} make bench bench-examples
