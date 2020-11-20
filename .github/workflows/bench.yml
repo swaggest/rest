@@ -1,0 +1,34 @@
+name: bench
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - master
+      - main
+  pull_request:
+env:
+  GO111MODULE: "on"
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [ 1.15.x ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - uses: actions/cache@v1
+        with:
+          path: vendor
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
+          restore-keys: |
+            ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
+      - name: Populate dependencies
+        run: '(test -d vendor && echo vendor found) || go mod vendor'
+      - name: Bench
+        run: make bench bench-examples

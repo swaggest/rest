@@ -1,4 +1,5 @@
 GOLANGCI_LINT_VERSION := "v1.31.0"
+BENCH_COUNT ?= 5
 
 # The head of Makefile determines location of dev-go to include standard targets.
 GO ?= go
@@ -37,3 +38,16 @@ test: test-unit test-examples
 
 test-examples:
 	cd _examples && go test -race ./...
+
+## Run benchmark, iterations count controlled by BENCH_COUNT, default 5.
+bench:
+	@$(GO) test -bench=. -count=$(BENCH_COUNT) -run=^a  ./... | tee /dev/tty >bench-$(shell git symbolic-ref HEAD --short | tr / - 2>/dev/null).txt
+	@test -s $(GOPATH)/bin/benchstat || GO111MODULE=off GOFLAGS= GOBIN=$(GOPATH)/bin $(GO) get -u golang.org/x/perf/cmd/benchstat
+	@benchstat bench-$(shell git symbolic-ref HEAD --short | tr / - 2>/dev/null).txt
+
+## Run benchmark for app examples, iterations count controlled by BENCH_COUNT, default 5.
+bench-examples:
+	@cd _examples
+	@$(GO) test -bench=. -count=$(BENCH_COUNT) -run=^a  ./... | tee /dev/tty >../bench-examples-$(shell git symbolic-ref HEAD --short | tr / - 2>/dev/null).txt
+	@test -s $(GOPATH)/bin/benchstat || GO111MODULE=off GOFLAGS= GOBIN=$(GOPATH)/bin $(GO) get -u golang.org/x/perf/cmd/benchstat
+	@benchstat ../bench-examples-$(shell git symbolic-ref HEAD --short | tr / - 2>/dev/null).txt
