@@ -24,8 +24,12 @@ jobs:
         uses: actions/checkout@v2
       - uses: actions/cache@v2
         with:
-          path: ~/go/pkg
-          key: ${{ runner.os }}-go-pkg-${{ hashFiles('**/go.mod') }}
+          path: |
+            vendor
+            _examples/vendor
+          key: ${{ runner.os }}-go-vendor-${{ hashFiles('**/go.mod') }}
+      - name: Populate dependencies
+        run: '(test -d vendor && echo vendor found) || (go mod vendor && cd _examples && go mod vendor)'
       - uses: actions/cache@v2
         with:
           path: ~/go/bin/benchstat
