@@ -1,6 +1,7 @@
 package request
 
 import (
+	"io"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -27,6 +28,10 @@ const (
 // Please use NewDecoderFactory to create instance.
 type DecoderFactory struct {
 	ApplyDefaults bool
+
+	// JSONReader allows custom JSON decoder for request body.
+	// If not set encoding/json.Decoder is used.
+	JSONReader func(rd io.Reader, v interface{}) error
 
 	formDecoders      map[rest.ParamIn]*form.Decoder
 	decoderFunctions  map[rest.ParamIn]decoderFunc
@@ -120,7 +125,12 @@ func (df *DecoderFactory) MakeDecoder(
 
 	// Checking for body tags.
 	if refl.HasTaggedFields(input, jsonTag) || refl.FindEmbeddedSliceOrMap(input) != nil {
-		m.decoders = append(m.decoders, decodeJSONBody)
+		if df.JSONReader != nil {
+			m.decoders = append(m.decoders, decodeJSONBody(df.JSONReader))
+		} else {
+			m.decoders = append(m.decoders, decodeJSONBody(readJSON))
+		}
+
 		m.in = append(m.in, rest.ParamInBody)
 	}
 

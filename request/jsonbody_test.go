@@ -25,7 +25,7 @@ func Test_decodeJSONBody(t *testing.T) {
 	}
 
 	i := Input{}
-	assert.NoError(t, decodeJSONBody(createReq, &i, nil))
+	assert.NoError(t, decodeJSONBody(readJSON)(createReq, &i, nil))
 	assert.Equal(t, 123, i.Amount)
 	assert.Equal(t, "248df4b7-aa70-47b8-a036-33ac447e668d", i.CustomerID)
 	assert.Equal(t, "withdraw", i.Type)
@@ -37,7 +37,7 @@ func Test_decodeJSONBody(t *testing.T) {
 	i = Input{}
 	_, err = createBody.Seek(0, io.SeekStart)
 	assert.NoError(t, err)
-	assert.NoError(t, decodeJSONBody(createReq, &i, vl))
+	assert.NoError(t, decodeJSONBody(readJSON)(createReq, &i, vl))
 	assert.Equal(t, 123, i.Amount)
 	assert.Equal(t, "248df4b7-aa70-47b8-a036-33ac447e668d", i.CustomerID)
 	assert.Equal(t, "withdraw", i.Type)
@@ -49,7 +49,7 @@ func Test_decodeJSONBody_emptyBody(t *testing.T) {
 
 	var i []int
 
-	err = decodeJSONBody(req, &i, nil)
+	err = decodeJSONBody(readJSON)(req, &i, nil)
 	assert.EqualError(t, err, "missing request body")
 }
 
@@ -60,7 +60,7 @@ func Test_decodeJSONBody_badContentType(t *testing.T) {
 
 	var i []int
 
-	err = decodeJSONBody(req, &i, nil)
+	err = decodeJSONBody(readJSON)(req, &i, nil)
 	assert.EqualError(t, err, "request with application/json content type expected, received: text/plain")
 }
 
@@ -70,7 +70,7 @@ func Test_decodeJSONBody_decodeFailed(t *testing.T) {
 
 	var i []int
 
-	err = decodeJSONBody(req, &i, nil)
+	err = decodeJSONBody(readJSON)(req, &i, nil)
 	assert.Error(t, err)
 }
 
@@ -80,7 +80,7 @@ func Test_decodeJSONBody_unmarshalFailed(t *testing.T) {
 
 	var i []int
 
-	err = decodeJSONBody(req, &i, nil)
+	err = decodeJSONBody(readJSON)(req, &i, nil)
 	assert.EqualError(t, err, "failed to decode json: json: cannot unmarshal number into Go value of type []int")
 }
 
@@ -94,6 +94,6 @@ func Test_decodeJSONBody_validateFailed(t *testing.T) {
 		return errors.New("failed")
 	})
 
-	err = decodeJSONBody(req, &i, vl)
+	err = decodeJSONBody(readJSON)(req, &i, vl)
 	assert.EqualError(t, err, "failed")
 }

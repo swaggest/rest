@@ -9,6 +9,9 @@ type Validator interface {
 
 	// ValidateData validates JSON encoded body and returns error in case of invalid data.
 	ValidateJSONBody(jsonBody []byte) error
+
+	// HasConstraints indicates if there are validation rules for parameter location.
+	HasConstraints(in ParamIn) bool
 }
 
 // ValidatorFunc implements Validator with a func.
@@ -17,6 +20,11 @@ type ValidatorFunc func(in ParamIn, namedData map[string]interface{}) error
 // ValidateData implements Validator.
 func (v ValidatorFunc) ValidateData(in ParamIn, namedData map[string]interface{}) error {
 	return v(in, namedData)
+}
+
+// HasConstraints indicates if there are validation rules for parameter location.
+func (v ValidatorFunc) HasConstraints(_ ParamIn) bool {
+	return true
 }
 
 // ValidateJSONBody implements Validator.

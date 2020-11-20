@@ -167,6 +167,11 @@ func (v *Validator) ValidateJSONBody(jsonBody []byte) error {
 	return errs
 }
 
+// HasConstraints indicates if there are validation rules for parameter location.
+func (v *Validator) HasConstraints(in rest.ParamIn) bool {
+	return len(v.inNamedSchemas[in]) > 0
+}
+
 // ValidateData performs validation of a mapped request data.
 func (v *Validator) ValidateData(in rest.ParamIn, namedData map[string]interface{}) error {
 	var errs rest.ValidationErrors
