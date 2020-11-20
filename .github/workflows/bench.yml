@@ -26,22 +26,16 @@ jobs:
         with:
           path: vendor
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
-          restore-keys: |
-            ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
       - uses: actions/cache@v2
         with:
-          path: ~/go/bin
-          key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.mod') }}
-          restore-keys: |
-            ${{ runner.os }}-go-bin-${{ hashFiles('**/go.mod') }}
+          path: ~/go/bin/benchstat
+          key: ${{ runner.os }}-benchstat
       - uses: actions/cache@v2
         with:
           path: |
             bench-master.txt
             bench-examples-master.txt
           key: ${{ runner.os }}-go-bench
-          restore-keys: |
-            ${{ runner.os }}-go-bench
       - name: Populate dependencies
         run: '(test -d vendor && echo vendor found) || go mod vendor'
       - name: Bench
