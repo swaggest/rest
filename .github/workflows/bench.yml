@@ -22,13 +22,19 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
         uses: actions/checkout@v2
-      - uses: actions/cache@v1
+      - uses: actions/cache@v2
         with:
           path: vendor
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
           restore-keys: |
             ${{ runner.os }}-go-${{ hashFiles('**/go.mod') }}
+      - uses: actions/cache@v2
+        with:
+          path: ~/go/bin
+          key: ${{ runner.os }}-go-bin-${{ hashFiles('**/go.mod') }}
+          restore-keys: |
+            ${{ runner.os }}-go-bin-${{ hashFiles('**/go.mod') }}
       - name: Populate dependencies
         run: '(test -d vendor && echo vendor found) || go mod vendor'
       - name: Bench
-        run: make bench bench-examples
+        run: REF_NAME=${GITHUB_REF##*/} make bench bench-examples
