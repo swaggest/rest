@@ -45,6 +45,7 @@ bench:
 	@$(GO) test -bench=. -count=$(BENCH_COUNT) -run=^a  ./... >bench-$(REF_NAME).txt
 	@test -s $(GOPATH)/bin/benchstat || GO111MODULE=off GOFLAGS= GOBIN=$(GOPATH)/bin $(GO) get -u golang.org/x/perf/cmd/benchstat
 	@benchstat bench-$(REF_NAME).txt
+	@test -s bench-master.txt && benchstat bench-$(REF_NAME).txt
 
 ## Run benchmark for app examples, iterations count controlled by BENCH_COUNT, default 5.
 bench-examples:
@@ -52,3 +53,4 @@ bench-examples:
 	@$(GO) test -bench=. -count=$(BENCH_COUNT) -run=^a  ./... >../bench-examples-$(REF_NAME).txt
 	@test -s $(GOPATH)/bin/benchstat || GO111MODULE=off GOFLAGS= GOBIN=$(GOPATH)/bin $(GO) get -u golang.org/x/perf/cmd/benchstat
 	@benchstat ../bench-examples-$(REF_NAME).txt
+	@test -s bench-examples-master.txt && benchstat bench-examples-$(REF_NAME).txt
