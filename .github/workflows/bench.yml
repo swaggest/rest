@@ -36,7 +36,5 @@ jobs:
             bench-master.txt
             bench-examples-master.txt
           key: ${{ runner.os }}-go-bench
-      - name: Populate dependencies
-        run: '(test -d vendor && echo vendor found) || go mod vendor'
       - name: Bench
         run: REF_NAME=${GITHUB_REF##*/} make bench bench-examples
