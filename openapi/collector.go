@@ -240,7 +240,7 @@ func (c *Collector) provideParametersJSONSchemas(op openapi3.Operation, validato
 			schemaData []byte
 		)
 
-		if !schema.IsTrivial() {
+		if !schema.IsTrivial(c.Reflector().ResolveJSONSchemaRef) {
 			schemaData, err = schema.JSONSchemaBytes()
 			if err != nil {
 				return fmt.Errorf("failed to build JSON Schema for parameter (%s, %s)", pp.In, pp.Name)
@@ -301,7 +301,7 @@ func (c *Collector) ProvideRequestJSONSchemas(
 			}
 
 			schema := content.Schema.ToJSONSchema(c.Reflector().Spec)
-			if schema.IsTrivial() {
+			if schema.IsTrivial(c.Reflector().ResolveJSONSchemaRef) {
 				continue
 			}
 
@@ -334,7 +334,7 @@ func (c *Collector) provideHeaderSchemas(resp *openapi3.Response, validator rest
 			schemaData []byte
 		)
 
-		if !schema.IsTrivial() {
+		if !schema.IsTrivial(c.Reflector().ResolveJSONSchemaRef) {
 			schemaData, err = schema.JSONSchemaBytes()
 			if err != nil {
 				return fmt.Errorf("failed to build JSON Schema for response header (%s)", name)
@@ -389,7 +389,7 @@ func (c *Collector) ProvideResponseJSONSchemas(
 
 		schema := cont.Schema.ToJSONSchema(c.Reflector().Spec)
 
-		if schema.IsTrivial() {
+		if schema.IsTrivial(c.Reflector().ResolveJSONSchemaRef) {
 			continue
 		}
 

@@ -10,6 +10,7 @@ import (
 )
 
 // Benchmark_jsonBody-4   	   29671	     37417 ns/op	       194 B:rcvd/op	       181 B:sent/op	     26705 rps	    6068 B/op	      58 allocs/op.
+// Benchmark_jsonBody-4   	   29749	     35934 ns/op	       194 B:rcvd/op	       181 B:sent/op	     27829 rps	    6063 B/op	      57 allocs/op.
 func Benchmark_jsonBody(b *testing.B) {
 	r := NewRouter()
 

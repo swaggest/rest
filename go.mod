@@ -3,15 +3,14 @@ module github.com/swaggest/rest
 go 1.13
 
 require (
-	github.com/bool64/dev v0.1.6
+	github.com/bool64/dev v0.1.7
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/go-chi/chi v4.1.2+incompatible
-	github.com/iancoleman/orderedmap v0.1.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v2 v2.2.0
 	github.com/stretchr/testify v1.6.1
-	github.com/swaggest/assertjson v1.3.0
+	github.com/swaggest/assertjson v1.4.0
 	github.com/swaggest/form v3.6.4+incompatible
-	github.com/swaggest/openapi-go v0.2.3
+	github.com/swaggest/openapi-go v0.2.4
 	github.com/swaggest/refl v0.1.5
 	github.com/swaggest/usecase v0.0.0-20200928062416-27f47131b0f8
 	golang.org/x/net v0.0.0-20200822124328-c89045814202 // indirect
