@@ -44,4 +44,4 @@ jobs:
             bench-examples-master.txt
           key: ${{ runner.os }}-go-bench-${{ github.event.pull_request.base.sha }}
       - name: Bench
-        #run: REF_NAME=${GITHUB_REF##*/} make bench bench-examples
+        run: echo "Hello!"
