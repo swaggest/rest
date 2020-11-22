@@ -116,6 +116,7 @@ func BenchmarkDecoderFunc_Decode(b *testing.B) {
 
 	b.ResetTimer()
 	b.ReportAllocs()
+
 	for i := 0; i < b.N; i++ {
 		input := new(reqTest)
 
@@ -187,6 +188,7 @@ func BenchmarkDecoder_Decode_json(b *testing.B) {
 
 	b.ResetTimer()
 	b.ReportAllocs()
+
 	for i := 0; i < b.N; i++ {
 		req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "/?in_query=cba",
 			strings.NewReader(`{"bodyOne":"abc", "bodyTwo": [1,2,3]}`))
@@ -221,7 +223,6 @@ func BenchmarkDecoder_Decode_json(b *testing.B) {
 			b.Fail()
 		}
 	}
-
 }
 
 func TestDecoder_Decode_queryObject(t *testing.T) {
@@ -269,6 +270,7 @@ func BenchmarkDecoder_Decode_queryObject(b *testing.B) {
 
 	b.ResetTimer()
 	b.ReportAllocs()
+
 	for i := 0; i < b.N; i++ {
 		err = dec.Decode(req, input, nil)
 		if err != nil {
