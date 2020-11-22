@@ -11,7 +11,6 @@ on:
 env:
   GO111MODULE: "on"
   GITHUB_CONTEXT: ${{ toJson(github) }}
-run: echo "$GITHUB_CONTEXT"
 jobs:
   bench:
     strategy:
@@ -44,4 +43,5 @@ jobs:
             bench-examples-master.txt
           key: ${{ runner.os }}-go-bench-${{ github.event.pull_request.base.sha }}
       - name: Bench
-        run: echo "Hello!"
+        run: echo "$GITHUB_CONTEXT"
+
