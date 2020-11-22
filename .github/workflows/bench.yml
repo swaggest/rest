@@ -39,6 +39,7 @@ jobs:
           path: |
             bench-master.txt
             bench-examples-master.txt
-          key: ${{ runner.os }}-go-bench
+          # Using base sha for PR or new commit hash for master/main push in benchmark result key.
+          key: ${{ runner.os }}-go-bench-${{ github.event.pull_request.base.sha }}${{ github.event.after }}
       - name: Bench
         run: REF_NAME=${GITHUB_REF##*/} make bench bench-examples
