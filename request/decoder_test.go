@@ -91,6 +91,45 @@ func TestDecoder_Decode(t *testing.T) {
 	assert.Equal(t, "mno", input.Path)
 }
 
+// BenchmarkDecoderFunc_Decode-4   	  440503	      2525 ns/op	    1513 B/op	      12 allocs/op.
+func BenchmarkDecoderFunc_Decode(b *testing.B) {
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "/?in_query=abc",
+		strings.NewReader(url.Values{"inFormData": []string{"def"}}.Encode()))
+	assert.NoError(b, err)
+
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
+	req.Header.Set("X-In-Header", "123")
+
+	c := http.Cookie{
+		Name:  "in_cookie",
+		Value: "jkl",
+	}
+
+	req.AddCookie(&c)
+
+	df := request.NewDecoderFactory()
+	df.SetDecoderFunc(rest.ParamInPath, func(r *http.Request) (url.Values, error) {
+		return url.Values{"in_path": []string{"mno"}}, nil
+	})
+
+	dec := df.MakeDecoder(http.MethodPost, new(reqTest), nil)
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		input := new(reqTest)
+
+		err := dec.Decode(req, input, nil)
+		if err != nil {
+			b.Fail()
+		}
+
+		if input.Header != 123 {
+			b.Fail()
+		}
+	}
+}
+
 func TestDecoder_Decode_required(t *testing.T) {
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "/", nil)
 	assert.NoError(t, err)
@@ -139,6 +178,52 @@ func TestDecoder_Decode_json(t *testing.T) {
 	assert.Equal(t, rest.ValidationErrors{"body": []string{"#/bodyTwo: minimum 2 items allowed, but found 1 items"}}, err)
 }
 
+// BenchmarkDecoder_Decode_json-4   	   36660	     29688 ns/op	   12310 B/op	     169 allocs/op.
+func BenchmarkDecoder_Decode_json(b *testing.B) {
+	input := new(reqJSONTest)
+	dec := request.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
+	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
+		MakeRequestValidator(http.MethodPost, input, nil)
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "/?in_query=cba",
+			strings.NewReader(`{"bodyOne":"abc", "bodyTwo": [1,2,3]}`))
+		if err != nil {
+			b.Fail()
+		}
+
+		err = dec.Decode(req, input, validator)
+		if err != nil {
+			b.Fail()
+		}
+
+		req, err = http.NewRequestWithContext(context.Background(), http.MethodPost, "/",
+			strings.NewReader(`{"bodyTwo":[1]}`))
+		if err != nil {
+			b.Fail()
+		}
+
+		err = dec.Decode(req, input, validator)
+		if err == nil {
+			b.Fail()
+		}
+
+		req, err = http.NewRequestWithContext(context.Background(), http.MethodPost, "/",
+			strings.NewReader(`{"bodyOne":"abc", "bodyTwo":[1]}`))
+		if err != nil {
+			b.Fail()
+		}
+
+		err = dec.Decode(req, input, validator)
+		if err == nil {
+			b.Fail()
+		}
+	}
+
+}
+
 func TestDecoder_Decode_queryObject(t *testing.T) {
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet,
 		"/?in_query[1]=1.0&in_query[2]=2.1&in_query[3]=0", nil)
@@ -163,4 +248,36 @@ func TestDecoder_Decode_queryObject(t *testing.T) {
 	assert.Equal(t, rest.RequestErrors{"query:in_query": []string{
 		"#: Invalid Integer Value 'c' Type 'int' Namespace 'in_query'",
 	}}, err)
+}
+
+// BenchmarkDecoder_Decode_queryObject-4   	  170670	      6104 ns/op	    2000 B/op	      36 allocs/op.
+func BenchmarkDecoder_Decode_queryObject(b *testing.B) {
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet,
+		"/?in_query[1]=1.0&in_query[2]=2.1&in_query[3]=0", nil)
+	assert.NoError(b, err)
+
+	req2, err := http.NewRequestWithContext(context.Background(), http.MethodGet,
+		"/?in_query[1]=1.0&in_query[2]=2.1&in_query[c]=0", nil)
+	assert.NoError(b, err)
+
+	df := request.NewDecoderFactory()
+
+	input := new(struct {
+		InQuery map[int]float64 `query:"in_query"`
+	})
+	dec := df.MakeDecoder(http.MethodGet, input, nil)
+
+	b.ResetTimer()
+	b.ReportAllocs()
+	for i := 0; i < b.N; i++ {
+		err = dec.Decode(req, input, nil)
+		if err != nil {
+			b.Fail()
+		}
+
+		err = dec.Decode(req2, input, nil)
+		if err == nil {
+			b.Fail()
+		}
+	}
 }
