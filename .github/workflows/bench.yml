@@ -9,6 +9,7 @@ on:
   pull_request:
 env:
   GO111MODULE: "on"
+
 jobs:
   bench:
     strategy:
@@ -40,6 +41,6 @@ jobs:
             bench-master.txt
             bench-examples-master.txt
           # Using base sha for PR or new commit hash for master/main push in benchmark result key.
-          key: ${{ runner.os }}-go-bench-${{ github.event.pull_request.base.sha }}${{ github.event.after }}
-      - name: Bench
-        run: REF_NAME=${GITHUB_REF##*/} make bench bench-examples
+          key: ${{ runner.os }}-bench-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
+      - name: Benchmark
+        run: REF_NAME=${GITHUB_REF##*/} make bench bench-examples && ls -la bench-*.txt
