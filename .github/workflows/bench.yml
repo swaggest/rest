@@ -6,9 +6,12 @@ on:
     branches:
       - master
       - main
+      - ci-test
   pull_request:
 env:
   GO111MODULE: "on"
+  GITHUB_CONTEXT: ${{ toJson(github) }}
+run: echo "$GITHUB_CONTEXT"
 jobs:
   bench:
     strategy:
@@ -39,6 +42,6 @@ jobs:
           path: |
             bench-master.txt
             bench-examples-master.txt
-          key: ${{ runner.os }}-go-bench
+          key: ${{ runner.os }}-go-bench-${{ github.event.pull_request.base.sha }}
       - name: Bench
-        run: REF_NAME=${GITHUB_REF##*/} make bench bench-examples
+        #run: REF_NAME=${GITHUB_REF##*/} make bench bench-examples
