@@ -1,6 +1,8 @@
 package request
 
 import (
+	"bytes"
+	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
@@ -109,7 +111,7 @@ func (df *DecoderFactory) MakeDecoder(
 		}
 
 		if refl.HasTaggedFields(input, string(in)) {
-			// dfu :=  df.decoderFunctions[in]
+			df.jsonParams(formDecoder, in, input)
 			m.decoders = append(m.decoders, makeDecoder(in, formDecoder, df.decoderFunctions[in]))
 			m.in = append(m.in, in)
 		}
@@ -140,6 +142,34 @@ func (df *DecoderFactory) MakeDecoder(
 	}
 
 	return &m
+}
+
+// jsonParams configures custom decoding for parameters with JSON struct values.
+func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn, input interface{}) {
+	// Check fields for struct values with json tags. E.g. query parameter with json value.
+	refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
+		fieldVal := reflect.Zero(sf.Type).Interface()
+
+		if refl.HasTaggedFields(fieldVal, jsonTag) {
+			// If value is a struct with `json` tags, custom decoder unmarshals json
+			// from a string value into a struct.
+			formDecoder.RegisterFunc(func(s string) (interface{}, error) {
+				var err error
+				f := reflect.New(sf.Type)
+				if df.JSONReader != nil {
+					err = df.JSONReader(bytes.NewBufferString(s), f.Interface())
+				} else {
+					err = json.Unmarshal([]byte(s), f.Interface())
+				}
+
+				if err != nil {
+					return nil, err
+				}
+
+				return reflect.Indirect(f).Interface(), nil
+			}, fieldVal)
+		}
+	}, string(in))
 }
 
 func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
