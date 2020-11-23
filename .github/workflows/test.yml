@@ -29,7 +29,9 @@ jobs:
             _examples/vendor
           key: ${{ runner.os }}-go-vendor-${{ hashFiles('**/go.mod') }}
       - name: Populate dependencies
-        run: '(test -d vendor && echo vendor found) || (go mod vendor && cd _examples && go mod vendor)'
+        run: |
+          (test -d vendor && echo vendor found) || (go mod vendor)
+          (test -d _examples/vendor && echo _examples/vendor found) || (cd _examples && go mod vendor)
       - name: Test
         run: make test-unit
       - name: Upload code coverage
