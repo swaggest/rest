@@ -1,7 +1,6 @@
 package request
 
 import (
-	"errors"
 	"net/http"
 	"net/url"
 	"strings"
@@ -53,13 +52,10 @@ var _ nethttp.RequestDecoder = &decoder{}
 // Decode populates and validates input with data from http request.
 func (d *decoder) Decode(r *http.Request, input interface{}, validator rest.Validator) error {
 	for i, decode := range d.decoders {
-		var (
-			err = decode(r, input, validator)
-			de  form.DecodeErrors
-		)
-
+		err := decode(r, input, validator)
 		if err != nil {
-			if errors.As(err, &de) {
+			// nolint:errorlint // Error is not wrapped, type assertion is more performant.
+			if de, ok := err.(form.DecodeErrors); ok {
 				errs := make(rest.RequestErrors, len(de))
 				for name, e := range de {
 					errs[string(d.in[i])+":"+name] = []string{"#: " + e.Error()}

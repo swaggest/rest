@@ -4,7 +4,6 @@ package jsonschema
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 
 	"github.com/santhosh-tekuri/jsonschema/v2"
 	"github.com/swaggest/rest"
@@ -157,12 +156,10 @@ func (v *Validator) ValidateJSONBody(jsonBody []byte) error {
 		return nil
 	}
 
-	var (
-		errs = make(rest.ValidationErrors, 1)
-		ve   *jsonschema.ValidationError
-	)
+	errs := make(rest.ValidationErrors, 1)
 
-	if errors.As(err, &ve) {
+	// nolint:errorlint // Error is not wrapped, type assertion is more performant.
+	if ve, ok := err.(*jsonschema.ValidationError); ok {
 		errs[name] = appendError(errs[name], ve)
 	} else {
 		errs[name] = append(errs[name], err.Error())
@@ -209,12 +206,10 @@ func (v *Validator) ValidateData(in rest.ParamIn, namedData map[string]interface
 			errs = make(rest.ValidationErrors, 1)
 		}
 
-		var (
-			errKey = string(in) + ":" + name
-			ve     *jsonschema.ValidationError
-		)
+		errKey := string(in) + ":" + name
 
-		if errors.As(err, &ve) {
+		// nolint:errorlint // Error is not wrapped, type assertion is more performant.
+		if ve, ok := err.(*jsonschema.ValidationError); ok {
 			errs[errKey] = appendError(errs[errKey], ve)
 		} else {
 			errs[errKey] = append(errs[errKey], err.Error())
