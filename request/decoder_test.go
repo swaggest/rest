@@ -283,3 +283,54 @@ func BenchmarkDecoder_Decode_queryObject(b *testing.B) {
 		}
 	}
 }
+
+func TestDecoder_Decode_jsonParam(t *testing.T) {
+	type inp struct {
+		Filter struct {
+			A int    `json:"a"`
+			B string `json:"b"`
+		} `query:"filter"`
+	}
+
+	df := request.NewDecoderFactory()
+	dec := df.MakeDecoder(http.MethodGet, new(inp), nil)
+
+	req, err := http.NewRequest(http.MethodGet, "/?filter=%7B%22a%22%3A123%2C%22b%22%3A%22abc%22%7D", nil)
+	require.NoError(t, err)
+
+	v := new(inp)
+	require.NoError(t, dec.Decode(req, v, nil))
+
+	assert.Equal(t, 123, v.Filter.A)
+	assert.Equal(t, "abc", v.Filter.B)
+}
+
+// BenchmarkDecoder_Decode_jsonParam-4   	  525867	      2306 ns/op	     752 B/op	      12 allocs/op.
+func BenchmarkDecoder_Decode_jsonParam(b *testing.B) {
+	type inp struct {
+		Filter struct {
+			A int    `json:"a"`
+			B string `json:"b"`
+		} `query:"filter"`
+	}
+
+	df := request.NewDecoderFactory()
+	dec := df.MakeDecoder(http.MethodGet, new(inp), nil)
+
+	req, err := http.NewRequest(http.MethodGet, "/?filter=%7B%22a%22%3A123%2C%22b%22%3A%22abc%22%7D", nil)
+	require.NoError(b, err)
+
+	v := new(inp)
+
+	b.ReportAllocs()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		err := dec.Decode(req, v, nil)
+		if err != nil {
+			b.Fail()
+		}
+	}
+	assert.Equal(b, 123, v.Filter.A)
+	assert.Equal(b, "abc", v.Filter.B)
+}

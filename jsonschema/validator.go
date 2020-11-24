@@ -158,6 +158,7 @@ func (v *Validator) ValidateJSONBody(jsonBody []byte) error {
 
 	errs := make(rest.ValidationErrors, 1)
 
+	// nolint:errorlint // Error is not wrapped, type assertion is more performant.
 	if ve, ok := err.(*jsonschema.ValidationError); ok {
 		errs[name] = appendError(errs[name], ve)
 	} else {
@@ -207,6 +208,7 @@ func (v *Validator) ValidateData(in rest.ParamIn, namedData map[string]interface
 
 		errKey := string(in) + ":" + name
 
+		// nolint:errorlint // Error is not wrapped, type assertion is more performant.
 		if ve, ok := err.(*jsonschema.ValidationError); ok {
 			errs[errKey] = appendError(errs[errKey], ve)
 		} else {

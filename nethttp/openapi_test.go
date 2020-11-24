@@ -62,7 +62,7 @@ func TestOpenAPIMiddleware(t *testing.T) {
 	require.NoError(t, err)
 
 	assertjson.Equal(t, []byte(`{
-	 "openapi":"3.0.2","info":{"title":"","version":""},
+	 "openapi":"3.0.3","info":{"title":"","version":""},
 	 "paths":{
 	  "/test":{
 	   "get":{

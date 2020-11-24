@@ -24,6 +24,8 @@ linters:
     - gochecknoglobals
     - testpackage
     - goerr113
+    - wrapcheck
+    - exhaustivestruct
 
 issues:
   exclude-use-default: false
