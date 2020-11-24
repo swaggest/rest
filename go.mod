@@ -8,10 +8,10 @@ require (
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/santhosh-tekuri/jsonschema/v2 v2.2.0
 	github.com/stretchr/testify v1.6.1
-	github.com/swaggest/assertjson v1.4.0
+	github.com/swaggest/assertjson v1.4.1
 	github.com/swaggest/form v3.6.4+incompatible
-	github.com/swaggest/openapi-go v0.2.4
-	github.com/swaggest/refl v0.1.5
+	github.com/swaggest/openapi-go v0.2.6
+	github.com/swaggest/refl v0.1.6
 	github.com/swaggest/usecase v0.0.0-20200928062416-27f47131b0f8
 	golang.org/x/net v0.0.0-20200822124328-c89045814202 // indirect
 	golang.org/x/sys v0.0.0-20200602225109-6fdc65e7d980 // indirect

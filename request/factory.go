@@ -148,7 +148,7 @@ func (df *DecoderFactory) MakeDecoder(
 func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn, input interface{}) {
 	// Check fields for struct values with json tags. E.g. query parameter with json value.
 	refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
-		fieldVal := reflect.Zero(sf.Type).Interface()
+		fieldVal := v.Interface()
 
 		if refl.HasTaggedFields(fieldVal, jsonTag) {
 			// If value is a struct with `json` tags, custom decoder unmarshals json
