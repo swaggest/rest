@@ -1,4 +1,4 @@
-GOLANGCI_LINT_VERSION := "v1.31.0"
+GOLANGCI_LINT_VERSION := "v1.32.2"
 BENCH_COUNT ?= 5
 REF_NAME ?= $(shell git symbolic-ref HEAD --short | tr / - 2>/dev/null)
 

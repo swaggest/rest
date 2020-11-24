@@ -1,4 +1,4 @@
-GOLANGCI_LINT_VERSION := "v1.31.0"
+GOLANGCI_LINT_VERSION := "v1.32.2"
 
 # The head of Makefile determines location of dev-go to include standard targets.
 GO ?= go

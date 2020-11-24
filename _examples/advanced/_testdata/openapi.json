@@ -1,5 +1,5 @@
 {
-  "openapi":"3.0.2",
+  "openapi":"3.0.3",
   "info":{"title":"Advanced Example","description":"This app showcases a variety of features.","version":"v1.2.3"},
   "paths":{
     "/file-multi-upload":{
@@ -92,11 +92,11 @@
             "schema":{"minLength":3,"type":"string","description":"Simple scalar value in header."}
           }
         ],
-        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSONType2"}}}},
+        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSONType3"}}}},
         "responses":{
           "200":{
             "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType2"}}}
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType3"}}}
           }
         }
       }
@@ -120,11 +120,11 @@
             "schema":{"type":"string","description":"Simple scalar value in header."}
           }
         ],
-        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSON"}}}},
+        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSONType2"}}}},
         "responses":{
           "200":{
             "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSON"}}}
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType2"}}}
           }
         }
       }
@@ -147,6 +147,38 @@
           "200":{
             "description":"OK",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonOutputType2"}}}
+          }
+        }
+      }
+    },
+    "/json-param/{in-path}":{
+      "get":{
+        "summary":"Request With JSON Query Parameter",
+        "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
+        "operationId":"",
+        "parameters":[
+          {
+            "name":"in_query","in":"query","description":"Simple scalar value in query.",
+            "schema":{"type":"integer","description":"Simple scalar value in query."}
+          },
+          {
+            "name":"identity","in":"query","description":"JSON value in query",
+            "schema":{"$ref":"#/components/schemas/AdvancedJSONPayload"},
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJSONPayload"}}}
+          },
+          {
+            "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
+            "schema":{"type":"string","description":"Simple scalar value in path"}
+          },
+          {
+            "name":"X-Header","in":"header","description":"Simple scalar value in header.",
+            "schema":{"type":"string","description":"Simple scalar value in header."}
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"OK",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSON"}}}
           }
         }
       }
@@ -336,9 +368,10 @@
           }
         }
       },
-      "AdvancedInputWithJSON":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}}},
-      "AdvancedInputWithJSONType2":{"type":"object","properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}}},
+      "AdvancedInputWithJSONType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}}},
+      "AdvancedInputWithJSONType3":{"type":"object","properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}}},
       "AdvancedJSONMapPayload":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
+      "AdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}}},
       "AdvancedJSONSlicePayload":{"type":"array","items":{"type":"integer"},"nullable":true},
       "AdvancedJsonMapReq":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
       "AdvancedJsonOutput":{
@@ -372,6 +405,13 @@
         }
       },
       "AdvancedOutputWithJSONType2":{
+        "type":"object",
+        "properties":{
+          "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},"inQuery":{"type":"integer"},
+          "name":{"type":"string"}
+        }
+      },
+      "AdvancedOutputWithJSONType3":{
         "type":"object",
         "properties":{
           "id":{"minimum":100,"type":"integer"},"inHeader":{"minLength":3,"type":"string"},
@@ -413,7 +453,7 @@
           "status":{"type":"string","description":"Status text."}
         }
       },
-      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}}
+      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}},"nullable":true}
     }
   }
 }

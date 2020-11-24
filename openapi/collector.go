@@ -254,7 +254,7 @@ func (c *Collector) provideParametersJSONSchemas(op openapi3.Operation, validato
 
 		err = validator.AddSchema(rest.ParamIn(pp.In), pp.Name, schemaData, required)
 		if err != nil {
-			return fmt.Errorf("failed to add validation schema for parameter (%s, %s): %v", pp.In, pp.Name, err)
+			return fmt.Errorf("failed to add validation schema for parameter (%s, %s): %w", pp.In, pp.Name, err)
 		}
 	}
 
@@ -312,7 +312,7 @@ func (c *Collector) ProvideRequestJSONSchemas(
 
 			err = validator.AddSchema(in, "body", schemaData, false)
 			if err != nil {
-				return fmt.Errorf("failed to add validation schema for request body: %v", err)
+				return fmt.Errorf("failed to add validation schema for request body: %w", err)
 			}
 		}
 	}
@@ -348,7 +348,7 @@ func (c *Collector) provideHeaderSchemas(resp *openapi3.Response, validator rest
 
 		err = validator.AddSchema(rest.ParamInHeader, name, schemaData, required)
 		if err != nil {
-			return fmt.Errorf("failed to add validation schema for response header (%s): %v", name, err)
+			return fmt.Errorf("failed to add validation schema for response header (%s): %w", name, err)
 		}
 	}
 
@@ -399,7 +399,7 @@ func (c *Collector) ProvideResponseJSONSchemas(
 		}
 
 		if err := validator.AddSchema(rest.ParamInBody, "body", schemaData, false); err != nil {
-			return fmt.Errorf("failed to add validation schema for response body: %v", err)
+			return fmt.Errorf("failed to add validation schema for response body: %w", err)
 		}
 	}
 
