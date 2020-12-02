@@ -85,7 +85,11 @@ func HTTPBearerSecurityMiddleware(
 	return securityMiddleware(c, name)
 }
 
-func securityMiddleware(s *openapi.Collector, name string) func(http.Handler) http.Handler {
+// AnnotateOpenAPI applies OpenAPI annotation to relevant handlers.
+func AnnotateOpenAPI(
+	s *openapi.Collector,
+	setup ...func(op *openapi3.Operation) error,
+) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		var withRoute rest.HandlerWithRoute
 
@@ -93,14 +97,18 @@ func securityMiddleware(s *openapi.Collector, name string) func(http.Handler) ht
 			s.Annotate(
 				withRoute.RouteMethod(),
 				withRoute.RoutePattern(),
-				func(op *openapi3.Operation) error {
-					op.Security = append(op.Security, map[string][]string{name: {}})
-
-					return s.Reflector().SetJSONResponse(op, rest.ErrResponse{}, http.StatusUnauthorized)
-				},
+				setup...,
 			)
 		}
 
 		return next
 	}
+}
+
+func securityMiddleware(s *openapi.Collector, name string) func(http.Handler) http.Handler {
+	return AnnotateOpenAPI(s, func(op *openapi3.Operation) error {
+		op.Security = append(op.Security, map[string][]string{name: {}})
+
+		return s.Reflector().SetJSONResponse(op, rest.ErrResponse{}, http.StatusUnauthorized)
+	})
 }
