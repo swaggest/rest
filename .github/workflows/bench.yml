@@ -22,7 +22,8 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
         uses: actions/checkout@v2
-      - uses: actions/cache@v2
+      - name: Restore vendor
+        uses: actions/cache@v2
         with:
           path: |
             vendor
@@ -31,17 +32,18 @@ jobs:
       - name: Populate dependencies
         run: |
           (test -d vendor && echo vendor found) || (go mod vendor)
-          (test -d _examples/vendor && echo _examples/vendor found) || (cd _examples && go mod vendor)
-      - uses: actions/cache@v2
+      - name: Restore benchstat
+        uses: actions/cache@v2
         with:
           path: ~/go/bin/benchstat
           key: ${{ runner.os }}-benchstat
-      - uses: actions/cache@v2
+      - name: Restore base benchmark result
+        uses: actions/cache@v2
         with:
           path: |
             bench-master.txt
             bench-examples-master.txt
-          # Using base sha for PR or new commit hash for master/main push in benchmark result key.
+          # Use base sha for PR or new commit hash for master/main push in benchmark result key.
           key: ${{ runner.os }}-bench-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
       - name: Benchmark
-        run: REF_NAME=${GITHUB_REF##*/} make bench bench-examples && ls -la bench-*.txt
+        run: REF_NAME=${GITHUB_REF##*/} make bench bench-examples
