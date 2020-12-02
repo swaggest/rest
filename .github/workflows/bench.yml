@@ -32,6 +32,7 @@ jobs:
       - name: Populate dependencies
         run: |
           (test -d vendor && echo vendor found) || (go mod vendor)
+          (test -d _examples/vendor && echo _examples/vendor found) || (cd _examples && go mod vendor)
       - name: Restore benchstat
         uses: actions/cache@v2
         with:
