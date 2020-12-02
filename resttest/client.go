@@ -3,7 +3,6 @@ package resttest
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -13,13 +12,15 @@ import (
 	"sync"
 
 	"github.com/swaggest/assertjson"
+	"github.com/swaggest/assertjson/json5"
 )
 
 // Client keeps state of expectations.
 type Client struct {
-	baseURL          string
-	Headers          map[string]string
 	ConcurrencyLevel int
+
+	baseURL string
+	Headers map[string]string
 
 	resp     *http.Response
 	respBody []byte
@@ -27,7 +28,7 @@ type Client struct {
 	reqHeaders map[string]string
 	reqBody    []byte
 	reqMethod  string
-	reqPath    string
+	reqURI     string
 
 	// reqConcurrency is a number of simultaneous requests to send.
 	reqConcurrency int
@@ -65,7 +66,7 @@ func (c *Client) Reset() *Client {
 	c.respBody = nil
 
 	c.reqMethod = ""
-	c.reqPath = ""
+	c.reqURI = ""
 	c.reqBody = nil
 
 	c.reqConcurrency = 0
@@ -82,9 +83,18 @@ func (c *Client) WithMethod(method string) *Client {
 	return c
 }
 
-// WithPath sets request URL path.
+// WithPath sets request URI path.
+//
+// Deprecated: use WithURI.
 func (c *Client) WithPath(path string) *Client {
-	c.reqPath = path
+	c.reqURI = path
+
+	return c
+}
+
+// WithURI sets request URI.
+func (c *Client) WithURI(uri string) *Client {
+	c.reqURI = uri
 
 	return c
 }
@@ -229,7 +239,7 @@ func (c *Client) doOnce() (*http.Response, error) {
 		reqBody = bytes.NewBuffer(c.reqBody)
 	}
 
-	req, err := http.NewRequestWithContext(context.Background(), c.reqMethod, c.baseURL+c.reqPath, reqBody)
+	req, err := http.NewRequestWithContext(context.Background(), c.reqMethod, c.baseURL+c.reqURI, reqBody)
 	if err != nil {
 		return nil, err
 	}
@@ -325,8 +335,13 @@ func (c *Client) checkBody(expected, received []byte) error {
 		return errEmptyBody
 	}
 
-	if json.Valid(expected) {
-		err := assertjson.FailNotEqual(expected, received)
+	if json5.Valid(expected) {
+		expected, err := json5.Downgrade(expected)
+		if err != nil {
+			return err
+		}
+
+		err = assertjson.FailNotEqual(expected, received)
 		if err != nil {
 			return fmt.Errorf("%w\nreceived: %s ", err, string(received))
 		}

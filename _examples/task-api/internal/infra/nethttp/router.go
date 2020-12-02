@@ -1,6 +1,7 @@
 package nethttp
 
 import (
+	"github.com/swaggest/openapi-go/openapi3"
 	"net/http"
 	"time"
 
@@ -51,6 +52,11 @@ func NewRouter(locator *service.Locator) http.Handler {
 
 	// Unrestricted access.
 	r.Route("/dev", func(r chi.Router) {
+		r.Use(nethttp.AnnotateOpenAPI(apiSchema, func(op *openapi3.Operation) error {
+			op.Tags = []string{"Dev Mode"}
+
+			return nil
+		}))
 		r.Group(func(r chi.Router) {
 			r.Method(http.MethodPost, "/tasks", nethttp.NewHandler(usecase.CreateTask(locator)))
 			r.Method(http.MethodPut, "/tasks/{id}", nethttp.NewHandler(usecase.UpdateTask(locator), ff))
@@ -63,6 +69,11 @@ func NewRouter(locator *service.Locator) http.Handler {
 	// Endpoints with admin access.
 	r.Route("/admin", func(r chi.Router) {
 		r.Group(func(r chi.Router) {
+			r.Use(nethttp.AnnotateOpenAPI(apiSchema, func(op *openapi3.Operation) error {
+				op.Tags = []string{"Admin Mode"}
+
+				return nil
+			}))
 			r.Use(adminAuth, nethttp.HTTPBasicSecurityMiddleware(apiSchema, "Admin", "Admin access"))
 			r.Method(http.MethodPut, "/tasks/{id}", nethttp.NewHandler(usecase.UpdateTask(locator), ff))
 		})

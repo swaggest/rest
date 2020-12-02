@@ -62,7 +62,7 @@ func main() {
 
 	// Declare input port type.
 	type helloInput struct {
-		Locale string `query:"locale" default:"en-US" pattern:"^[a-z]{2}-[A-Z]{2}$"`
+		Locale string `query:"locale" default:"en-US" pattern:"^[a-z]{2}-[A-Z]{2}$" enum:"ru-RU,en-US"`
 		Name   string `path:"name" minLength:"3"` // Field tags define parameter location and JSON schema constraints.
 	}
 	u.Input = new(helloInput)

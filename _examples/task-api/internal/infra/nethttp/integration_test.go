@@ -21,7 +21,7 @@ func Test_taskLifeSpan(t *testing.T) {
 
 	rc := resttest.NewClient(srv.URL)
 
-	rc.WithMethod(http.MethodPost).WithPath("/dev/tasks").
+	rc.WithMethod(http.MethodPost).WithURI("/dev/tasks").
 		WithContentType("application/json").
 		WithBody([]byte(`{"deadline": "2020-05-17T11:12:42.085Z","goal": "string"}`)).
 		Concurrently()
@@ -35,7 +35,7 @@ func Test_taskLifeSpan(t *testing.T) {
 		`"error":"already exists: task with same goal already exists",`+
 		`"context":{"task":{"id":1,"goal":"string","deadline":"2020-05-17T11:12:42.085Z","createdAt":"<ignore-diff>"}}}`)))
 
-	rc.Reset().WithMethod(http.MethodPost).WithPath("/dev/tasks").
+	rc.Reset().WithMethod(http.MethodPost).WithURI("/dev/tasks").
 		WithContentType("application/json").
 		WithBody([]byte(`{"deadline": "2020-35-17T11:12:42.085Z","goal": "do it!"}`)).
 		Concurrently()
@@ -45,7 +45,7 @@ func Test_taskLifeSpan(t *testing.T) {
 		`"error":"invalid argument: failed to decode json: `+
 		`parsing time \"\"2020-35-17T11:12:42.085Z\"\": month out of range"}`)))
 
-	rc.Reset().WithMethod(http.MethodPost).WithPath("/dev/tasks").
+	rc.Reset().WithMethod(http.MethodPost).WithURI("/dev/tasks").
 		WithContentType("application/json").
 		WithBody([]byte(`{"deadline": "2020-05-17T11:12:42.085Z","goal": ""}`)).
 		Concurrently()
@@ -54,7 +54,7 @@ func Test_taskLifeSpan(t *testing.T) {
 	assert.NoError(t, rc.ExpectResponseBody([]byte(`{"status":"INVALID_ARGUMENT",`+
 		`"error":"invalid argument: validation failed","context":{"body":["#/goal: length must be \u003e= 1, but got 0"]}}`)))
 
-	rc.Reset().WithMethod(http.MethodPost).WithPath("/dev/tasks").
+	rc.Reset().WithMethod(http.MethodPost).WithURI("/dev/tasks").
 		WithContentType("application/json").
 		WithBody([]byte(`{"deadline": "2XXX-05-17T11:12:42.085Z","goal": "do it!"}`)).
 		Concurrently()
@@ -69,24 +69,24 @@ func Test_taskLifeSpan(t *testing.T) {
 	assert.NoError(t, rc.ExpectResponseBody([]byte(`{"id":1,"goal":"string","deadline":"2020-05-17T11:12:42.085Z",`+
 		`"createdAt":"<ignore-diff>"}`)))
 
-	rc.Reset().WithMethod(http.MethodGet).WithPath("/dev/tasks").Concurrently()
+	rc.Reset().WithMethod(http.MethodGet).WithURI("/dev/tasks").Concurrently()
 	assert.NoError(t, rc.ExpectResponseStatus(http.StatusOK))
 	assert.NoError(t, rc.ExpectResponseBody([]byte(`[{"id":1,"goal":"string","deadline":"2020-05-17T11:12:42.085Z",`+
 		`"createdAt":"<ignore-diff>"}]`)))
 
-	rc.Reset().WithMethod(http.MethodPut).WithPath("/dev/tasks/1").
+	rc.Reset().WithMethod(http.MethodPut).WithURI("/dev/tasks/1").
 		WithContentType("application/json").
 		WithBody([]byte(`{"deadline": "2020-05-17T11:12:42.085Z","goal": "foo"}`)).
 		Concurrently()
 	assert.NoError(t, rc.ExpectResponseStatus(http.StatusNoContent))
 	assert.NoError(t, rc.ExpectResponseBody(nil))
 
-	rc.Reset().WithMethod(http.MethodGet).WithPath("/dev/tasks/1").Concurrently()
+	rc.Reset().WithMethod(http.MethodGet).WithURI("/dev/tasks/1").Concurrently()
 	assert.NoError(t, rc.ExpectResponseStatus(http.StatusOK))
 	assert.NoError(t, rc.ExpectResponseBody([]byte(`{"id":1,"goal":"foo","deadline":"2020-05-17T11:12:42.085Z",`+
 		`"createdAt":"<ignore-diff>"}`)))
 
-	rc.Reset().WithMethod(http.MethodDelete).WithPath("/dev/tasks/1").Concurrently()
+	rc.Reset().WithMethod(http.MethodDelete).WithURI("/dev/tasks/1").Concurrently()
 	assert.NoError(t, rc.ExpectResponseStatus(http.StatusNoContent))
 	assert.NoError(t, rc.ExpectResponseBody(nil))
 
