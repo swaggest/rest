@@ -3,6 +3,7 @@ package resttest
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -125,39 +126,42 @@ func (c *Client) do() (err error) {
 		c.reqConcurrency = 1
 	}
 
+	// A map of responses count by status code.
+	statusCodeCount := make(map[int]int, 2)
 	wg := sync.WaitGroup{}
 	mu := sync.Mutex{}
 	resps := make(map[int]*http.Response, 2)
 	bodies := make(map[int][]byte, 2)
 
-	// A map of responses count by status code.
-	statusCodeCount := make(map[int]int, 2)
-
-	errs := make([]error, 0)
-
 	for i := 0; i < c.reqConcurrency; i++ {
 		wg.Add(1)
 
 		go func() {
-			defer wg.Done()
+			var er error
 
-			resp, err := c.doOnce()
-			if err != nil {
-				mu.Lock()
-				errs = append(errs, err)
-				mu.Unlock()
+			defer func() {
+				if er != nil {
+					mu.Lock()
+					err = er
+					mu.Unlock()
+				}
 
+				wg.Done()
+			}()
+
+			resp, er := c.doOnce()
+			if er != nil {
 				return
 			}
 
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-				panic(err)
+			body, er := ioutil.ReadAll(resp.Body)
+			if er != nil {
+				return
 			}
 
-			err = resp.Body.Close()
-			if err != nil {
-				panic(err)
+			er = resp.Body.Close()
+			if er != nil {
+				return
 			}
 
 			mu.Lock()
@@ -172,6 +176,10 @@ func (c *Client) do() (err error) {
 		}()
 	}
 	wg.Wait()
+
+	if err != nil {
+		return err
+	}
 
 	return c.checkResponses(statusCodeCount, bodies, resps)
 }
@@ -335,7 +343,7 @@ func (c *Client) checkBody(expected, received []byte) error {
 		return errEmptyBody
 	}
 
-	if json5.Valid(expected) {
+	if json5.Valid(expected) && json5.Valid(received) {
 		expected, err := json5.Downgrade(expected)
 		if err != nil {
 			return err
@@ -343,7 +351,12 @@ func (c *Client) checkBody(expected, received []byte) error {
 
 		err = assertjson.FailNotEqual(expected, received)
 		if err != nil {
-			return fmt.Errorf("%w\nreceived: %s ", err, string(received))
+			recCompact, cerr := assertjson.MarshalIndentCompact(json.RawMessage(received), "", " ", 100)
+			if cerr == nil {
+				received = recCompact
+			}
+
+			return fmt.Errorf("%w\nreceived:\n%s ", err, string(received))
 		}
 
 		return nil
