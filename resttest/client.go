@@ -116,7 +116,7 @@ func (c *Client) WithContentType(contentType string) *Client {
 
 // WithHeader sets request header.
 func (c *Client) WithHeader(key, value string) *Client {
-	c.reqHeaders[key] = value
+	c.reqHeaders[http.CanonicalHeaderKey(key)] = value
 
 	return c
 }
