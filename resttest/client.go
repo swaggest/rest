@@ -19,6 +19,7 @@ import (
 // Client keeps state of expectations.
 type Client struct {
 	ConcurrencyLevel int
+	JSONComparer     assertjson.Comparer
 
 	baseURL string
 	Headers map[string]string
@@ -55,7 +56,8 @@ func NewClient(baseURL string) *Client {
 	}
 
 	return (&Client{
-		baseURL: baseURL,
+		baseURL:      baseURL,
+		JSONComparer: assertjson.Comparer{IgnoreDiff: assertjson.IgnoreDiff},
 	}).Reset()
 }
 
@@ -349,7 +351,7 @@ func (c *Client) checkBody(expected, received []byte) error {
 			return err
 		}
 
-		err = assertjson.FailNotEqual(expected, received)
+		err = c.JSONComparer.FailNotEqual(expected, received)
 		if err != nil {
 			recCompact, cerr := assertjson.MarshalIndentCompact(json.RawMessage(received), "", " ", 100)
 			if cerr == nil {
