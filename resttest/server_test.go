@@ -5,9 +5,11 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"strings"
 	"sync"
 	"testing"
 
+	"github.com/bool64/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/rest/resttest"
@@ -55,7 +57,7 @@ func assertRoundTrip(t *testing.T, baseURL string, expectation resttest.Expectat
 	}
 }
 
-func TestMock_ServeHTTP(t *testing.T) {
+func TestServerMock_ServeHTTP(t *testing.T) {
 	// Creating REST service mock.
 	mock, baseURL := resttest.NewServerMock()
 	defer mock.Close()
@@ -117,7 +119,7 @@ func TestMock_ServeHTTP(t *testing.T) {
 	})
 }
 
-func TestMock_ServeHTTP_error(t *testing.T) {
+func TestServerMock_ServeHTTP_error(t *testing.T) {
 	// Creating REST service mock.
 	mock, baseURL := resttest.NewServerMock()
 	defer mock.Close()
@@ -175,7 +177,7 @@ func TestMock_ServeHTTP_error(t *testing.T) {
 	assert.Equal(t, `header "X-Foo" with value "bar" expected, "space" received`, string(respBody))
 }
 
-func TestMock_ServeHTTP_concurrency(t *testing.T) {
+func TestServerMock_ServeHTTP_concurrency(t *testing.T) {
 	// Creating REST service mock.
 	mock, url := resttest.NewServerMock()
 	defer mock.Close()
@@ -219,7 +221,7 @@ func TestMock_ServeHTTP_concurrency(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
-func TestMock_ResetExpectations(t *testing.T) {
+func TestServerMock_ResetExpectations(t *testing.T) {
 	// Creating REST service mock.
 	mock, _ := resttest.NewServerMock()
 	defer mock.Close()
@@ -233,4 +235,28 @@ func TestMock_ResetExpectations(t *testing.T) {
 	assert.Error(t, mock.ExpectationsWereMet())
 	mock.ResetExpectations()
 	assert.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestServerMock_vars(t *testing.T) {
+	sm, url := resttest.NewServerMock()
+	sm.JSONComparer.Vars = &shared.Vars{}
+	sm.Expect(resttest.Expectation{
+		Method:       http.MethodGet,
+		RequestURI:   "/",
+		RequestBody:  []byte(`{"foo":"bar","dyn":"$var1"}`),
+		ResponseBody: []byte(`{"bar":"foo","dynEcho":"$var1"}`),
+	})
+
+	req, err := http.NewRequest(http.MethodGet, url+"/", strings.NewReader(`{"foo":"bar","dyn":"abc"}`))
+	require.NoError(t, err)
+
+	resp, err := http.DefaultTransport.RoundTrip(req)
+	require.NoError(t, err)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	require.NoError(t, resp.Body.Close())
+
+	assert.Equal(t, `{"bar":"foo","dynEcho":"abc"}`, string(body))
 }

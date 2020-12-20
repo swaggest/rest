@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/bool64/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/rest/resttest"
 )
@@ -30,14 +31,17 @@ func TestNewClient(t *testing.T) {
 			assert.NoError(t, err)
 		} else {
 			rw.WriteHeader(http.StatusAccepted)
-			_, err := rw.Write([]byte(`{"bar":"foo"}`))
+			_, err := rw.Write([]byte(`{"bar":"foo", "dyn": "abc"}`))
 			assert.NoError(t, err)
 		}
 	}))
 
 	defer srv.Close()
 
+	vars := &shared.Vars{}
+
 	c := resttest.NewClient(srv.URL)
+	c.JSONComparer.Vars = vars
 	c.ConcurrencyLevel = 50
 	c.Headers = map[string]string{
 		"X-Header": "abc",
@@ -48,11 +52,15 @@ func TestNewClient(t *testing.T) {
 		WithHeader("X-Custom", "def").
 		WithContentType("application/json").
 		WithBody([]byte(`{"foo":"bar"}`)).
-		WithPath("/foo?q=1").
+		WithURI("/foo?q=1").
 		Concurrently()
 
 	assert.NoError(t, c.ExpectResponseStatus(http.StatusAccepted))
-	assert.NoError(t, c.ExpectResponseBody([]byte(`{"bar":"foo"}`)))
+	assert.NoError(t, c.ExpectResponseBody([]byte(`{"bar":"foo","dyn":"$var1"}`)))
 	assert.NoError(t, c.ExpectOtherResponsesStatus(http.StatusConflict))
 	assert.NoError(t, c.ExpectOtherResponsesBody([]byte(`{"error":"conflict"}`)))
+
+	val, found := vars.Get("$var1")
+	assert.True(t, found)
+	assert.Equal(t, "abc", val)
 }
