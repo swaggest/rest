@@ -95,6 +95,7 @@ github.com/onsi/gomega v1.8.1/go.mod h1:Ho0h+IUsWyvy1OpqCwxlQ/21gkhVunqlU8fDGcoT
 github.com/onsi/gomega v1.10.1/go.mod h1:iN09h71vgCQne3DLsj+A5owkum+a2tYe+TOCB1ybHNo=
 github.com/onsi/gomega v1.10.3 h1:gph6h/qe9GSUw1NhH1gp+qb+h8rXD8Cy60Z32Qw3ELA=
 github.com/onsi/gomega v1.10.3/go.mod h1:V9xEwhxec5O8UDM77eCW8vLymOMltsqPVYWrpDsH8xc=
+github.com/onsi/gomega v1.10.4 h1:NiTx7EEvBzu9sFOD1zORteLSt3o8gnlvZZwSE9TnY9U=
 github.com/onsi/gomega v1.10.4/go.mod h1:g/HbgYopi++010VEqkFgJHKC09uJiW9UkXvMUuKHUCQ=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
 github.com/pkg/errors v0.9.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
@@ -119,8 +120,6 @@ github.com/swaggest/assertjson v1.4.1 h1:IpRjS42lEXKHR8C409jGCNDFCm3KCvpTi9LSksa
 github.com/swaggest/assertjson v1.4.1/go.mod h1:v7atNMMlIa5ry2H1rgCHhvz7eho8yfP85UGio0+TFEI=
 github.com/swaggest/assertjson v1.5.0 h1:u4/T3sMCdqmFib0VmWssQSYECAWHKL0SXmRkYH2yLro=
 github.com/swaggest/assertjson v1.5.0/go.mod h1:f1YaHcrOYGbV3AHRwzNRP50QNMwlBXmszbqaBcCASaE=
-github.com/swaggest/assertjson v1.5.2 h1:Mh09tBwx/u20vcgjjGykaGjYvQdLmcG7OOMsGVhW7yg=
-github.com/swaggest/assertjson v1.5.2/go.mod h1:qvyygY256MXpFAWyohBoY+xO4LtQmlV6NfEYANUoARY=
 github.com/swaggest/assertjson v1.6.0 h1:/seQ1631sTRXAURjCNbPebYb+wtxnXhXg1BRIQUb7iU=
 github.com/swaggest/assertjson v1.6.0/go.mod h1:2dZU3TJoGcH+QPrekon0+zG5hJnZUpdEAxiLoxmJALI=
 github.com/swaggest/form v3.6.4+incompatible h1:K0EaZjf8C7cScuZgnJG+Sg0GUGAtjPZivTv1jN+1ni4=
@@ -132,8 +131,6 @@ github.com/swaggest/jsonschema-go v0.3.13 h1:QKgsj3PrrNZBs68JZ6TJZTFT943AO48oGIs
 github.com/swaggest/jsonschema-go v0.3.13/go.mod h1:INO3Dt0DeyNCbQbqMXNpMQ489BcyRtSb/k62OfmHbpY=
 github.com/swaggest/openapi-go v0.1.3/go.mod h1:Zx4ZgJ7XvlFH9wCOHE7u8RAjLfiHAnCHeaD5kUDujVM=
 github.com/swaggest/openapi-go v0.1.13/go.mod h1:fju3Ka5zb8qBKf4789zLNVUqITydWLDjtPloZhhYHL8=
-github.com/swaggest/openapi-go v0.2.6 h1:fggork4s9h+tFNn6M2ciMqYrpH5upmEOwEHZdg2Y3PY=
-github.com/swaggest/openapi-go v0.2.6/go.mod h1:vJDQ4PLJhrUdNvyuGfQnJOOR+KuCYPCyOjt/3h/yHj8=
 github.com/swaggest/openapi-go v0.2.7 h1:k9t6Dh6zWliMcW8lhluHUOoueOtHE9nPhCwRpF23f/A=
 github.com/swaggest/openapi-go v0.2.7/go.mod h1:uUfCHqDFETNrU5p4k40MdDC+FSWhRl2Wv2FRXyMiNc8=
 github.com/swaggest/refl v0.1.0/go.mod h1:kmYWhxNEvjfRDdMRqpaR/vLULk/SotJs9HFUCIVMK8o=
@@ -146,8 +143,8 @@ github.com/swaggest/swgen v0.6.23 h1:9COrDC1o34xJS0NeQ2js7qGfo/Rgs16xWT0pQRvGNyY
 github.com/swaggest/swgen v0.6.23/go.mod h1:gj2yCLONy3kosKjwRtQeT5O9qqlhUvXAiDnbVwBUNFM=
 github.com/swaggest/swgen v0.6.27 h1:bO3CtX4NvuetPuABMChEEp2N/bjsJraegaJpYZ72aoI=
 github.com/swaggest/swgen v0.6.27/go.mod h1:tQLsoQVLcvtAMzNbm26JbWXDHZM4BBRuI5nemk3gEDw=
-github.com/swaggest/swgui v1.0.9 h1:GxZMOHMIvKWuN3bqLW14+FI5oOfnL35xdbbkt/kWFcc=
-github.com/swaggest/swgui v1.0.9/go.mod h1:b6hEcX7AbKHyhOgQ8DpbdPGKBQLD7lcL1RbxZLherIs=
+github.com/swaggest/swgui v1.1.0 h1:lnJ8nr3jTrN5DyOoV9JoRkyc3x7KPKt8NYeNFfXnhGk=
+github.com/swaggest/swgui v1.1.0/go.mod h1:b6hEcX7AbKHyhOgQ8DpbdPGKBQLD7lcL1RbxZLherIs=
 github.com/swaggest/usecase v0.0.0-20200928062416-27f47131b0f8 h1:XGJJai6ngqYpy/cTMvGreiO+jradIn1uq7Q5hY2OCF4=
 github.com/swaggest/usecase v0.0.0-20200928062416-27f47131b0f8/go.mod h1:rcngDv7OaBXZyEXdEtimcDeNon7sq3iqLm9hxT06s3c=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
@@ -185,6 +182,7 @@ golang.org/x/net v0.0.0-20201016165138-7b1cca2348c0/go.mod h1:sp8m0HH+o8qH0wwXwY
 golang.org/x/net v0.0.0-20201201195509-5d6afe98e0b7 h1:3uJsdck53FDIpWwLeAXlia9p4C8j0BO2xZrqzKpL0D8=
 golang.org/x/net v0.0.0-20201201195509-5d6afe98e0b7/go.mod h1:sp8m0HH+o8qH0wwXwYZr8TS3Oi6o0r6Gce1SSxlDquU=
 golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb/go.mod h1:sp8m0HH+o8qH0wwXwYZr8TS3Oi6o0r6Gce1SSxlDquU=
+golang.org/x/net v0.0.0-20201216054612-986b41b23924 h1:QsnDpLLOKwHBBDa8nDws4DYNc/ryVW2vCpxCs09d4PY=
 golang.org/x/net v0.0.0-20201216054612-986b41b23924/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=
 golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
@@ -208,6 +206,7 @@ golang.org/x/sys v0.0.0-20200930185726-fdedc70b468f/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/sys v0.0.0-20201119102817-f84b799fce68/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3 h1:kzM6+9dur93BcC2kVlYl34cHU+TYZLanmpSJHVMmL64=
 golang.org/x/sys v0.0.0-20201201145000-ef89a241ccb3/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20201218084310-7d0127a74742 h1:+CBz4km/0KPU3RGTwARGh/noP3bEwtHcq+0YcBQM2JQ=
 golang.org/x/sys v0.0.0-20201218084310-7d0127a74742/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
