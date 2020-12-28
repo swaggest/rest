@@ -52,15 +52,16 @@ jobs:
           # Use base sha for PR or new commit hash for master/main push in benchmark result key.
           key: ${{ runner.os }}-bench-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
       - name: Benchmark
-        id: test
+        id: bench
         run: |
-          REF_NAME=${GITHUB_REF##*/} make bench-run bench-stat bench-run-examples bench-stat-examples
-          OUTPUT=$(REF_NAME=${GITHUB_REF##*/} make bench-stat)
+          export REF_NAME=${GITHUB_REF##*/}
+          BENCH_COUNT=1 make bench-run bench-stat bench-run-examples bench-stat-examples
+          OUTPUT=$(make bench-stat)
           OUTPUT="${OUTPUT//'%'/'%25'}"
           OUTPUT="${OUTPUT//$'\n'/'%0A'}"
           OUTPUT="${OUTPUT//$'\r'/'%0D'}"
           echo "::set-output name=result::$OUTPUT"
-          OUTPUT=$(REF_NAME=${GITHUB_REF##*/} make bench-stat-examples)
+          OUTPUT=$(make bench-stat-examples)
           OUTPUT="${OUTPUT//'%'/'%25'}"
           OUTPUT="${OUTPUT//$'\n'/'%0A'}"
           OUTPUT="${OUTPUT//$'\r'/'%0D'}"
@@ -74,7 +75,7 @@ jobs:
             ### Benchmark Result
             <details><summary>Benchmark diff with base branch</summary>
 
-            ```diff
+            ```
             ${{ steps.bench.outputs.result }}
             ```
             </details>
@@ -82,7 +83,7 @@ jobs:
             ### Examples Benchmark Result
             <details><summary>Benchmark diff with base branch</summary>
 
-            ```diff
+            ```
             ${{ steps.bench.outputs.result-ex }}
             ```
             </details>
