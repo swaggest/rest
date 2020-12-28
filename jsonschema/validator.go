@@ -61,6 +61,8 @@ func (f Factory) MakeRequestValidator(
 }
 
 // MakeResponseValidator creates response validator.
+//
+// Header mapping is a map of struct field name to header name.
 func (f Factory) MakeResponseValidator(
 	statusCode int,
 	contentType string,

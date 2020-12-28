@@ -252,9 +252,11 @@ func (c *Collector) provideParametersJSONSchemas(op openapi3.Operation, validato
 			required = true
 		}
 
-		err = validator.AddSchema(rest.ParamIn(pp.In), pp.Name, schemaData, required)
-		if err != nil {
-			return fmt.Errorf("failed to add validation schema for parameter (%s, %s): %w", pp.In, pp.Name, err)
+		if validator != nil {
+			err = validator.AddSchema(rest.ParamIn(pp.In), pp.Name, schemaData, required)
+			if err != nil {
+				return fmt.Errorf("failed to add validation schema for parameter (%s, %s): %w", pp.In, pp.Name, err)
+			}
 		}
 	}
 
@@ -346,9 +348,11 @@ func (c *Collector) provideHeaderSchemas(resp *openapi3.Response, validator rest
 			required = true
 		}
 
-		err = validator.AddSchema(rest.ParamInHeader, name, schemaData, required)
-		if err != nil {
-			return fmt.Errorf("failed to add validation schema for response header (%s): %w", name, err)
+		if validator != nil {
+			err = validator.AddSchema(rest.ParamInHeader, name, schemaData, required)
+			if err != nil {
+				return fmt.Errorf("failed to add validation schema for response header (%s): %w", name, err)
+			}
 		}
 	}
 

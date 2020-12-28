@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/assertjson"
 	"github.com/swaggest/openapi-go/openapi3"
@@ -16,6 +17,31 @@ import (
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 )
+
+var _ rest.JSONSchemaValidator = validatorMock{}
+
+type validatorMock struct {
+	ValidateDataFunc     func(in rest.ParamIn, namedData map[string]interface{}) error
+	ValidateJSONBodyFunc func(jsonBody []byte) error
+	HasConstraintsFunc   func(in rest.ParamIn) bool
+	AddSchemaFunc        func(in rest.ParamIn, name string, schemaData []byte, required bool) error
+}
+
+func (v validatorMock) ValidateData(in rest.ParamIn, namedData map[string]interface{}) error {
+	return v.ValidateDataFunc(in, namedData)
+}
+
+func (v validatorMock) ValidateJSONBody(jsonBody []byte) error {
+	return v.ValidateJSONBodyFunc(jsonBody)
+}
+
+func (v validatorMock) HasConstraints(in rest.ParamIn) bool {
+	return v.HasConstraintsFunc(in)
+}
+
+func (v validatorMock) AddSchema(in rest.ParamIn, name string, schemaData []byte, required bool) error {
+	return v.AddSchemaFunc(in, name, schemaData, required)
+}
 
 func TestCollector_Collect(t *testing.T) {
 	c := openapi.Collector{
@@ -37,14 +63,15 @@ func TestCollector_Collect(t *testing.T) {
 
 	type input struct {
 		Q string  `query:"q" required:"true"`
-		H int     `header:"h"`
+		H int     `header:"h" minimum:"10"`
 		F float32 `formData:"f"`
 		C bool    `cookie:"c"`
 	}
 
 	type output struct {
-		Name   string `json:"name"`
+		Name   string `json:"name" maxLength:"32"`
 		Number int    `json:"number"`
+		Trace  string `header:"X-Trace"`
 	}
 
 	u.SetTitle("Create Task")
@@ -73,11 +100,18 @@ func TestCollector_Collect(t *testing.T) {
 	c.ServeHTTP(rw, nil)
 
 	assertjson.Equal(t, j, rw.Body.Bytes())
+
+	val := validatorMock{
+		AddSchemaFunc: func(in rest.ParamIn, name string, schemaData []byte, required bool) error {
+			return nil
+		},
+	}
+	assert.NoError(t, c.ProvideResponseJSONSchemas(http.StatusOK, "application/json", new(output), nil, val))
 }
 
 func TestCollector_Collect_requestMapping(t *testing.T) {
 	type input struct {
-		InHeader   string
+		InHeader   string `minLength:"2"`
 		InQuery    int
 		InCookie   float64
 		InFormData string
@@ -97,14 +131,16 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 	u.SetIsDeprecated(true)
 	u.Input = new(input)
 
+	mapping := rest.RequestMapping{
+		rest.ParamInFormData: map[string]string{"InFormData": "in_form_data", "InFile": "upload"},
+		rest.ParamInCookie:   map[string]string{"InCookie": "in_cookie"},
+		rest.ParamInQuery:    map[string]string{"InQuery": "in_query"},
+		rest.ParamInHeader:   map[string]string{"InHeader": "X-In-Header"},
+		rest.ParamInPath:     map[string]string{"InPath": "in-path"},
+	}
+
 	h := rest.HandlerTrait{
-		ReqMapping: rest.RequestMapping{
-			rest.ParamInFormData: map[string]string{"InFormData": "in_form_data", "InFile": "upload"},
-			rest.ParamInCookie:   map[string]string{"InCookie": "in_cookie"},
-			rest.ParamInQuery:    map[string]string{"InQuery": "in_query"},
-			rest.ParamInHeader:   map[string]string{"InHeader": "X-In-Header"},
-			rest.ParamInPath:     map[string]string{"InPath": "in-path"},
-		},
+		ReqMapping: mapping,
 	}
 
 	collector := openapi.Collector{}
@@ -124,7 +160,7 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 			  {"name":"in_query","in":"query","schema":{"type":"integer"}},
 			  {"name":"in-path","in":"path","required":true,"schema":{"type":"boolean"}},
 			  {"name":"in_cookie","in":"cookie","schema":{"type":"number"}},
-			  {"name":"X-In-Header","in":"header","schema":{"type":"string"}}
+			  {"name":"X-In-Header","in":"header","schema":{"minLength":2,"type":"string"}}
 			],
 			"requestBody":{
 			  "content":{
@@ -148,4 +184,11 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 		}
 	  }
 	}`), j, string(j))
+
+	val := validatorMock{
+		AddSchemaFunc: func(in rest.ParamIn, name string, schemaData []byte, required bool) error {
+			return nil
+		},
+	}
+	assert.NoError(t, collector.ProvideRequestJSONSchemas(http.MethodPost, new(input), mapping, val))
 }
