@@ -1,0 +1,35 @@
+name: test-examples
+on:
+  push:
+    tags:
+      - v*
+    branches:
+      - master
+      - main
+  pull_request:
+env:
+  GO111MODULE: "on"
+jobs:
+  test:
+    strategy:
+      matrix:
+        go-version: [ 1.14.x, 1.15.x ]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: ${{ matrix.go-version }}
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Restore vendor
+        uses: actions/cache@v2
+        with:
+          path: |
+            _examples/vendor
+          key: ${{ runner.os }}-go${{ matrix.go-version }}-ex-vendor-${{ hashFiles('**/go.mod') }}
+      - name: Populate dependencies
+        run: |
+          (test -d _examples/vendor && echo _examples/vendor found) || (cd _examples && go mod vendor && du -sh vendor && du -sh ~/go/pkg/mod)
+      - name: Test Examples
+        run: make test-examples

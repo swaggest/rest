@@ -1,4 +1,4 @@
-name: test
+name: test-unit
 on:
   push:
     tags:
@@ -27,12 +27,10 @@ jobs:
         with:
           path: |
             vendor
-            _examples/vendor
           key: ${{ runner.os }}-go${{ matrix.go-version }}-vendor-${{ hashFiles('**/go.mod') }}
       - name: Populate dependencies
         run: |
           (test -d vendor && echo vendor found) || (go mod vendor && du -sh vendor && du -sh ~/go/pkg/mod)
-          (test -d _examples/vendor && echo _examples/vendor found) || (cd _examples && go mod vendor && du -sh ~/go/pkg/mod)
       - name: Test
         run: make test-unit
       - name: Upload code coverage
@@ -41,5 +39,3 @@ jobs:
         with:
           file: ./unit.coverprofile
           flags: unittests
-      - name: Test Examples
-        run: make test-examples

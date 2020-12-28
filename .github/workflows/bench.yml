@@ -27,12 +27,17 @@ jobs:
         with:
           path: |
             vendor
-            _examples/vendor
           key: ${{ runner.os }}-go${{ matrix.go-version }}-vendor-${{ hashFiles('**/go.mod') }}
+      - name: Restore examples vendor
+        uses: actions/cache@v2
+        with:
+          path: |
+            _examples/vendor
+          key: ${{ runner.os }}-go${{ matrix.go-version }}-ex-vendor-${{ hashFiles('**/go.mod') }}
       - name: Populate dependencies
         run: |
-          (test -d vendor && echo vendor found) || (go mod vendor && du -sh ~/go/pkg/mod)
-          (test -d _examples/vendor && echo _examples/vendor found) || (cd _examples && go mod vendor && du -sh ~/go/pkg/mod)
+          (test -d vendor && echo vendor found) || (go mod vendor && du -sh vendor && du -sh ~/go/pkg/mod)
+          (test -d _examples/vendor && echo _examples/vendor found) || (cd _examples && go mod vendor && du -sh vendor && du -sh ~/go/pkg/mod)
       - name: Restore benchstat
         uses: actions/cache@v2
         with:
