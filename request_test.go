@@ -1,9 +1,10 @@
 package rest_test
 
 import (
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/rest"
-	"testing"
 )
 
 func TestRequestErrors_Error(t *testing.T) {
