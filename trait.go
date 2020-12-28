@@ -54,12 +54,14 @@ func OutputHasNoContent(output interface{}) bool {
 	_, withWriter := output.(usecase.OutputWithWriter)
 	_, noContent := output.(usecase.OutputWithNoContent)
 
+	rv := reflect.ValueOf(output)
+
 	if !withWriter && !noContent &&
 		!refl.HasTaggedFields(output, "json") &&
 		!refl.IsSliceOrMap(output) &&
 		refl.FindEmbeddedSliceOrMap(output) == nil &&
 		!refl.As(output, new(json.Marshaler)) &&
-		reflect.ValueOf(output).Elem().Kind() != reflect.Interface {
+		(rv.Kind() != reflect.Ptr || rv.Elem().Kind() != reflect.Interface) {
 		return true
 	}
 

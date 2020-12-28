@@ -18,6 +18,31 @@ import (
 	"github.com/swaggest/usecase/status"
 )
 
+var _ rest.JSONSchemaValidator = validatorMock{}
+
+type validatorMock struct {
+	ValidateDataFunc     func(in rest.ParamIn, namedData map[string]interface{}) error
+	ValidateJSONBodyFunc func(jsonBody []byte) error
+	HasConstraintsFunc   func(in rest.ParamIn) bool
+	AddSchemaFunc        func(in rest.ParamIn, name string, schemaData []byte, required bool) error
+}
+
+func (v validatorMock) ValidateData(in rest.ParamIn, namedData map[string]interface{}) error {
+	return v.ValidateDataFunc(in, namedData)
+}
+
+func (v validatorMock) ValidateJSONBody(jsonBody []byte) error {
+	return v.ValidateJSONBodyFunc(jsonBody)
+}
+
+func (v validatorMock) HasConstraints(in rest.ParamIn) bool {
+	return v.HasConstraintsFunc(in)
+}
+
+func (v validatorMock) AddSchema(in rest.ParamIn, name string, schemaData []byte, required bool) error {
+	return v.AddSchemaFunc(in, name, schemaData, required)
+}
+
 func TestCollector_Collect(t *testing.T) {
 	c := openapi.Collector{
 		BasePath: "http://example.com/",
@@ -38,14 +63,15 @@ func TestCollector_Collect(t *testing.T) {
 
 	type input struct {
 		Q string  `query:"q" required:"true"`
-		H int     `header:"h"`
+		H int     `header:"h" minimum:"10"`
 		F float32 `formData:"f"`
 		C bool    `cookie:"c"`
 	}
 
 	type output struct {
-		Name   string `json:"name"`
+		Name   string `json:"name" maxLength:"32"`
 		Number int    `json:"number"`
+		Trace  string `header:"X-Trace"`
 	}
 
 	u.SetTitle("Create Task")
@@ -75,12 +101,17 @@ func TestCollector_Collect(t *testing.T) {
 
 	assertjson.Equal(t, j, rw.Body.Bytes())
 
-	assert.NoError(t, c.ProvideResponseJSONSchemas(http.StatusOK, "application/json", new(output), nil, nil))
+	val := validatorMock{
+		AddSchemaFunc: func(in rest.ParamIn, name string, schemaData []byte, required bool) error {
+			return nil
+		},
+	}
+	assert.NoError(t, c.ProvideResponseJSONSchemas(http.StatusOK, "application/json", new(output), nil, val))
 }
 
 func TestCollector_Collect_requestMapping(t *testing.T) {
 	type input struct {
-		InHeader   string
+		InHeader   string `minLength:"2"`
 		InQuery    int
 		InCookie   float64
 		InFormData string
@@ -129,7 +160,7 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 			  {"name":"in_query","in":"query","schema":{"type":"integer"}},
 			  {"name":"in-path","in":"path","required":true,"schema":{"type":"boolean"}},
 			  {"name":"in_cookie","in":"cookie","schema":{"type":"number"}},
-			  {"name":"X-In-Header","in":"header","schema":{"type":"string"}}
+			  {"name":"X-In-Header","in":"header","schema":{"minLength":2,"type":"string"}}
 			],
 			"requestBody":{
 			  "content":{
@@ -154,5 +185,10 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 	  }
 	}`), j, string(j))
 
-	assert.NoError(t, collector.ProvideRequestJSONSchemas(http.MethodPost, new(input), mapping, nil))
+	val := validatorMock{
+		AddSchemaFunc: func(in rest.ParamIn, name string, schemaData []byte, required bool) error {
+			return nil
+		},
+	}
+	assert.NoError(t, collector.ProvideRequestJSONSchemas(http.MethodPost, new(input), mapping, val))
 }

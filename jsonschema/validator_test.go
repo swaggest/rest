@@ -59,3 +59,22 @@ func TestRequestValidator_ValidateData(t *testing.T) {
 	assert.NoError(t, validator.ValidateData("unknown", map[string]interface{}{}))
 	assert.NoError(t, validator.ValidateData(rest.ParamInCookie, map[string]interface{}{"in_cookie": "abc"}))
 }
+
+func TestFactory_MakeResponseValidator(t *testing.T) {
+	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
+		MakeResponseValidator(http.StatusOK, "application/json", new(struct {
+			Name  string `json:"name" minLength:"1"`
+			Trace string `maxLength:"3"`
+		}), map[string]string{
+			"Trace": "X-Trace",
+		})
+
+	assert.NoError(t, validator.ValidateJSONBody([]byte(`{"name":"John"}`)))
+	assert.Error(t, validator.ValidateJSONBody([]byte(`{"name":""}`))) // minLength:"1" violated.
+	assert.NoError(t, validator.ValidateData(rest.ParamInHeader, map[string]interface{}{
+		"X-Trace": "abc",
+	}))
+	assert.Error(t, validator.ValidateData(rest.ParamInHeader, map[string]interface{}{
+		"X-Trace": "abcd", // maxLength:"3" violated.
+	}))
+}
