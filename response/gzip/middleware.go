@@ -90,9 +90,6 @@ func maybeGzipResponseWriter(w http.ResponseWriter, r *http.Request) http.Respon
 		return w
 	}
 
-	h := w.Header()
-	h.Set(contentEncodingHeader, "gzip")
-
 	zrw := &gzipResponseWriter{
 		ResponseWriter: w,
 	}
@@ -123,14 +120,26 @@ func (rw *gzipResponseWriter) GzipWrite(data []byte) (int, error) {
 	return rw.Write(data)
 }
 
-func (rw *gzipResponseWriter) writeHeader() {
+func (rw *gzipResponseWriter) writeHeader(statusCode int) {
+	if rw.headersWritten {
+		return
+	}
+
+	if statusCode == http.StatusNoContent ||
+		statusCode == http.StatusNotModified ||
+		(statusCode >= http.StatusContinue && statusCode < http.StatusOK) {
+		rw.disableCompression = true
+	}
+
 	h := rw.Header()
 
-	if h.Get(contentEncodingHeader) != "gzip" {
+	if h.Get(contentEncodingHeader) != "" || rw.disableCompression {
 		// The request handler disabled gzip encoding.
 		// Send uncompressed response body.
 		rw.disableCompression = true
 	} else {
+		h.Set(contentEncodingHeader, "gzip")
+
 		if !rw.expectCompressedBytes {
 			rw.gzipWriter = getGzipWriter(rw.ResponseWriter)
 			rw.bufWriter = getBufWriter(rw.gzipWriter)
@@ -145,16 +154,14 @@ func (rw *gzipResponseWriter) writeHeader() {
 		}
 	}
 
+	rw.ResponseWriter.WriteHeader(statusCode)
 	rw.headersWritten = true
+	rw.statusCode = statusCode
 }
 
 func (rw *gzipResponseWriter) Write(p []byte) (int, error) {
 	if !rw.headersWritten {
-		rw.writeHeader()
-	}
-
-	if rw.statusCode == 0 {
-		rw.WriteHeader(http.StatusOK)
+		rw.writeHeader(http.StatusOK)
 	}
 
 	if rw.disableCompression || rw.expectCompressedBytes {
@@ -165,17 +172,7 @@ func (rw *gzipResponseWriter) Write(p []byte) (int, error) {
 }
 
 func (rw *gzipResponseWriter) WriteHeader(statusCode int) {
-	if rw.statusCode != 0 {
-		return
-	}
-
-	if statusCode == http.StatusNoContent {
-		rw.Header().Del(contentEncodingHeader)
-	}
-
-	rw.writeHeader()
-	rw.ResponseWriter.WriteHeader(statusCode)
-	rw.statusCode = statusCode
+	rw.writeHeader(statusCode)
 }
 
 func isTrivialNetworkError(err error) bool {
@@ -209,7 +206,7 @@ func (rw *gzipResponseWriter) Flush() {
 // Close flushes and closes response.
 func (rw *gzipResponseWriter) Close() error {
 	if !rw.headersWritten {
-		rw.Header().Del(contentEncodingHeader)
+		rw.disableCompression = true
 
 		return nil
 	}
