@@ -32,4 +32,4 @@ jobs:
         run: |
           (test -d _examples/vendor && echo _examples/vendor found) || (cd _examples && go mod vendor && du -sh vendor && du -sh ~/go/pkg/mod)
       - name: Test Examples
-        run: make test-examples
+        run: cd _examples && go test -race ./...
