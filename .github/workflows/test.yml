@@ -1,4 +1,4 @@
-name: test
+name: test-unit
 on:
   push:
     tags:
@@ -22,25 +22,56 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Restore base test coverage
+        uses: actions/cache@v2
+        with:
+          path: |
+            unit-base.txt
+          # Use base sha for PR or new commit hash for master/main push in test result key.
+          key: ${{ runner.os }}-unit-test-coverage-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
       - name: Restore vendor
         uses: actions/cache@v2
         with:
           path: |
             vendor
-            _examples/vendor
-          key: ${{ runner.os }}-go-vendor-${{ hashFiles('**/go.mod') }}
+          key: ${{ runner.os }}-go${{ matrix.go-version }}-vendor-${{ hashFiles('**/go.mod') }}
       - name: Populate dependencies
-        if: matrix.go-version == '1.15.x' # Use latest Go to populate vendor.
         run: |
-          (test -d vendor && echo vendor found) || (go mod vendor)
-          (test -d _examples/vendor && echo _examples/vendor found) || (cd _examples && go mod vendor)
+          (test -d vendor && echo vendor found) || (go mod vendor && du -sh vendor && du -sh ~/go/pkg/mod)
       - name: Test
-        run: make test-unit
+        id: test
+        run: |
+          make test-unit
+          go tool cover -func=./unit.coverprofile | sed -e 's/.go:[0-9]*:\t/.go\t/g' | sed -e 's/\t\t*/\t/g'  > unit.txt
+          OUTPUT=$(test -e unit-base.txt && (diff unit-base.txt unit.txt || exit 0) || cat unit.txt)
+          OUTPUT="${OUTPUT//'%'/'%25'}"
+          OUTPUT="${OUTPUT//$'\n'/'%0A'}"
+          OUTPUT="${OUTPUT//$'\r'/'%0D'}"
+          TOTAL=$(grep 'total:' unit.txt)
+          echo "::set-output name=diff::$OUTPUT"
+          echo "::set-output name=total::$TOTAL"
+      - name: Store base coverage
+        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
+        run: cp unit.txt unit-base.txt
+      - name: Comment Test Coverage
+        if: matrix.go-version == '1.15.x'
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          header: unit-test
+          message: |
+            ### Unit Test Coverage
+            ${{ steps.test.outputs.total }}
+            <details><summary>Coverage diff with base branch</summary>
+
+            ```diff
+            ${{ steps.test.outputs.diff }}
+            ```
+            </details>
+
       - name: Upload code coverage
         if: matrix.go-version == '1.15.x'
         uses: codecov/codecov-action@v1
         with:
           file: ./unit.coverprofile
           flags: unittests
-      - name: Test Examples
-        run: make test-examples

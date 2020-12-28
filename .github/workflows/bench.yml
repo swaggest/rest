@@ -27,12 +27,17 @@ jobs:
         with:
           path: |
             vendor
+          key: ${{ runner.os }}-go${{ matrix.go-version }}-vendor-${{ hashFiles('**/go.mod') }}
+      - name: Restore examples vendor
+        uses: actions/cache@v2
+        with:
+          path: |
             _examples/vendor
-          key: ${{ runner.os }}-go-vendor-${{ hashFiles('**/go.mod') }}
+          key: ${{ runner.os }}-go${{ matrix.go-version }}-ex-vendor-${{ hashFiles('**/go.mod') }}
       - name: Populate dependencies
         run: |
-          (test -d vendor && echo vendor found) || (go mod vendor)
-          (test -d _examples/vendor && echo _examples/vendor found) || (cd _examples && go mod vendor)
+          (test -d vendor && echo vendor found) || (go mod vendor && du -sh vendor && du -sh ~/go/pkg/mod)
+          (test -d _examples/vendor && echo _examples/vendor found) || (cd _examples && go mod vendor && du -sh vendor && du -sh ~/go/pkg/mod)
       - name: Restore benchstat
         uses: actions/cache@v2
         with:
@@ -47,4 +52,38 @@ jobs:
           # Use base sha for PR or new commit hash for master/main push in benchmark result key.
           key: ${{ runner.os }}-bench-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
       - name: Benchmark
-        run: REF_NAME=${GITHUB_REF##*/} make bench bench-examples
+        id: bench
+        run: |
+          export REF_NAME=${GITHUB_REF##*/}
+          BENCH_COUNT=3 make bench-run bench-stat bench-run-examples bench-stat-examples
+          OUTPUT=$(make bench-stat)
+          OUTPUT="${OUTPUT//'%'/'%25'}"
+          OUTPUT="${OUTPUT//$'\n'/'%0A'}"
+          OUTPUT="${OUTPUT//$'\r'/'%0D'}"
+          echo "::set-output name=result::$OUTPUT"
+          OUTPUT=$(make bench-stat-examples)
+          OUTPUT="${OUTPUT//'%'/'%25'}"
+          OUTPUT="${OUTPUT//$'\n'/'%0A'}"
+          OUTPUT="${OUTPUT//$'\r'/'%0D'}"
+          echo "::set-output name=result-ex::$OUTPUT"
+      - name: Comment Benchmark Result
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          header: bench
+          message: |
+            ### Benchmark Result
+            <details><summary>Benchmark diff with base branch</summary>
+
+            ```
+            ${{ steps.bench.outputs.result }}
+            ```
+            </details>
+
+            ### Examples Benchmark Result
+            <details><summary>Benchmark diff with base branch</summary>
+
+            ```
+            ${{ steps.bench.outputs.result-ex }}
+            ```
+            </details>
