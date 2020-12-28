@@ -2,6 +2,7 @@ package openapi_test
 
 import (
 	"encoding/json"
+	"github.com/stretchr/testify/assert"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -73,6 +74,8 @@ func TestCollector_Collect(t *testing.T) {
 	c.ServeHTTP(rw, nil)
 
 	assertjson.Equal(t, j, rw.Body.Bytes())
+
+	assert.NoError(t, c.ProvideResponseJSONSchemas(http.StatusOK, "application/json", new(output), nil, nil))
 }
 
 func TestCollector_Collect_requestMapping(t *testing.T) {
@@ -97,14 +100,16 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 	u.SetIsDeprecated(true)
 	u.Input = new(input)
 
+	mapping := rest.RequestMapping{
+		rest.ParamInFormData: map[string]string{"InFormData": "in_form_data", "InFile": "upload"},
+		rest.ParamInCookie:   map[string]string{"InCookie": "in_cookie"},
+		rest.ParamInQuery:    map[string]string{"InQuery": "in_query"},
+		rest.ParamInHeader:   map[string]string{"InHeader": "X-In-Header"},
+		rest.ParamInPath:     map[string]string{"InPath": "in-path"},
+	}
+
 	h := rest.HandlerTrait{
-		ReqMapping: rest.RequestMapping{
-			rest.ParamInFormData: map[string]string{"InFormData": "in_form_data", "InFile": "upload"},
-			rest.ParamInCookie:   map[string]string{"InCookie": "in_cookie"},
-			rest.ParamInQuery:    map[string]string{"InQuery": "in_query"},
-			rest.ParamInHeader:   map[string]string{"InHeader": "X-In-Header"},
-			rest.ParamInPath:     map[string]string{"InPath": "in-path"},
-		},
+		ReqMapping: mapping,
 	}
 
 	collector := openapi.Collector{}
@@ -148,4 +153,6 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 		}
 	  }
 	}`), j, string(j))
+
+	assert.NoError(t, collector.ProvideRequestJSONSchemas(http.MethodPost, new(input), mapping, nil))
 }
