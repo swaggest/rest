@@ -132,8 +132,8 @@ github.com/swaggest/swgen v0.6.20/go.mod h1:ipkZNfwztgRfbOWUllLZawfmxXprT8flqNJO
 github.com/swaggest/swgen v0.6.23/go.mod h1:gj2yCLONy3kosKjwRtQeT5O9qqlhUvXAiDnbVwBUNFM=
 github.com/swaggest/swgen v0.6.27 h1:bO3CtX4NvuetPuABMChEEp2N/bjsJraegaJpYZ72aoI=
 github.com/swaggest/swgen v0.6.27/go.mod h1:tQLsoQVLcvtAMzNbm26JbWXDHZM4BBRuI5nemk3gEDw=
-github.com/swaggest/swgui v1.1.1 h1:ClSWOXrsNevTVp90PbIRp801pxNjWwv8Jp+yC4s4EHs=
-github.com/swaggest/swgui v1.1.1/go.mod h1:bJmIxDz/gjS1jR36g8TvCWZyp1KiZBM/yFyQZ9i1KMA=
+github.com/swaggest/swgui v1.1.2 h1:0DNQ6gF2Rf/5NCQeStkJTbVA7k5+ulzlVKHFTyxqCt4=
+github.com/swaggest/swgui v1.1.2/go.mod h1:b6hEcX7AbKHyhOgQ8DpbdPGKBQLD7lcL1RbxZLherIs=
 github.com/swaggest/usecase v0.0.0-20200928062416-27f47131b0f8 h1:XGJJai6ngqYpy/cTMvGreiO+jradIn1uq7Q5hY2OCF4=
 github.com/swaggest/usecase v0.0.0-20200928062416-27f47131b0f8/go.mod h1:rcngDv7OaBXZyEXdEtimcDeNon7sq3iqLm9hxT06s3c=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
@@ -143,8 +143,6 @@ github.com/valyala/fasthttp v1.17.0/go.mod h1:jjraHZVbKOXftJfsOYoAjaeygpj5hr8erm
 github.com/valyala/tcplisten v0.0.0-20161114210144-ceec8f93295a/go.mod h1:v3UYOV9WzVtRmSR+PDvWpU/qWl4Wa5LApYYX4ZtKbio=
 github.com/vearutop/json5 v0.1.2 h1:AD+VTRiN8TZb4/ObzXXyYIY66AVNqdBn0O8ks/WqgH0=
 github.com/vearutop/json5 v0.1.2/go.mod h1:0EGfZGmwGu042tElaCn8+Song+vEMQOOgChj+mzD7OQ=
-github.com/vearutop/statigz v1.0.0 h1:x6AjXC2837Tdl8/69Kwro1UftpDmIKciIqSKuIvV6Gk=
-github.com/vearutop/statigz v1.0.0/go.mod h1:A6aweyvs+WWmDz2WNRxT5wcpNKtKXk6QBDAAPMxIk0o=
 github.com/yudai/gojsondiff v1.0.0 h1:27cbfqXLVEJ1o8I6v3y9lg8Ydm53EKqHXAOMxEGlCOA=
 github.com/yudai/gojsondiff v1.0.0/go.mod h1:AY32+k2cwILAkW1fbgxQ5mUmMiZFgLIV+FBNExI05xg=
 github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 h1:BHyfKlQyqbsFN5p3IfnEUduWvb9is428/nNb5L3U01M=
