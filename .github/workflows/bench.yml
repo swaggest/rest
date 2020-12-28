@@ -55,7 +55,7 @@ jobs:
         id: bench
         run: |
           export REF_NAME=${GITHUB_REF##*/}
-          BENCH_COUNT=1 make bench-run bench-stat bench-run-examples bench-stat-examples
+          BENCH_COUNT=3 make bench-run bench-stat bench-run-examples bench-stat-examples
           OUTPUT=$(make bench-stat)
           OUTPUT="${OUTPUT//'%'/'%25'}"
           OUTPUT="${OUTPUT//$'\n'/'%0A'}"
