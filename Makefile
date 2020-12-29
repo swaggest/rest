@@ -1,4 +1,4 @@
-GOLANGCI_LINT_VERSION := "v1.32.2"
+GOLANGCI_LINT_VERSION := "v1.34.1"
 BENCH_COUNT ?= 5
 REF_NAME ?= $(shell git symbolic-ref HEAD --short | tr / - 2>/dev/null)
 
@@ -31,6 +31,7 @@ endif
 
 -include $(DEVGO_PATH)/makefiles/main.mk
 -include $(DEVGO_PATH)/makefiles/test-unit.mk
+-include $(DEVGO_PATH)/makefiles/bench.mk
 -include $(DEVGO_PATH)/makefiles/lint.mk
 -include $(DEVGO_PATH)/makefiles/github-actions.mk
 
@@ -39,15 +40,6 @@ test: test-unit test-examples
 
 test-examples:
 	cd _examples && go test -race ./...
-
-## Run benchmark, iterations count controlled by BENCH_COUNT, default 5.
-bench-run:
-	@$(GO) test -bench=. -count=$(BENCH_COUNT) -run=^a  ./... >bench-$(REF_NAME).txt
-
-## Show result of benchmark.
-bench-stat:
-	@test -s $(GOPATH)/bin/benchstat || GO111MODULE=off GOFLAGS= GOBIN=$(GOPATH)/bin $(GO) get -u golang.org/x/perf/cmd/benchstat
-	@test -e bench-master.txt && benchstat bench-master.txt bench-$(REF_NAME).txt || benchstat bench-$(REF_NAME).txt
 
 ## Run benchmark for app examples, iterations count controlled by BENCH_COUNT, default 5.
 bench-run-examples:

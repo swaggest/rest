@@ -16,6 +16,8 @@ import (
 )
 
 func assertRoundTrip(t *testing.T, baseURL string, expectation resttest.Expectation) {
+	t.Helper()
+
 	var bodyReader io.Reader
 
 	if expectation.RequestBody != nil {

@@ -221,6 +221,8 @@ func TestMiddleware_noContent(t *testing.T) {
 }
 
 func gzipEncode(t *testing.T, data []byte) []byte {
+	t.Helper()
+
 	b := bytes.Buffer{}
 	w := gz.NewWriter(&b)
 
@@ -233,6 +235,8 @@ func gzipEncode(t *testing.T, data []byte) []byte {
 }
 
 func gzipDecode(t *testing.T, data []byte) []byte {
+	t.Helper()
+
 	b := bytes.NewReader(data)
 
 	r, err := gz.NewReader(b)
