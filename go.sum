@@ -3,8 +3,8 @@ github.com/BurntSushi/toml v0.3.1/go.mod h1:xHWCNGjB5oqiDr8zfno3MHue2Ht5sIBksp03
 github.com/bool64/dev v0.1.0/go.mod h1:pn52JC52uSgpazChx9CeXyG+S3sW2V36HHoLNBbscdg=
 github.com/bool64/dev v0.1.7/go.mod h1:pn52JC52uSgpazChx9CeXyG+S3sW2V36HHoLNBbscdg=
 github.com/bool64/dev v0.1.10/go.mod h1:pn52JC52uSgpazChx9CeXyG+S3sW2V36HHoLNBbscdg=
-github.com/bool64/dev v0.1.11-0.20201229094611-1f29c3e7aa84 h1:Ss3T9BKoaRflUoyxsrwpybaqGDygBk0mvttSe2gqtHE=
-github.com/bool64/dev v0.1.11-0.20201229094611-1f29c3e7aa84/go.mod h1:pn52JC52uSgpazChx9CeXyG+S3sW2V36HHoLNBbscdg=
+github.com/bool64/dev v0.1.11 h1:ii7XwfNc6bHp9pR9bqGWxB7XA4UXQLugmh0/gvi3U0I=
+github.com/bool64/dev v0.1.11/go.mod h1:pn52JC52uSgpazChx9CeXyG+S3sW2V36HHoLNBbscdg=
 github.com/bool64/shared v0.1.0 h1:yE+PJTOjlxOt/wz37HjFiH75Qr3EcpmY1glhUMv3p7k=
 github.com/bool64/shared v0.1.0/go.mod h1:khzw051JtnOZH6lX21rQ+sqbeC0FFEcU1wfchRS7EyU=
 github.com/census-instrumentation/opencensus-proto v0.2.1/go.mod h1:f6KPmirojxKA12rnyqOA5BBL4O983OfeGPqjHWSTneU=
