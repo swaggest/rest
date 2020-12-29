@@ -79,7 +79,9 @@ func TestEncoder_SetupOutput(t *testing.T) {
 func TestEncoder_SetupOutput_withWriter(t *testing.T) {
 	e := response.Encoder{}
 
-	ht := rest.HandlerTrait{}
+	ht := rest.HandlerTrait{
+		SuccessContentType: "application/x-vnd-foo",
+	}
 
 	type outputPort struct {
 		Name string `header:"X-Name" json:"-"`
@@ -104,6 +106,38 @@ func TestEncoder_SetupOutput_withWriter(t *testing.T) {
 
 	e.WriteSuccessfulResponse(w, r, output, ht)
 	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "application/x-vnd-foo", w.Header().Get("Content-Type"))
 	assert.Equal(t, "1,2,3", w.Body.String())
 	assert.Equal(t, "Jane", w.Header().Get("X-Name"))
+}
+
+func TestEncoder_SetupOutput_withWriterContentType(t *testing.T) {
+	e := response.Encoder{}
+
+	ht := rest.HandlerTrait{
+		SuccessContentType: "application/x-vnd-foo",
+	}
+
+	type outputPort struct {
+		usecase.OutputWithEmbeddedWriter
+	}
+
+	e.SetupOutput(new(outputPort), &ht)
+
+	w := httptest.NewRecorder()
+	r, err := http.NewRequest(http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	output := e.MakeOutput(w, ht)
+
+	out, ok := output.(*outputPort)
+	assert.True(t, ok)
+
+	_, err = out.Write([]byte("1,2,3"))
+	require.NoError(t, err)
+
+	e.WriteSuccessfulResponse(w, r, output, ht)
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "application/x-vnd-foo", w.Header().Get("Content-Type"))
+	assert.Equal(t, "1,2,3", w.Body.String())
 }
