@@ -5,7 +5,7 @@ go 1.13
 replace github.com/swaggest/rest => ../
 
 require (
-	github.com/bool64/dev v0.1.10
+	github.com/bool64/dev v0.1.11-0.20201229094611-1f29c3e7aa84
 	github.com/bool64/httptestbench v0.1.1
 	github.com/go-chi/chi v4.1.2+incompatible
 	github.com/kelseyhightower/envconfig v1.4.0

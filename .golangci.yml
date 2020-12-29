@@ -25,6 +25,8 @@ linters:
     - testpackage
     - goerr113
     - wrapcheck
+    - paralleltest
+    - forbidigo
     - exhaustivestruct
 
 issues:
