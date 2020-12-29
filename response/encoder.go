@@ -292,7 +292,7 @@ func (h *Encoder) MakeOutput(w http.ResponseWriter, ht rest.HandlerTrait) interf
 
 	if h.outputWithWriter {
 		if withWriter, ok := output.(usecase.OutputWithWriter); ok {
-			if h.outputHeadersEncoder != nil {
+			if h.outputHeadersEncoder != nil || ht.SuccessContentType != "" {
 				withWriter.SetWriter(&writerWithHeaders{
 					ResponseWriter: w,
 					responseWriter: h,
@@ -317,15 +317,29 @@ type writerWithHeaders struct {
 	headersSet     bool
 }
 
+func (w *writerWithHeaders) setHeaders() error {
+	if w.responseWriter.outputHeadersEncoder == nil {
+		return nil
+	}
+
+	headers, err := w.responseWriter.outputHeadersEncoder.Encode(w.output)
+	if err != nil {
+		return err
+	}
+
+	for header, val := range headers {
+		if len(val) == 1 {
+			w.Header().Set(header, val[0])
+		}
+	}
+
+	return err
+}
+
 func (w *writerWithHeaders) Write(data []byte) (int, error) {
 	if !w.headersSet {
-		headers, err := w.responseWriter.outputHeadersEncoder.Encode(w.output)
-		if err == nil {
-			for header, val := range headers {
-				if len(val) == 1 {
-					w.Header().Set(header, val[0])
-				}
-			}
+		if err := w.setHeaders(); err != nil {
+			return 0, err
 		}
 
 		if w.trait.SuccessContentType != "" {
