@@ -113,6 +113,12 @@ r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u,
 Additional field tags describe JSON schema constraints, please check 
 [documentation](https://pkg.go.dev/github.com/swaggest/jsonschema-go#Reflector.Reflect).
 
+By default `default` tags are only contributing to documentation, 
+if [`request.DecoderFactory.ApplyDefaults`](https://pkg.go.dev/github.com/swaggest/rest/request#DecoderFactory) is 
+set to `true`, fields of request structure that don't have explicit value but have `default` will be populated with 
+default value.
+
+
 ### Response Encoder
 
 Go struct with field tags defines output port.
@@ -285,6 +291,7 @@ func main() {
 	// Setup request decoder and validator.
 	validatorFactory := jsonschema.NewFactory(apiSchema, apiSchema)
 	decoderFactory := request.NewDecoderFactory()
+	decoderFactory.ApplyDefaults = true
 	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
 	// Create router.

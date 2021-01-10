@@ -29,6 +29,8 @@ const (
 //
 // Please use NewDecoderFactory to create instance.
 type DecoderFactory struct {
+	// ApplyDefaults enables default value assignment for fields missing explicit value in request.
+	// Default value is retrieved from `default` field tag.
 	ApplyDefaults bool
 
 	// JSONReader allows custom JSON decoder for request body.
