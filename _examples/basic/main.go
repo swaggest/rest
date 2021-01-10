@@ -33,6 +33,7 @@ func main() {
 	// Setup request decoder and validator.
 	validatorFactory := jsonschema.NewFactory(apiSchema, apiSchema)
 	decoderFactory := request.NewDecoderFactory()
+	decoderFactory.ApplyDefaults = true
 	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
 	// Create router.
