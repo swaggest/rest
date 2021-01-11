@@ -334,3 +334,23 @@ func BenchmarkDecoder_Decode_jsonParam(b *testing.B) {
 	assert.Equal(b, 123, v.Filter.A)
 	assert.Equal(b, "abc", v.Filter.B)
 }
+
+func TestDecoder_Decode_error(t *testing.T) {
+	type req struct {
+		Q int `default:"100" query:"q"`
+	}
+
+	df := request.NewDecoderFactory()
+	df.ApplyDefaults = true
+
+	d := df.MakeDecoder(http.MethodGet, new(req), nil)
+	r, err := http.NewRequest(http.MethodGet, "?q=undefined", nil)
+	require.NoError(t, err)
+
+	in := new(req)
+	err = d.Decode(r, in, nil)
+	assert.EqualError(t, err, "bad request")
+	assert.Equal(t, rest.RequestErrors{"query:q": []string{
+		"#: Invalid Integer Value 'undefined' Type 'int' Namespace 'q'",
+	}}, err)
+}
