@@ -186,6 +186,7 @@ func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 	m.decoders = append(m.decoders, func(r *http.Request, v interface{}, validator rest.Validator) error {
 		return dec.Decode(v, defaults)
 	})
+	m.in = append(m.in, defaultTag)
 }
 
 func (df *DecoderFactory) makeCustomMappingDecoder(customMapping rest.RequestMapping, m *decoder) {
