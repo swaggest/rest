@@ -12,11 +12,9 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/swaggest/assertjson v1.6.0
 	github.com/swaggest/jsonschema-go v0.3.13
-	github.com/swaggest/openapi-go v0.2.7
+	github.com/swaggest/openapi-go v0.2.9
 	github.com/swaggest/rest v0.1.11
 	github.com/swaggest/swgui v1.1.2
 	github.com/swaggest/usecase v0.1.1
 	github.com/valyala/fasthttp v1.17.0
-	golang.org/x/net v0.0.0-20201224014010-6772e930b67b // indirect
-	golang.org/x/text v0.3.5 // indirect
 )
