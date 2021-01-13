@@ -163,7 +163,6 @@
           },
           {
             "name":"identity","in":"query","description":"JSON value in query",
-            "schema":{"$ref":"#/components/schemas/AdvancedJSONPayload"},
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJSONPayload"}}}
           },
           {

@@ -11,7 +11,7 @@ require (
 	github.com/stretchr/testify v1.6.1
 	github.com/swaggest/assertjson v1.6.0
 	github.com/swaggest/form v3.6.4+incompatible
-	github.com/swaggest/openapi-go v0.2.7
+	github.com/swaggest/openapi-go v0.2.9
 	github.com/swaggest/refl v0.1.6
 	github.com/swaggest/usecase v0.1.1
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
