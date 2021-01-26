@@ -57,8 +57,10 @@ func TestNewClient(t *testing.T) {
 
 	assert.NoError(t, c.ExpectResponseStatus(http.StatusAccepted))
 	assert.NoError(t, c.ExpectResponseBody([]byte(`{"bar":"foo","dyn":"$var1"}`)))
+	assert.NoError(t, c.ExpectResponseHeader("Content-Type", "application/json"))
 	assert.NoError(t, c.ExpectOtherResponsesStatus(http.StatusConflict))
 	assert.NoError(t, c.ExpectOtherResponsesBody([]byte(`{"error":"conflict"}`)))
+	assert.NoError(t, c.ExpectOtherResponsesHeader("Content-Type", "application/json"))
 
 	val, found := vars.Get("$var1")
 	assert.True(t, found)

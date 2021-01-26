@@ -44,6 +44,7 @@ var (
 	errResponseCardinality      = errors.New("response status cardinality too high")
 	errUnexpectedBody           = errors.New("unexpected body")
 	errUnexpectedResponseStatus = errors.New("unexpected response status")
+	errUnexpectedResponseHeader = errors.New("unexpected response header")
 	errOperationNotIdempotent   = errors.New("operation is not idempotent")
 )
 
@@ -281,6 +282,18 @@ func (c *Client) ExpectResponseStatus(statusCode int) error {
 	return c.assertResponseCode(statusCode, c.resp)
 }
 
+// ExpectResponseHeader asserts expected response header value.
+func (c *Client) ExpectResponseHeader(key, value string) error {
+	if c.resp == nil {
+		err := c.do()
+		if err != nil {
+			return err
+		}
+	}
+
+	return c.assertResponseHeader(key, value, c.resp)
+}
+
 // ExpectOtherResponsesStatus sets expectation for response status to be received one or more times during concurrent
 // calling.
 //
@@ -297,10 +310,41 @@ func (c *Client) ExpectOtherResponsesStatus(statusCode int) error {
 	return c.assertResponseCode(statusCode, c.otherResp)
 }
 
+// ExpectOtherResponsesHeader sets expectation for response header value to be received one or more times during
+// concurrent calling.
+func (c *Client) ExpectOtherResponsesHeader(key, value string) error {
+	if c.resp == nil {
+		err := c.do()
+		if err != nil {
+			return err
+		}
+	}
+
+	return c.assertResponseHeader(key, value, c.otherResp)
+}
+
 func (c *Client) assertResponseCode(statusCode int, resp *http.Response) error {
 	if resp.StatusCode != statusCode {
 		return fmt.Errorf("%w, expected: %d (%s), received: %d (%s)", errUnexpectedResponseStatus,
 			statusCode, http.StatusText(statusCode), resp.StatusCode, http.StatusText(resp.StatusCode))
+	}
+
+	return nil
+}
+
+func (c *Client) assertResponseHeader(key, value string, resp *http.Response) error {
+	expected, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+
+	received, err := json.Marshal(resp.Header.Get(key))
+	if err != nil {
+		return err
+	}
+
+	if err := c.JSONComparer.FailNotEqual(expected, received); err != nil {
+		return err
 	}
 
 	return nil
