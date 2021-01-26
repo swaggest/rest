@@ -44,7 +44,6 @@ var (
 	errResponseCardinality      = errors.New("response status cardinality too high")
 	errUnexpectedBody           = errors.New("unexpected body")
 	errUnexpectedResponseStatus = errors.New("unexpected response status")
-	errUnexpectedResponseHeader = errors.New("unexpected response header")
 	errOperationNotIdempotent   = errors.New("operation is not idempotent")
 )
 
