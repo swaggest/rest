@@ -6,7 +6,7 @@ require (
 	github.com/bool64/dev v0.1.15
 	github.com/bool64/shared v0.1.1
 	github.com/cespare/xxhash/v2 v2.1.1
-	github.com/go-chi/chi v4.1.2+incompatible
+	github.com/go-chi/chi v1.5.1
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v2 v2.2.0
 	github.com/stretchr/testify v1.7.0
