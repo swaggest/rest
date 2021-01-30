@@ -21,6 +21,7 @@ func WrapHandler(h http.Handler, mw ...func(http.Handler) http.Handler) http.Han
 		h = &wrappedHandler{
 			Handler: w,
 			wrapped: h,
+			mwName:  runtime.FuncForPC(reflect.ValueOf(mw[i]).Pointer()).Name(),
 		}
 	}
 
@@ -81,4 +82,5 @@ var handlerType = reflect.TypeOf((*http.Handler)(nil)).Elem()
 type wrappedHandler struct {
 	http.Handler
 	wrapped http.Handler
+	mwName  string
 }

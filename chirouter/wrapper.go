@@ -69,7 +69,7 @@ func (r *Wrapper) Route(pattern string, fn func(r chi.Router)) chi.Router {
 		fn(subRouter)
 	}
 
-	r.Mount(pattern, subRouter)
+	r.Router.Mount(pattern, subRouter)
 
 	return subRouter
 }
