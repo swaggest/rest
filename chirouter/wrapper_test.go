@@ -42,14 +42,15 @@ func TestNewWrapper(t *testing.T) {
 		return http.HandlerFunc(handler.ServeHTTP)
 	})
 
-	r.Use(func(handler http.Handler) http.Handler {
-		var foo interface{ Foo() }
-		if nethttp.HandlerAs(handler, &foo) {
-			return HandlerWithBar{Handler: handler}
-		}
+	mw := func(handler http.Handler) http.Handler {
+		var bar interface{ Bar() }
 
-		return handler
-	})
+		assert.False(t, nethttp.HandlerAs(handler, &bar))
+
+		return HandlerWithBar{Handler: handler}
+	}
+
+	r.Use(mw)
 
 	r.Group(func(r chi.Router) {
 		r.Method(http.MethodPost,
@@ -61,6 +62,8 @@ func TestNewWrapper(t *testing.T) {
 			})},
 		)
 	})
+
+	r.Mount("/mount", http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {}))
 
 	r.Route("/deeper/", func(r chi.Router) {
 		r.Use(func(handler http.Handler) http.Handler {
@@ -82,11 +85,13 @@ func TestNewWrapper(t *testing.T) {
 		r.Handle("/bar", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {}))
 	})
 
-	req, err := http.NewRequest(http.MethodPost, "/baz/123/", nil)
-	require.NoError(t, err)
+	for _, u := range []string{"/baz/123/", "/deeper/foo", "/mount/abc"} {
+		req, err := http.NewRequest(http.MethodPost, u, nil)
+		require.NoError(t, err)
 
-	rw := httptest.NewRecorder()
-	r.ServeHTTP(rw, req)
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
 
-	assert.Equal(t, "bar", rw.Body.String())
+		assert.Equal(t, "bar", rw.Body.String(), u)
+	}
 }
