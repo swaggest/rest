@@ -13,12 +13,7 @@ import (
 func FindTasks(deps interface {
 	TaskFinder() task.Finder
 }) usecase.Interactor {
-	u := struct {
-		usecase.Interactor
-		usecase.Info
-		usecase.WithInput
-		usecase.WithOutput
-	}{}
+	u := usecase.IOInteractor{}
 
 	u.SetName("findTasks")
 	u.SetTitle("Find Tasks")

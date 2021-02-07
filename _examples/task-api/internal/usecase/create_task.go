@@ -13,12 +13,7 @@ import (
 func CreateTask(deps interface {
 	TaskCreator() task.Creator
 }) usecase.Interactor {
-	u := struct {
-		usecase.Interactor
-		usecase.Info
-		usecase.WithInput
-		usecase.WithOutput
-	}{}
+	u := usecase.IOInteractor{}
 
 	u.SetName("createTask")
 	u.SetTitle("Create Task")

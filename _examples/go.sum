@@ -117,13 +117,14 @@ github.com/swaggest/assertjson v1.4.1/go.mod h1:v7atNMMlIa5ry2H1rgCHhvz7eho8yfP8
 github.com/swaggest/assertjson v1.6.0/go.mod h1:2dZU3TJoGcH+QPrekon0+zG5hJnZUpdEAxiLoxmJALI=
 github.com/swaggest/assertjson v1.6.2 h1:4v4ueAy466hisGIeQ2WmFDyOJiE0YrCDDRaSXor642I=
 github.com/swaggest/assertjson v1.6.2/go.mod h1:7/CWJAKS2t0KXIGsh5no8qyRXluwQ4fVduV3+Jue/MY=
-github.com/swaggest/form v3.6.4+incompatible h1:K0EaZjf8C7cScuZgnJG+Sg0GUGAtjPZivTv1jN+1ni4=
-github.com/swaggest/form v3.6.4+incompatible/go.mod h1:eTJPpSayjnJlOQQbDYsSHlbREbSAtudNW/Y6HouVWr0=
+github.com/swaggest/form v1.11.1 h1:dNRMhld2VkVA6J9sjKaWSoabEP92G5NNlLs9wW+zN/Q=
+github.com/swaggest/form v1.11.1/go.mod h1:XI/xmw62iJuKxhbqvxOj1ri7VJFAaeRsX5qNdHVkbB4=
 github.com/swaggest/jsonschema-go v0.2.1/go.mod h1:QFauBdPTrU1UltwocM5FzOWnVjVVtcWkJWG3NlK9sV0=
 github.com/swaggest/jsonschema-go v0.2.4/go.mod h1:m4VV88Gbi7lCrt9ckJzigK1rMlEeFjdZUkJr1o5MnDE=
 github.com/swaggest/jsonschema-go v0.3.7/go.mod h1:TrWgbug4p2ZgcxnHDz+CvYvEtJ5KckL/XOV4mSR6FGw=
-github.com/swaggest/jsonschema-go v0.3.13 h1:QKgsj3PrrNZBs68JZ6TJZTFT943AO48oGIsVwWhO47s=
 github.com/swaggest/jsonschema-go v0.3.13/go.mod h1:INO3Dt0DeyNCbQbqMXNpMQ489BcyRtSb/k62OfmHbpY=
+github.com/swaggest/jsonschema-go v0.3.14 h1:HmXY9SbMtwedXM6JOlRcAOxtJ0wH2WURWlnow40CAoo=
+github.com/swaggest/jsonschema-go v0.3.14/go.mod h1:ohKskUhEMf/bhSi2zY0A5aLZoMz7ZkEafEvniNKBaQg=
 github.com/swaggest/openapi-go v0.1.3/go.mod h1:Zx4ZgJ7XvlFH9wCOHE7u8RAjLfiHAnCHeaD5kUDujVM=
 github.com/swaggest/openapi-go v0.1.13/go.mod h1:fju3Ka5zb8qBKf4789zLNVUqITydWLDjtPloZhhYHL8=
 github.com/swaggest/openapi-go v0.2.9 h1:JJQrDSRtKMycIkLju97yjhJbw72mqhsCDJjqFB8HvSs=
@@ -242,8 +243,6 @@ gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15/go.mod h1:Co6ibVJAznAaIkqp8
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c h1:Hei/4ADfdWqJk1ZMxUNpqntNwaWcugrBjAiHlqqRiVk=
 gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c/go.mod h1:JHkPIbrfpd72SG/EVd6muEfDQjcINNoR0C8j2r3qZ4Q=
 gopkg.in/fsnotify.v1 v1.4.7/go.mod h1:Tz8NjZHkW78fSQdbUxIjBTcgA1z1m8ZHf0WmKUhAMys=
-gopkg.in/go-playground/assert.v1 v1.2.1 h1:xoYuJVE7KT85PYWrN730RguIQO0ePzVRfFMXadIrXTM=
-gopkg.in/go-playground/assert.v1 v1.2.1/go.mod h1:9RXL0bg/zibRAgZUYszZSwO/z8Y/a8bDuhia5mkpMnE=
 gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7 h1:uRGJdciOHaEIrze2W8Q3AKkepLTh2hOroT7a+7czfdQ=
 gopkg.in/tomb.v1 v1.0.0-20141024135613-dd632973f1e7/go.mod h1:dt/ZhP58zS4L8KSrWDmTeBkI65Dw0HsyUHuEVlX15mw=
 gopkg.in/yaml.v2 v2.2.1/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=

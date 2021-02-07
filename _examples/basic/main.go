@@ -50,12 +50,7 @@ func main() {
 	)
 
 	// Create use case interactor.
-	u := struct {
-		usecase.Info
-		usecase.Interactor
-		usecase.WithInput
-		usecase.WithOutput
-	}{}
+	u := usecase.IOInteractor{}
 
 	// Describe use case interactor.
 	u.SetTitle("Greeter")

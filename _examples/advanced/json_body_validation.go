@@ -7,12 +7,7 @@ import (
 )
 
 func jsonBodyValidation() usecase.Interactor {
-	u := struct {
-		usecase.Interactor
-		usecase.Info
-		usecase.WithInput
-		usecase.WithOutput
-	}{}
+	u := usecase.IOInteractor{}
 
 	u.SetTitle("Request With JSON Body and non-trivial validation")
 	u.SetDescription("Request with JSON body and query/header/path params, response with JSON body and data from request.")

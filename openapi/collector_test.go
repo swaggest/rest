@@ -6,10 +6,12 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/assertjson"
+	jschema "github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/jsonschema"
@@ -112,19 +114,14 @@ func TestCollector_Collect(t *testing.T) {
 func TestCollector_Collect_requestMapping(t *testing.T) {
 	type input struct {
 		InHeader   string `minLength:"2"`
-		InQuery    int
-		InCookie   float64
-		InFormData string
+		InQuery    jschema.Date
+		InCookie   *time.Time
+		InFormData time.Time
 		InPath     bool
 		InFile     multipart.File
 	}
 
-	u := struct {
-		usecase.Interactor
-		usecase.Info
-		usecase.WithInput
-		usecase.WithOutput
-	}{}
+	u := usecase.IOInteractor{}
 
 	u.SetTitle("Title")
 	u.SetName("name")
@@ -147,43 +144,40 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 
 	require.NoError(t, collector.Collect(http.MethodPost, "/test/{in-path}", u, h))
 
-	j, err := assertjson.MarshalIndentCompact(collector.Reflector().SpecEns(), "", "  ", 100)
-	require.NoError(t, err)
-
-	assertjson.Equal(t, []byte(`{
-	  "openapi":"3.0.3","info":{"title":"","version":""},
-	  "paths":{
-		"/test/{in-path}":{
-		  "post":{
-			"summary":"Title","description":"","operationId":"name",
-			"parameters":[
-			  {"name":"in_query","in":"query","schema":{"type":"integer"}},
-			  {"name":"in-path","in":"path","required":true,"schema":{"type":"boolean"}},
-			  {"name":"in_cookie","in":"cookie","schema":{"type":"number"}},
-			  {"name":"X-In-Header","in":"header","schema":{"minLength":2,"type":"string"}}
-			],
-			"requestBody":{
-			  "content":{
-				"multipart/form-data":{"schema":{"$ref":"#/components/schemas/FormDataOpenapiTestInput"}}
-			  }
-			},
-			"responses":{"204":{"description":"No Content"}},"deprecated":true
+	assertjson.EqualMarshal(t, []byte(`{
+  "openapi":"3.0.3","info":{"title":"","version":""},
+  "paths":{
+	"/test/{in-path}":{
+	  "post":{
+		"summary":"Title","description":"","operationId":"name",
+		"parameters":[
+		  {"name":"in_query","in":"query","schema":{"type":"string","format":"date"}},
+		  {"name":"in-path","in":"path","required":true,"schema":{"type":"boolean"}},
+		  {"name":"in_cookie","in":"cookie","schema":{"type":"string","format":"date-time"}},
+		  {"name":"X-In-Header","in":"header","schema":{"minLength":2,"type":"string"}}
+		],
+		"requestBody":{
+		  "content":{
+			"multipart/form-data":{"schema":{"$ref":"#/components/schemas/FormDataOpenapiTestInput"}}
 		  }
-		}
-	  },
-	  "components":{
-		"schemas":{
-		  "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
-		  "FormDataOpenapiTestInput":{
-			"type":"object",
-			"properties":{
-			  "in_form_data":{"type":"string"},
-			  "upload":{"$ref":"#/components/schemas/FormDataMultipartFile"}
-			}
-		  }
+		},
+		"responses":{"204":{"description":"No Content"}},"deprecated":true
+	  }
+	}
+  },
+  "components":{
+	"schemas":{
+	  "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
+	  "FormDataOpenapiTestInput":{
+		"type":"object",
+		"properties":{
+		  "in_form_data":{"type":"string","format":"date-time"},
+		  "upload":{"$ref":"#/components/schemas/FormDataMultipartFile"}
 		}
 	  }
-	}`), j, string(j))
+	}
+  }
+}`), collector.Reflector().SpecEns())
 
 	val := validatorMock{
 		AddSchemaFunc: func(in rest.ParamIn, name string, schemaData []byte, required bool) error {

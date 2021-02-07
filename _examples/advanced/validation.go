@@ -7,12 +7,7 @@ import (
 )
 
 func validation() usecase.Interactor {
-	u := struct {
-		usecase.Interactor
-		usecase.Info
-		usecase.WithInput
-		usecase.WithOutput
-	}{}
+	u := usecase.IOInteractor{}
 
 	u.SetTitle("Validation")
 	u.SetDescription("Input/Output with validation.")

@@ -20,12 +20,7 @@ func (j *jsonSliceReq) UnmarshalJSON(data []byte) error {
 }
 
 func jsonSliceBody() usecase.Interactor {
-	u := struct {
-		usecase.Interactor
-		usecase.Info
-		usecase.WithInput
-		usecase.WithOutput
-	}{}
+	u := usecase.IOInteractor{}
 
 	type jsonOutput struct {
 		Header string           `json:"inHeader"`

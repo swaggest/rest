@@ -14,12 +14,7 @@ type finishTaskDeps interface {
 
 // FinishTask creates usecase interactor.
 func FinishTask(deps finishTaskDeps) usecase.Interactor {
-	u := struct {
-		usecase.Interactor
-		usecase.Info
-		usecase.WithInput
-		usecase.WithOutput
-	}{}
+	u := usecase.IOInteractor{}
 
 	u.SetName("closeTask")
 	u.SetTitle("Finish Task")
