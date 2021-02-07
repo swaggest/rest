@@ -13,7 +13,7 @@ require (
 	github.com/swaggest/assertjson v1.6.2
 	github.com/swaggest/jsonschema-go v0.3.14
 	github.com/swaggest/openapi-go v0.2.9
-	github.com/swaggest/rest v0.1.11
+	github.com/swaggest/rest v0.1.17
 	github.com/swaggest/swgui v1.1.2
 	github.com/swaggest/usecase v0.1.1
 	github.com/valyala/fasthttp v1.17.0

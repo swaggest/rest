@@ -19,7 +19,7 @@ func Benchmark_jsonBody(b *testing.B) {
 
 	httptestbench.RoundTrip(b, 50, func(i int, req *fasthttp.Request) {
 		req.Header.SetMethod(http.MethodPost)
-		req.SetRequestURI(srv.URL + "/json-body/abc?in_query=123")
+		req.SetRequestURI(srv.URL + "/json-body/abc?in_query=2006-01-02")
 		req.Header.Set("Content-Type", "application/json")
 		req.Header.Set("X-Header", "def")
 		req.SetBody([]byte(`{"id":321,"name":"Jane"}`))
