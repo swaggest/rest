@@ -20,12 +20,7 @@ func (j *jsonMapReq) UnmarshalJSON(data []byte) error {
 }
 
 func jsonMapBody() usecase.Interactor {
-	u := struct {
-		usecase.Interactor
-		usecase.Info
-		usecase.WithInput
-		usecase.WithOutput
-	}{}
+	u := usecase.IOInteractor{}
 
 	u.SetTitle("Request With JSON Map In Body")
 

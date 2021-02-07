@@ -49,11 +49,7 @@ func (dc gzipPassThroughContainer) gzipPassThroughStruct() gzipPassThroughStruct
 }
 
 func directGzip() usecase.Interactor {
-	u := struct {
-		usecase.Interactor
-		usecase.WithOutput
-		usecase.WithInput
-	}{}
+	u := usecase.IOInteractor{}
 
 	// Prepare moderately big JSON, resulting JSON payload is ~67KB.
 	rawData := gzipPassThroughStruct{

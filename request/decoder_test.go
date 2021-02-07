@@ -2,13 +2,16 @@ package request_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	jschema "github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/jsonschema"
 	"github.com/swaggest/rest/openapi"
@@ -247,7 +250,7 @@ func TestDecoder_Decode_queryObject(t *testing.T) {
 	err = dec.Decode(req, input, nil)
 	assert.Error(t, err)
 	assert.Equal(t, rest.RequestErrors{"query:in_query": []string{
-		"#: Invalid Integer Value 'c' Type 'int' Namespace 'in_query'",
+		"#: invalid integer value 'c' type 'int' namespace 'in_query'",
 	}}, err)
 }
 
@@ -351,6 +354,25 @@ func TestDecoder_Decode_error(t *testing.T) {
 	err = d.Decode(r, in, nil)
 	assert.EqualError(t, err, "bad request")
 	assert.Equal(t, rest.RequestErrors{"query:q": []string{
-		"#: Invalid Integer Value 'undefined' Type 'int' Namespace 'q'",
+		"#: invalid integer value 'undefined' type 'int' namespace 'q'",
 	}}, err)
+}
+
+func TestDecoder_Decode_dateTime(t *testing.T) {
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet,
+		"/?time=2020-04-04T00:00:00Z&date=2020-04-04", nil)
+	assert.NoError(t, err)
+
+	type reqTest struct {
+		Time time.Time    `query:"time"`
+		Date jschema.Date `query:"date"`
+	}
+
+	input := new(reqTest)
+	dec := request.NewDecoderFactory().MakeDecoder(http.MethodGet, input, nil)
+	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
+		MakeRequestValidator(http.MethodGet, input, nil)
+
+	err = dec.Decode(req, input, validator)
+	assert.NoError(t, err, fmt.Sprintf("%v", err))
 }

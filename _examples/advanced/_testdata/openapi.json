@@ -37,6 +37,7 @@
     },
     "/gzip-pass-through":{
       "get":{
+        "summary":"","description":"","operationId":"",
         "parameters":[
           {
             "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",
@@ -55,6 +56,7 @@
         }
       },
       "head":{
+        "summary":"","description":"","operationId":"",
         "parameters":[
           {
             "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",
@@ -109,7 +111,7 @@
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Simple scalar value in query.",
-            "schema":{"type":"integer","description":"Simple scalar value in query."}
+            "schema":{"type":"string","description":"Simple scalar value in query.","format":"date"}
           },
           {
             "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
@@ -406,8 +408,8 @@
       "AdvancedOutputWithJSONType2":{
         "type":"object",
         "properties":{
-          "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},"inQuery":{"type":"integer"},
-          "name":{"type":"string"}
+          "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},
+          "inQuery":{"type":"string","format":"date"},"name":{"type":"string"}
         }
       },
       "AdvancedOutputWithJSONType3":{

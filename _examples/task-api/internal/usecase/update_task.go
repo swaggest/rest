@@ -17,12 +17,7 @@ type updateTask struct {
 func UpdateTask(deps interface {
 	TaskUpdater() task.Updater
 }) usecase.Interactor {
-	u := struct {
-		usecase.Interactor
-		usecase.Info
-		usecase.WithInput
-		usecase.WithOutput
-	}{}
+	u := usecase.IOInteractor{}
 
 	u.SetName("updateTask")
 	u.SetTitle("Update Task")
