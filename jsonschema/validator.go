@@ -3,8 +3,8 @@ package jsonschema
 
 import (
 	"bytes"
-	"encoding/json"
 
+	json "github.com/goccy/go-json"
 	"github.com/santhosh-tekuri/jsonschema/v2"
 	"github.com/swaggest/rest"
 )
@@ -13,7 +13,7 @@ var _ rest.Validator = &Validator{}
 
 // Validator is a JSON Schema based validator.
 type Validator struct {
-	// JSONMarshal controls custom marshaler, nil value enables "encoding/json".
+	// JSONMarshal controls custom marshaler, nil value enables json "github.com/goccy/go-json".
 	JSONMarshal func(interface{}) ([]byte, error)
 
 	inNamedSchemas map[rest.ParamIn]map[string]*jsonschema.Schema
@@ -35,7 +35,7 @@ func NewFactory(
 //
 // Please use NewFactory to create an instance.
 type Factory struct {
-	// JSONMarshal controls custom marshaler, nil value enables "encoding/json".
+	// JSONMarshal controls custom marshaler, nil value enables json "github.com/goccy/go-json".
 	JSONMarshal func(interface{}) ([]byte, error)
 
 	requestSchemas  rest.RequestJSONSchemaProvider

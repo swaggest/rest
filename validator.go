@@ -1,6 +1,6 @@
 package rest
 
-import "encoding/json"
+import json "github.com/goccy/go-json"
 
 // Validator validates a map of decoded data.
 type Validator interface {

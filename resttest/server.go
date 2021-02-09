@@ -2,7 +2,6 @@ package resttest
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -10,6 +9,7 @@ import (
 	"net/http/httptest"
 	"sync"
 
+	json "github.com/goccy/go-json"
 	"github.com/swaggest/assertjson"
 	"github.com/swaggest/assertjson/json5"
 )

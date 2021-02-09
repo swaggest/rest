@@ -2,13 +2,13 @@ package request
 
 import (
 	"bytes"
-	"encoding/json"
 	"io"
 	"net/http"
 	"net/url"
 	"reflect"
 	"strings"
 
+	json "github.com/goccy/go-json"
 	"github.com/swaggest/form"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/refl"

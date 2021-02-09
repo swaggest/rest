@@ -1,11 +1,11 @@
 package rest_test
 
 import (
-	"encoding/json"
 	"errors"
 	"net/http"
 	"testing"
 
+	json "github.com/goccy/go-json"
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/usecase"

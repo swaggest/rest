@@ -2,8 +2,8 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 
+	json "github.com/goccy/go-json"
 	"github.com/swaggest/usecase"
 )
 

@@ -3,7 +3,6 @@ package resttest
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +11,7 @@ import (
 	"strings"
 	"sync"
 
+	json "github.com/goccy/go-json"
 	"github.com/swaggest/assertjson"
 	"github.com/swaggest/assertjson/json5"
 )

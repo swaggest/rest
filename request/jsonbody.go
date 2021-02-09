@@ -2,12 +2,12 @@ package request
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"sync"
 
+	json "github.com/goccy/go-json"
 	"github.com/swaggest/rest"
 )
 

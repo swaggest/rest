@@ -3,12 +3,12 @@ package gzip
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/json"
 	"io"
 	"io/ioutil"
 	"strconv"
 
 	"github.com/cespare/xxhash/v2"
+	json "github.com/goccy/go-json"
 )
 
 // Writer writes gzip data into suitable stream or returns 0, nil.

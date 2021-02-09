@@ -2,9 +2,9 @@ package rest
 
 import (
 	"context"
-	"encoding/json"
 	"reflect"
 
+	json "github.com/goccy/go-json"
 	"github.com/swaggest/refl"
 	"github.com/swaggest/usecase"
 )
