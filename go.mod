@@ -7,7 +7,7 @@ require (
 	github.com/bool64/shared v0.1.1
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/go-chi/chi v1.5.1
-	github.com/goccy/go-json v0.4.1
+	github.com/goccy/go-json v0.4.2
 	github.com/santhosh-tekuri/jsonschema/v2 v2.2.0
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggest/assertjson v1.6.2
