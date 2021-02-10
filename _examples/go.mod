@@ -8,7 +8,7 @@ require (
 	github.com/bool64/dev v0.1.15
 	github.com/bool64/httptestbench v0.1.1
 	github.com/go-chi/chi v1.5.1
-	github.com/goccy/go-json v0.4.2
+	github.com/goccy/go-json v0.4.3
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggest/assertjson v1.6.2
@@ -20,3 +20,5 @@ require (
 	github.com/valyala/fasthttp v1.17.0
 	golang.org/x/net v0.0.0-20210119194325-5f4716e94777 // indirect
 )
+
+replace github.com/goccy/go-json => /Users/viacheslavpoturaev/gohack/github.com/goccy/go-json
