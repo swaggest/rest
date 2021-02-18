@@ -17,18 +17,7 @@ type updateTask struct {
 func UpdateTask(deps interface {
 	TaskUpdater() task.Updater
 }) usecase.Interactor {
-	u := usecase.IOInteractor{}
-
-	u.SetName("updateTask")
-	u.SetTitle("Update Task")
-	u.SetDescription("Update existing task.")
-	u.Input = new(updateTask)
-	u.SetExpectedErrors(
-		status.InvalidArgument,
-	)
-	u.SetTags("Tasks")
-
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, _ interface{}) error {
+	u := usecase.NewIOI(new(updateTask), nil, func(ctx context.Context, input, _ interface{}) error {
 		var (
 			in  = input.(*updateTask)
 			err error
@@ -38,6 +27,12 @@ func UpdateTask(deps interface {
 
 		return err
 	})
+
+	u.SetDescription("Update existing task.")
+	u.SetExpectedErrors(
+		status.InvalidArgument,
+	)
+	u.SetTags("Tasks")
 
 	return u
 }

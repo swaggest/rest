@@ -20,20 +20,13 @@ func (j *jsonSliceReq) UnmarshalJSON(data []byte) error {
 }
 
 func jsonSliceBody() usecase.Interactor {
-	u := usecase.IOInteractor{}
-
 	type jsonOutput struct {
 		Header string           `json:"inHeader"`
 		Query  int              `json:"inQuery"`
 		Data   JSONSlicePayload `json:"data"`
 	}
 
-	u.SetTitle("Request With JSON Array In Body")
-
-	u.Input = new(jsonSliceReq)
-	u.Output = new(jsonOutput)
-
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) (err error) {
+	u := usecase.NewIOI(new(jsonSliceReq), new(jsonOutput), func(ctx context.Context, input, output interface{}) (err error) {
 		var (
 			in  = input.(*jsonSliceReq)
 			out = output.(*jsonOutput)
@@ -45,6 +38,8 @@ func jsonSliceBody() usecase.Interactor {
 
 		return nil
 	})
+
+	u.SetTitle("Request With JSON Array In Body")
 
 	return u
 }

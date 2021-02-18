@@ -7,12 +7,6 @@ import (
 )
 
 func reqRespMapping() usecase.Interactor {
-	u := usecase.IOInteractor{}
-
-	u.SetTitle("Request Response Mapping")
-	u.SetName("reqRespMapping")
-	u.SetDescription("This use case has transport concerns fully decoupled with external req/resp mapping.")
-
 	type inputPort struct {
 		Val1 string `description:"Simple scalar value."`
 		Val2 int    `description:"Simple scalar value."`
@@ -23,10 +17,7 @@ func reqRespMapping() usecase.Interactor {
 		Val2 int    `json:"-"`
 	}
 
-	u.Input = new(inputPort)
-	u.Output = new(outputPort)
-
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) (err error) {
+	u := usecase.NewIOI(new(inputPort), new(outputPort), func(ctx context.Context, input, output interface{}) (err error) {
 		var (
 			in  = input.(*inputPort)
 			out = output.(*outputPort)
@@ -37,6 +28,10 @@ func reqRespMapping() usecase.Interactor {
 
 		return nil
 	})
+
+	u.SetTitle("Request Response Mapping")
+	u.SetName("reqRespMapping")
+	u.SetDescription("This use case has transport concerns fully decoupled with external req/resp mapping.")
 
 	return u
 }

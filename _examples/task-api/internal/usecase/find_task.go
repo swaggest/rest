@@ -11,31 +11,26 @@ import (
 // FindTask creates usecase interactor.
 func FindTask(deps interface {
 	TaskFinder() task.Finder
-}) usecase.Interactor {
-	u := usecase.IOInteractor{}
+}) usecase.IOInteractor {
+	u := usecase.NewIOI(new(task.Identity), new(task.Entity),
+		func(ctx context.Context, input, output interface{}) error {
+			var (
+				in  = input.(*task.Identity)
+				out = output.(*task.Entity)
+				err error
+			)
 
-	u.SetName("findTask")
-	u.SetTitle("Find Task")
+			*out, err = deps.TaskFinder().FindByID(ctx, *in)
+
+			return err
+		})
+
 	u.SetDescription("Find task by ID.")
-	u.Input = new(task.Identity)
-	u.Output = new(task.Entity)
 	u.SetExpectedErrors(
 		status.NotFound,
 		status.InvalidArgument,
 	)
 	u.SetTags("Tasks")
-
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
-		var (
-			in  = input.(*task.Identity)
-			out = output.(*task.Entity)
-			err error
-		)
-
-		*out, err = deps.TaskFinder().FindByID(ctx, *in)
-
-		return err
-	})
 
 	return u
 }

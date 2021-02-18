@@ -49,8 +49,6 @@ func (dc gzipPassThroughContainer) gzipPassThroughStruct() gzipPassThroughStruct
 }
 
 func directGzip() usecase.Interactor {
-	u := usecase.IOInteractor{}
-
 	// Prepare moderately big JSON, resulting JSON payload is ~67KB.
 	rawData := gzipPassThroughStruct{
 		ID: 123,
@@ -67,31 +65,30 @@ func directGzip() usecase.Interactor {
 		panic(err)
 	}
 
-	u.Input = new(gzipPassThroughInput)
-	u.Output = new(gzipPassThroughOutput)
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
-		var (
-			in  = input.(*gzipPassThroughInput)
-			out = output.(*gzipPassThroughOutput)
-		)
+	u := usecase.NewIOI(new(gzipPassThroughInput), new(gzipPassThroughOutput),
+		func(ctx context.Context, input, output interface{}) error {
+			var (
+				in  = input.(*gzipPassThroughInput)
+				out = output.(*gzipPassThroughOutput)
+			)
 
-		if in.PlainStruct {
-			o := rawData
-			o.Header = "cba"
-			*out = o
-		} else {
-			o := dataFromCache
-			o.Header = "abc"
-			*out = o
-		}
+			if in.PlainStruct {
+				o := rawData
+				o.Header = "cba"
+				*out = o
+			} else {
+				o := dataFromCache
+				o.Header = "abc"
+				*out = o
+			}
 
-		// Imitating an internal read operation on data in container.
-		if in.CountItems {
-			_ = len((*out).gzipPassThroughStruct().Text)
-		}
+			// Imitating an internal read operation on data in container.
+			if in.CountItems {
+				_ = len((*out).gzipPassThroughStruct().Text)
+			}
 
-		return nil
-	})
+			return nil
+		})
 
 	return u
 }

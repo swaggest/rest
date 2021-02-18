@@ -12,21 +12,8 @@ import (
 // CreateTask creates usecase interactor.
 func CreateTask(deps interface {
 	TaskCreator() task.Creator
-}) usecase.Interactor {
-	u := usecase.IOInteractor{}
-
-	u.SetName("createTask")
-	u.SetTitle("Create Task")
-	u.SetDescription("Create task to be done.")
-	u.Input = new(task.Value)
-	u.Output = new(task.Entity)
-	u.SetExpectedErrors(
-		status.AlreadyExists,
-		status.InvalidArgument,
-	)
-	u.SetTags("Tasks")
-
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+}) usecase.IOInteractor {
+	u := usecase.NewIOI(new(task.Value), new(task.Entity), func(ctx context.Context, input, output interface{}) error {
 		var (
 			in  = input.(*task.Value)
 			out = output.(*task.Entity)
@@ -38,6 +25,13 @@ func CreateTask(deps interface {
 
 		return err
 	})
+
+	u.SetDescription("Create task to be done.")
+	u.SetExpectedErrors(
+		status.AlreadyExists,
+		status.InvalidArgument,
+	)
+	u.SetTags("Tasks")
 
 	return u
 }

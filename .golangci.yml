@@ -28,6 +28,7 @@ linters:
     - paralleltest
     - forbidigo
     - exhaustivestruct
+    - ifshort
 
 issues:
   exclude-use-default: false

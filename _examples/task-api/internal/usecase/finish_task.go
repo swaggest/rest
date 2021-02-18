@@ -13,20 +13,8 @@ type finishTaskDeps interface {
 }
 
 // FinishTask creates usecase interactor.
-func FinishTask(deps finishTaskDeps) usecase.Interactor {
-	u := usecase.IOInteractor{}
-
-	u.SetName("closeTask")
-	u.SetTitle("Finish Task")
-	u.SetDescription("Finish task by ID.")
-	u.Input = new(task.Identity)
-	u.SetExpectedErrors(
-		status.NotFound,
-		status.InvalidArgument,
-	)
-	u.SetTags("Tasks")
-
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, _ interface{}) error {
+func FinishTask(deps finishTaskDeps) usecase.IOInteractor {
+	u := usecase.NewIOI(new(task.Identity), nil, func(ctx context.Context, input, _ interface{}) error {
 		var (
 			in  = input.(*task.Identity)
 			err error
@@ -36,6 +24,13 @@ func FinishTask(deps finishTaskDeps) usecase.Interactor {
 
 		return err
 	})
+
+	u.SetDescription("Finish task by ID.")
+	u.SetExpectedErrors(
+		status.NotFound,
+		status.InvalidArgument,
+	)
+	u.SetTags("Tasks")
 
 	return u
 }

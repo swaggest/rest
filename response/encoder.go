@@ -18,6 +18,8 @@ import (
 
 // Encoder prepares and writes http response.
 type Encoder struct {
+	JSONWriter func(v interface{})
+
 	outputBufferType     reflect.Type
 	outputHeadersEncoder *form.Encoder
 	skipRendering        bool
