@@ -58,7 +58,8 @@ func NewRouter(locator *service.Locator) http.Handler {
 			return nil
 		}))
 		r.Group(func(r chi.Router) {
-			r.Method(http.MethodPost, "/tasks", nethttp.NewHandler(usecase.CreateTask(locator)))
+			r.Method(http.MethodPost, "/tasks", nethttp.NewHandler(usecase.CreateTask(locator),
+				nethttp.SuccessStatus(http.StatusCreated)))
 			r.Method(http.MethodPut, "/tasks/{id}", nethttp.NewHandler(usecase.UpdateTask(locator), ff))
 			r.Method(http.MethodGet, "/tasks/{id}", nethttp.NewHandler(usecase.FindTask(locator), ff))
 			r.Method(http.MethodGet, "/tasks", nethttp.NewHandler(usecase.FindTasks(locator)))
@@ -83,7 +84,8 @@ func NewRouter(locator *service.Locator) http.Handler {
 	r.Route("/user", func(r chi.Router) {
 		r.Group(func(r chi.Router) {
 			r.Use(userAuth, nethttp.HTTPBasicSecurityMiddleware(apiSchema, "User", "User access"))
-			r.Method(http.MethodPost, "/tasks", nethttp.NewHandler(usecase.CreateTask(locator)))
+			r.Method(http.MethodPost, "/tasks", nethttp.NewHandler(usecase.CreateTask(locator),
+				nethttp.SuccessStatus(http.StatusCreated)))
 		})
 	})
 

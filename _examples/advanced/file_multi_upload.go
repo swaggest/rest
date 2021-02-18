@@ -9,10 +9,6 @@ import (
 )
 
 func fileMultiUploader() usecase.Interactor {
-	u := usecase.IOInteractor{}
-
-	u.SetTitle("Files Uploads With 'multipart/form-data'")
-
 	type upload struct {
 		Simple   string                  `formData:"simple" description:"Simple scalar value in body."`
 		Query    int                     `query:"in_query" description:"Simple scalar value in query."`
@@ -30,10 +26,7 @@ func fileMultiUploader() usecase.Interactor {
 		Query        int                    `json:"inQuery"`
 	}
 
-	u.Input = new(upload)
-	u.Output = new(info)
-
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) (err error) {
+	u := usecase.NewIOI(new(upload), new(info), func(ctx context.Context, input, output interface{}) (err error) {
 		var (
 			in  = input.(*upload)
 			out = output.(*info)
@@ -80,6 +73,8 @@ func fileMultiUploader() usecase.Interactor {
 
 		return nil
 	})
+
+	u.SetTitle("Files Uploads With 'multipart/form-data'")
 
 	return u
 }

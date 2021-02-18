@@ -268,9 +268,6 @@ import (
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
-	"github.com/swaggest/swgui/v3cdn"
-	"github.com/swaggest/usecase"
-	"github.com/swaggest/usecase/status"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/chirouter"
 	"github.com/swaggest/rest/jsonschema"
@@ -279,6 +276,9 @@ import (
 	"github.com/swaggest/rest/request"
 	"github.com/swaggest/rest/response"
 	"github.com/swaggest/rest/response/gzip"
+	"github.com/swaggest/swgui/v3cdn"
+	"github.com/swaggest/usecase"
+	"github.com/swaggest/usecase/status"
 )
 
 func main() {
@@ -307,33 +307,25 @@ func main() {
 		gzip.Middleware,                               // Response compression with support for direct gzip pass through.
 	)
 
-	// Create use case interactor.
-	u := usecase.IOInteractor{}
-
-	// Describe use case interactor.
-	u.SetTitle("Greeter")
-	u.SetDescription("Greeter greets you.")
-
 	// Declare input port type.
 	type helloInput struct {
-		Locale string `query:"locale" default:"en-US" pattern:"^[a-z]{2}-[A-Z]{2}$"`
+		Locale string `query:"locale" default:"en-US" pattern:"^[a-z]{2}-[A-Z]{2}$" enum:"ru-RU,en-US"`
 		Name   string `path:"name" minLength:"3"` // Field tags define parameter location and JSON schema constraints.
 	}
-	u.Input = new(helloInput)
 
 	// Declare output port type.
 	type helloOutput struct {
 		Now     time.Time `header:"X-Now" json:"-"`
 		Message string    `json:"message"`
 	}
-	u.Output = new(helloOutput)
 
-	u.SetExpectedErrors(status.InvalidArgument)
 	messages := map[string]string{
 		"en-US": "Hello, %s!",
 		"ru-RU": "Привет, %s!",
 	}
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+
+	// Create use case interactor with references to input/output types and interaction function.
+	u := usecase.NewIOI(new(helloInput), new(helloOutput), func(ctx context.Context, input, output interface{}) error {
 		var (
 			in  = input.(*helloInput)
 			out = output.(*helloOutput)
@@ -349,6 +341,12 @@ func main() {
 
 		return nil
 	})
+
+	// Describe use case interactor.
+	u.SetTitle("Greeter")
+	u.SetDescription("Greeter greets you.")
+
+	u.SetExpectedErrors(status.InvalidArgument)
 
 	// Add use case handler to router.
 	r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u))

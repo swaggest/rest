@@ -8,11 +8,6 @@ import (
 )
 
 func jsonBody() usecase.Interactor {
-	u := usecase.IOInteractor{}
-
-	u.SetTitle("Request With JSON Body")
-	u.SetDescription("Request with JSON body and query/header/path params, response with JSON body and data from request.")
-
 	type JSONPayload struct {
 		ID   int    `json:"id"`
 		Name string `json:"name"`
@@ -32,22 +27,23 @@ func jsonBody() usecase.Interactor {
 		JSONPayload
 	}
 
-	u.Input = new(inputWithJSON)
-	u.Output = new(outputWithJSON)
+	u := usecase.NewIOI(new(inputWithJSON), new(outputWithJSON),
+		func(ctx context.Context, input, output interface{}) (err error) {
+			var (
+				in  = input.(*inputWithJSON)
+				out = output.(*outputWithJSON)
+			)
 
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) (err error) {
-		var (
-			in  = input.(*inputWithJSON)
-			out = output.(*outputWithJSON)
-		)
+			out.Query = in.Query
+			out.Header = in.Header
+			out.Path = in.Path
+			out.JSONPayload = in.JSONPayload
 
-		out.Query = in.Query
-		out.Header = in.Header
-		out.Path = in.Path
-		out.JSONPayload = in.JSONPayload
+			return nil
+		})
 
-		return nil
-	})
+	u.SetTitle("Request With JSON Body")
+	u.SetDescription("Request with JSON body and query/header/path params, response with JSON body and data from request.")
 
 	return u
 }

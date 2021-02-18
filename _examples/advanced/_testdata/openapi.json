@@ -4,7 +4,8 @@
   "paths":{
     "/file-multi-upload":{
       "post":{
-        "summary":"Files Uploads With 'multipart/form-data'","description":"","operationId":"",
+        "summary":"Files Uploads With 'multipart/form-data'","description":"",
+        "operationId":"_examples/advanced.fileMultiUploader",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Simple scalar value in query.",
@@ -22,7 +23,8 @@
     },
     "/file-upload":{
       "post":{
-        "summary":"File Upload With 'multipart/form-data'","description":"","operationId":"",
+        "summary":"File Upload With 'multipart/form-data'","description":"",
+        "operationId":"_examples/advanced.fileUploader",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Simple scalar value in query.",
@@ -37,7 +39,7 @@
     },
     "/gzip-pass-through":{
       "get":{
-        "summary":"","description":"","operationId":"",
+        "summary":"directGzip","description":"","operationId":"_examples/advanced.directGzip",
         "parameters":[
           {
             "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",
@@ -56,7 +58,7 @@
         }
       },
       "head":{
-        "summary":"","description":"","operationId":"",
+        "summary":"directGzip","description":"","operationId":"_examples/advanced.directGzip",
         "parameters":[
           {
             "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",
@@ -107,7 +109,7 @@
       "post":{
         "summary":"Request With JSON Body",
         "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
-        "operationId":"",
+        "operationId":"_examples/advanced.jsonBody",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Simple scalar value in query.",
@@ -124,8 +126,8 @@
         ],
         "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSONType2"}}}},
         "responses":{
-          "200":{
-            "description":"OK",
+          "201":{
+            "description":"Created",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType2"}}}
           }
         }
@@ -133,7 +135,8 @@
     },
     "/json-map-body":{
       "post":{
-        "summary":"Request With JSON Map In Body","description":"Request with JSON object (map) body.","operationId":"",
+        "summary":"Request With JSON Map In Body","description":"Request with JSON object (map) body.",
+        "operationId":"_examples/advanced.jsonMapBody",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Simple scalar value in query.",
@@ -157,7 +160,7 @@
       "get":{
         "summary":"Request With JSON Query Parameter",
         "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
-        "operationId":"",
+        "operationId":"_examples/advanced.jsonParam",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Simple scalar value in query.",
@@ -186,7 +189,7 @@
     },
     "/json-slice-body":{
       "post":{
-        "summary":"Request With JSON Array In Body","description":"","operationId":"",
+        "summary":"Request With JSON Array In Body","description":"","operationId":"_examples/advanced.jsonSliceBody",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Simple scalar value in query.",
@@ -261,7 +264,8 @@
     },
     "/query-object":{
       "get":{
-        "summary":"Request With Object As Query Parameter","description":"","operationId":"",
+        "summary":"Request With Object As Query Parameter","description":"",
+        "operationId":"_examples/advanced.queryObject",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Object value in query.","style":"deepObject","explode":true,
@@ -303,7 +307,8 @@
     },
     "/validation":{
       "post":{
-        "summary":"Validation","description":"Input/Output with validation. Custom annotation.","operationId":"",
+        "summary":"Validation","description":"Input/Output with validation. Custom annotation.",
+        "operationId":"_examples/advanced.validation",
         "parameters":[
           {
             "name":"q","in":"query",

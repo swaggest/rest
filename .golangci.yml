@@ -28,6 +28,8 @@ linters:
     - paralleltest
     - forbidigo
     - exhaustivestruct
+    - ifshort
+    - cyclop # TODO review issues.
 
 issues:
   exclude-use-default: false

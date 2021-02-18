@@ -7,11 +7,6 @@ import (
 )
 
 func validation() usecase.Interactor {
-	u := usecase.IOInteractor{}
-
-	u.SetTitle("Validation")
-	u.SetDescription("Input/Output with validation.")
-
 	type inputPort struct {
 		Header int  `header:"X-Input" minimum:"10" description:"Request minimum: 10, response maximum: 20."`
 		Query  bool `query:"q" description:"This parameter will bypass explicit validation as it does not have constraints."`
@@ -28,10 +23,7 @@ func validation() usecase.Interactor {
 		} `json:"data" required:"true"`
 	}
 
-	u.Input = new(inputPort)
-	u.Output = new(outputPort)
-
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) (err error) {
+	u := usecase.NewIOI(new(inputPort), new(outputPort), func(ctx context.Context, input, output interface{}) (err error) {
 		in := input.(*inputPort)
 		out := output.(*outputPort)
 
@@ -41,6 +33,9 @@ func validation() usecase.Interactor {
 
 		return nil
 	})
+
+	u.SetTitle("Validation")
+	u.SetDescription("Input/Output with validation.")
 
 	return u
 }

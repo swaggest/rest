@@ -26,7 +26,7 @@ func Test_taskLifeSpan(t *testing.T) {
 		WithBody([]byte(`{"deadline": "2020-05-17T11:12:42.085Z","goal": "string"}`)).
 		Concurrently()
 
-	assert.NoError(t, rc.ExpectResponseStatus(http.StatusOK))
+	assert.NoError(t, rc.ExpectResponseStatus(http.StatusCreated))
 	assert.NoError(t, rc.ExpectResponseBody([]byte(`{"createdAt": "<ignore-diff>",`+
 		`"deadline": "2020-05-17T11:12:42.085Z","goal": "string","id": 1}`)))
 

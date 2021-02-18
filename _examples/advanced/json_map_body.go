@@ -20,20 +20,13 @@ func (j *jsonMapReq) UnmarshalJSON(data []byte) error {
 }
 
 func jsonMapBody() usecase.Interactor {
-	u := usecase.IOInteractor{}
-
-	u.SetTitle("Request With JSON Map In Body")
-
 	type jsonOutput struct {
 		Header string         `json:"inHeader"`
 		Query  int            `json:"inQuery"`
 		Data   JSONMapPayload `json:"data"`
 	}
 
-	u.Input = new(jsonMapReq)
-	u.Output = new(jsonOutput)
-
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) (err error) {
+	u := usecase.NewIOI(new(jsonMapReq), new(jsonOutput), func(ctx context.Context, input, output interface{}) (err error) {
 		var (
 			in  = input.(*jsonMapReq)
 			out = output.(*jsonOutput)
@@ -45,6 +38,8 @@ func jsonMapBody() usecase.Interactor {
 
 		return nil
 	})
+
+	u.SetTitle("Request With JSON Map In Body")
 
 	return u
 }

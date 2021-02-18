@@ -342,11 +342,7 @@ func (c *Client) assertResponseHeader(key, value string, resp *http.Response) er
 		return err
 	}
 
-	if err := c.JSONComparer.FailNotEqual(expected, received); err != nil {
-		return err
-	}
-
-	return nil
+	return c.JSONComparer.FailNotEqual(expected, received)
 }
 
 // ExpectResponseBody sets expectation for response body to be received.
