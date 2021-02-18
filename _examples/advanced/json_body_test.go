@@ -24,6 +24,6 @@ func Benchmark_jsonBody(b *testing.B) {
 		req.Header.Set("X-Header", "def")
 		req.SetBody([]byte(`{"id":321,"name":"Jane"}`))
 	}, func(i int, resp *fasthttp.Response) bool {
-		return resp.StatusCode() == http.StatusOK
+		return resp.StatusCode() == http.StatusCreated
 	})
 }
