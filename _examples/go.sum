@@ -8,8 +8,9 @@ github.com/bool64/dev v0.1.10/go.mod h1:pn52JC52uSgpazChx9CeXyG+S3sW2V36HHoLNBbs
 github.com/bool64/dev v0.1.12/go.mod h1:pn52JC52uSgpazChx9CeXyG+S3sW2V36HHoLNBbscdg=
 github.com/bool64/dev v0.1.15/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.1.17/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
-github.com/bool64/dev v0.1.18 h1:uMN5MsHrVWmtRoauefI8wD86b8vbXYnrCZlIhFGyuXI=
 github.com/bool64/dev v0.1.18/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
+github.com/bool64/dev v0.1.19 h1:SLAOGmJIrbroYjkGuV0MBLtww2NddzPDne1C7ATJdJk=
+github.com/bool64/dev v0.1.19/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/httptestbench v0.1.1 h1:08112fXc5F1XuTWLdC9lPGB4FSWNACoeUWTeoR0a2qA=
 github.com/bool64/httptestbench v0.1.1/go.mod h1:gSmfFacu85Je3u6ZjmLZsFolcv7cwg1fLNUCzq2UUsM=
 github.com/bool64/shared v0.1.0/go.mod h1:khzw051JtnOZH6lX21rQ+sqbeC0FFEcU1wfchRS7EyU=
@@ -126,8 +127,8 @@ github.com/swaggest/jsonschema-go v0.2.1/go.mod h1:QFauBdPTrU1UltwocM5FzOWnVjVVt
 github.com/swaggest/jsonschema-go v0.2.4/go.mod h1:m4VV88Gbi7lCrt9ckJzigK1rMlEeFjdZUkJr1o5MnDE=
 github.com/swaggest/jsonschema-go v0.3.7/go.mod h1:TrWgbug4p2ZgcxnHDz+CvYvEtJ5KckL/XOV4mSR6FGw=
 github.com/swaggest/jsonschema-go v0.3.13/go.mod h1:INO3Dt0DeyNCbQbqMXNpMQ489BcyRtSb/k62OfmHbpY=
-github.com/swaggest/jsonschema-go v0.3.15 h1:6D23R4rhU2fVELiMyXtssVxlS/8eq6krRzemv07VvK8=
-github.com/swaggest/jsonschema-go v0.3.15/go.mod h1:1JyQxHbtZcK3WqGqRybu022vrDdI02j9Xu9sK/Z58Tg=
+github.com/swaggest/jsonschema-go v0.3.17 h1:9BjsqEq3nIipXJbbN8+XNMsAu2lxbUVeYqI+l8DWtAA=
+github.com/swaggest/jsonschema-go v0.3.17/go.mod h1:VrFw5hc9rCdtWJPhmfJi8UuSzpDJY+CAPn8QJ0SlxM0=
 github.com/swaggest/openapi-go v0.1.3/go.mod h1:Zx4ZgJ7XvlFH9wCOHE7u8RAjLfiHAnCHeaD5kUDujVM=
 github.com/swaggest/openapi-go v0.1.13/go.mod h1:fju3Ka5zb8qBKf4789zLNVUqITydWLDjtPloZhhYHL8=
 github.com/swaggest/openapi-go v0.2.9 h1:JJQrDSRtKMycIkLju97yjhJbw72mqhsCDJjqFB8HvSs=
@@ -144,8 +145,8 @@ github.com/swaggest/swgen v0.6.27 h1:bO3CtX4NvuetPuABMChEEp2N/bjsJraegaJpYZ72aoI
 github.com/swaggest/swgen v0.6.27/go.mod h1:tQLsoQVLcvtAMzNbm26JbWXDHZM4BBRuI5nemk3gEDw=
 github.com/swaggest/swgui v1.2.0 h1:zZWybwcfeWUNgOJOa+/FkLtYi7xI7pvGXnJrPcwh8vY=
 github.com/swaggest/swgui v1.2.0/go.mod h1:gn/xO+5S+BDFhtZP05gPiB/P6cXurNPv6kAeDJYgT98=
-github.com/swaggest/usecase v0.1.2 h1:Fi3z0nig4gBcX0n0nnEHD8QzCttdV3lAPmaoX3nQowA=
-github.com/swaggest/usecase v0.1.2/go.mod h1:BKvpHx94bpg+4RCXbrCv0jx8CpJRr5P8dYK0b4UfUZc=
+github.com/swaggest/usecase v0.1.3 h1:rK/t7PR3pt6pDEVQuT9n/aXHbMtKNzulqniQ/GSOiCc=
+github.com/swaggest/usecase v0.1.3/go.mod h1:d94PwelVQeMv4RH0VsRMFqRNrk6ferEqg2AetDcjPWo=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasthttp v1.17.0 h1:P8/koH4aSnJ4xbd0cUUFEGQs3jQqIxoDDyRQrUiAkqg=
@@ -181,8 +182,8 @@ golang.org/x/net v0.0.0-20201016165138-7b1cca2348c0/go.mod h1:sp8m0HH+o8qH0wwXwY
 golang.org/x/net v0.0.0-20201202161906-c7110b5ffcbb/go.mod h1:sp8m0HH+o8qH0wwXwYZr8TS3Oi6o0r6Gce1SSxlDquU=
 golang.org/x/net v0.0.0-20201216054612-986b41b23924/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=
 golang.org/x/net v0.0.0-20201224014010-6772e930b67b/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=
-golang.org/x/net v0.0.0-20210119194325-5f4716e94777 h1:003p0dJM77cxMSyCPFphvZf/Y5/NXf5fzg6ufd1/Oew=
-golang.org/x/net v0.0.0-20210119194325-5f4716e94777/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=
+golang.org/x/net v0.0.0-20210220033124-5f55cee0dc0d h1:1aflnvSoWWLI2k/dMUAl5lvU1YO4Mb4hz0gh+1rjcxU=
+golang.org/x/net v0.0.0-20210220033124-5f55cee0dc0d/go.mod h1:m0MpNAwzfU5UDzcl9v0D8zg8gWTRqZa9RBIspLL5mdg=
 golang.org/x/oauth2 v0.0.0-20180821212333-d2e6202438be/go.mod h1:N/0e6XlmueqKjAGxoOufVs8QHGRruUQn6yWY3a++T0U=
 golang.org/x/sync v0.0.0-20180314180146-1d60e4601c6f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=
 golang.org/x/sync v0.0.0-20181108010431-42b317875d0f/go.mod h1:RxMgew5VJxzue5/jJTE5uejpjVlOe/izrB70Jof72aM=

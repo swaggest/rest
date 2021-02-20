@@ -36,7 +36,11 @@ func OpenAPIMiddleware(s *openapi.Collector) func(http.Handler) http.Handler {
 }
 
 // HTTPBasicSecurityMiddleware creates middleware to expose Basic Security schema.
-func HTTPBasicSecurityMiddleware(c *openapi.Collector, name, description string) func(http.Handler) http.Handler {
+func HTTPBasicSecurityMiddleware(
+	c *openapi.Collector,
+	name, description string,
+	options ...func(*MiddlewareConfig),
+) func(http.Handler) http.Handler {
 	hss := openapi3.HTTPSecurityScheme{}
 
 	hss.WithScheme("basic")
@@ -54,12 +58,20 @@ func HTTPBasicSecurityMiddleware(c *openapi.Collector, name, description string)
 		},
 	)
 
-	return securityMiddleware(c, name)
+	cfg := MiddlewareConfig{}
+
+	for _, o := range options {
+		o(&cfg)
+	}
+
+	return securityMiddleware(c, name, cfg)
 }
 
 // HTTPBearerSecurityMiddleware creates middleware to expose HTTP Bearer security schema.
 func HTTPBearerSecurityMiddleware(
-	c *openapi.Collector, name, description, bearerFormat string,
+	c *openapi.Collector,
+	name, description, bearerFormat string,
+	options ...func(*MiddlewareConfig),
 ) func(http.Handler) http.Handler {
 	hss := openapi3.HTTPSecurityScheme{}
 
@@ -82,7 +94,13 @@ func HTTPBearerSecurityMiddleware(
 		},
 	)
 
-	return securityMiddleware(c, name)
+	cfg := MiddlewareConfig{}
+
+	for _, o := range options {
+		o(&cfg)
+	}
+
+	return securityMiddleware(c, name, cfg)
 }
 
 // AnnotateOpenAPI applies OpenAPI annotation to relevant handlers.
@@ -105,10 +123,35 @@ func AnnotateOpenAPI(
 	}
 }
 
-func securityMiddleware(s *openapi.Collector, name string) func(http.Handler) http.Handler {
+// SecurityResponse is an security middleware option to customize response structure and status.
+func SecurityResponse(structure interface{}, httpStatus int) func(config *MiddlewareConfig) {
+	return func(config *MiddlewareConfig) {
+		config.ResponseStructure = structure
+		config.ResponseStatus = httpStatus
+	}
+}
+
+// MiddlewareConfig defines security middleware options.
+type MiddlewareConfig struct {
+	// ResponseStructure declares structure that is used for unauthorized message, default rest.ErrResponse{}.
+	ResponseStructure interface{}
+
+	// ResponseStatus declares HTTP status code that is used for unauthorized message, default http.StatusUnauthorized.
+	ResponseStatus int
+}
+
+func securityMiddleware(s *openapi.Collector, name string, cfg MiddlewareConfig) func(http.Handler) http.Handler {
 	return AnnotateOpenAPI(s, func(op *openapi3.Operation) error {
 		op.Security = append(op.Security, map[string][]string{name: {}})
 
-		return s.Reflector().SetJSONResponse(op, rest.ErrResponse{}, http.StatusUnauthorized)
+		if cfg.ResponseStatus == 0 {
+			cfg.ResponseStatus = http.StatusUnauthorized
+		}
+
+		if cfg.ResponseStructure == nil {
+			cfg.ResponseStructure = rest.ErrResponse{}
+		}
+
+		return s.Reflector().SetJSONResponse(op, cfg.ResponseStructure, cfg.ResponseStatus)
 	})
 }

@@ -51,11 +51,15 @@ func (c *Collector) Collect(
 	u usecase.Interactor,
 	h rest.HandlerTrait,
 	annotations ...func(*openapi3.Operation) error,
-) error {
+) (err error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	var err error
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("failed to reflect API schema for %s %s: %w", method, pattern, err)
+		}
+	}()
 
 	reflector := c.Reflector()
 
@@ -70,12 +74,12 @@ func (c *Collector) Collect(
 
 		err = c.setupInput(&oc, u, h)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to setup request: %w", err)
 		}
 
 		err = c.setupOutput(&oc, u)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to setup response: %w", err)
 		}
 
 		err = c.processUseCase(op, u, h)
