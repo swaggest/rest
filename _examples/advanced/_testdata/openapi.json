@@ -39,7 +39,7 @@
     },
     "/gzip-pass-through":{
       "get":{
-        "summary":"directGzip","description":"","operationId":"_examples/advanced.directGzip",
+        "summary":"direct Gzip","description":"","operationId":"_examples/advanced.directGzip",
         "parameters":[
           {
             "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",
@@ -58,7 +58,7 @@
         }
       },
       "head":{
-        "summary":"directGzip","description":"","operationId":"_examples/advanced.directGzip",
+        "summary":"direct Gzip","description":"","operationId":"_examples/advanced.directGzip",
         "parameters":[
           {
             "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",

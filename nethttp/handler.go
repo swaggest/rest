@@ -15,6 +15,10 @@ var _ http.Handler = &Handler{}
 
 // NewHandler creates use case http handler.
 func NewHandler(useCase usecase.Interactor, options ...func(h *Handler)) *Handler {
+	if useCase == nil {
+		panic("usecase interactor is nil")
+	}
+
 	h := &Handler{
 		options: options,
 	}

@@ -54,7 +54,10 @@ func TestOpenAPIMiddleware(t *testing.T) {
 	_ = nethttp.WrapHandler(uh,
 		nethttp.OpenAPIMiddleware(&c),
 		nethttp.HTTPBasicSecurityMiddleware(&c, "admin", "Admin Area."),
-		nethttp.HTTPBearerSecurityMiddleware(&c, "api", "API Security.", "JWT"),
+		nethttp.HTTPBearerSecurityMiddleware(&c, "api", "API Security.", "JWT",
+			nethttp.SecurityResponse(new(struct {
+				Error string `json:"error"`
+			}), http.StatusForbidden)),
 		nethttp.HandlerWithRouteMiddleware(http.MethodGet, "/test"),
 	)
 
@@ -77,6 +80,10 @@ func TestOpenAPIMiddleware(t *testing.T) {
 		 "401":{
 		  "description":"Unauthorized",
 		  "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
+		 },
+		 "403":{
+		  "description":"Forbidden",
+		  "content":{"application/json":{"schema":{"type":"object","properties":{"error":{"type":"string"}}}}}
 		 }
 		},
 		"security":[{"api":[]},{"admin":[]}]
