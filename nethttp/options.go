@@ -1,12 +1,30 @@
 package nethttp
 
 import (
+	"net/http"
 	"reflect"
 
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/refl"
 	"github.com/swaggest/rest"
 )
+
+// OptionsMiddleware applies options to encountered nethttp.Handler.
+func OptionsMiddleware(options ...func(h *Handler)) func(h http.Handler) http.Handler {
+	return func(h http.Handler) http.Handler {
+		var rh *Handler
+
+		if HandlerAs(h, &rh) {
+			rh.options = append(rh.options, options...)
+
+			for _, option := range options {
+				option(rh)
+			}
+		}
+
+		return h
+	}
+}
 
 // AnnotateOperation allows customizations of prepared operations.
 func AnnotateOperation(annotations ...func(operation *openapi3.Operation) error) func(h *Handler) {
