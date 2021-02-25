@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"reflect"
 
+	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/refl"
 	"github.com/swaggest/usecase"
 )
@@ -33,6 +34,9 @@ type HandlerTrait struct {
 
 	// RespValidator validates decoded response data.
 	RespValidator Validator
+
+	// OperationAnnotations are called after operation setup and before adding operation to documentation.
+	OperationAnnotations []func(op *openapi3.Operation) error
 }
 
 // RestHandler is a an accessor.

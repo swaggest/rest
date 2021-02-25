@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"reflect"
 
-	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
@@ -22,6 +21,7 @@ func NewHandler(useCase usecase.Interactor, options ...func(h *Handler)) *Handle
 	h := &Handler{
 		options: options,
 	}
+	h.HandleErrResponse = h.handleErrResponseDefault
 	h.SetUseCase(useCase)
 
 	return h
@@ -50,8 +50,8 @@ func (h *Handler) SetUseCase(useCase usecase.Interactor) {
 type Handler struct {
 	rest.HandlerTrait
 
-	// OperationAnnotations are called after operation setup and before adding operation to documentation.
-	OperationAnnotations []func(op *openapi3.Operation) error
+	// HandleErrResponse allows control of error response processing.
+	HandleErrResponse func(w http.ResponseWriter, r *http.Request, err error)
 
 	// requestDecoder maps data from http.Request into structured Go input value.
 	requestDecoder RequestDecoder
@@ -123,7 +123,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.responseEncoder.WriteSuccessfulResponse(w, r, output, h.HandlerTrait)
 }
 
-func (h *Handler) handleErrResponse(w http.ResponseWriter, r *http.Request, err error) {
+func (h *Handler) handleErrResponseDefault(w http.ResponseWriter, r *http.Request, err error) {
 	var (
 		code int
 		er   interface{}
@@ -136,6 +136,16 @@ func (h *Handler) handleErrResponse(w http.ResponseWriter, r *http.Request, err 
 	}
 
 	h.responseEncoder.WriteErrResponse(w, r, code, er)
+}
+
+func (h *Handler) handleErrResponse(w http.ResponseWriter, r *http.Request, err error) {
+	if h.HandleErrResponse != nil {
+		h.HandleErrResponse(w, r, err)
+
+		return
+	}
+
+	h.handleErrResponseDefault(w, r, err)
 }
 
 func closeMultipartForm(r *http.Request) {

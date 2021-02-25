@@ -298,3 +298,37 @@ func TestHandler_ServeHTTP_customMapping(t *testing.T) {
 	assert.Equal(t, http.StatusNoContent, rw.Code)
 	assert.Equal(t, "", rw.Body.String())
 }
+
+func TestOptionsMiddleware(t *testing.T) {
+	u := usecase.NewIOI(nil, nil, func(ctx context.Context, input, output interface{}) error {
+		return errors.New("failed")
+	})
+	h := nethttp.NewHandler(u, func(h *nethttp.Handler) {
+		h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
+			return http.StatusExpectationFailed, struct {
+				Foo string `json:"foo"`
+			}{Foo: err.Error()}
+		}
+	})
+	h.SetResponseEncoder(&response.Encoder{})
+
+	var loggedErr error
+
+	rw := httptest.NewRecorder()
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	oh := nethttp.OptionsMiddleware(func(h *nethttp.Handler) {
+		handleErrResponse := h.HandleErrResponse
+		h.HandleErrResponse = func(w http.ResponseWriter, r *http.Request, err error) {
+			assert.Equal(t, req, r)
+			loggedErr = err
+			handleErrResponse(w, r, err)
+		}
+	})(h)
+
+	oh.ServeHTTP(rw, req)
+
+	assert.EqualError(t, loggedErr, "failed")
+	assert.Equal(t, `{"foo":"failed"}`+"\n", rw.Body.String())
+}
