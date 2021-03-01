@@ -373,3 +373,5 @@ This project adheres to [Semantic Versioning](https://semver.org/#semantic-versi
 
 Before version `1.0.0`, breaking changes are tagged with `MINOR` bump, features and fixes are tagged with `PATCH` bump.
 After version `1.0.0`, breaking changes are tagged with `MAJOR` bump.
+
+Breaking changes are described in [UPGRADE.md](./UPGRADE.md).
