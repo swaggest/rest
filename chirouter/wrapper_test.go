@@ -26,8 +26,7 @@ type HandlerWithBar struct {
 func (h HandlerWithBar) Bar() {}
 
 func (h HandlerWithBar) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
-	_, err := rw.Write([]byte("bar"))
-	if err != nil {
+	if _, err := rw.Write([]byte("bar")); err != nil {
 		panic(err)
 	}
 

@@ -85,8 +85,7 @@ func maybeGzipResponseWriter(w http.ResponseWriter, r *http.Request) http.Respon
 
 	ae = strings.ToLower(ae)
 
-	n := strings.Index(ae, "gzip")
-	if n < 0 {
+	if n := strings.Index(ae, "gzip"); n < 0 {
 		return w
 	}
 

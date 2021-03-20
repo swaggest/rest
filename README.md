@@ -366,3 +366,10 @@ func main() {
 ```
 
 ![Documentation Page](./_examples/basic/screen.png)
+
+## Versioning
+
+This project adheres to [Semantic Versioning](https://semver.org/#semantic-versioning-200).
+
+Before version `1.0.0`, breaking changes are tagged with `MINOR` bump, features and fixes are tagged with `PATCH` bump.
+After version `1.0.0`, breaking changes are tagged with `MAJOR` bump.

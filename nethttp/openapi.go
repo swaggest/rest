@@ -35,6 +35,29 @@ func OpenAPIMiddleware(s *openapi.Collector) func(http.Handler) http.Handler {
 	}
 }
 
+// SecurityMiddleware creates middleware to expose security scheme.
+func SecurityMiddleware(
+	c *openapi.Collector,
+	name string,
+	scheme openapi3.SecurityScheme,
+	options ...func(*MiddlewareConfig),
+) func(http.Handler) http.Handler {
+	c.Reflector().SpecEns().ComponentsEns().SecuritySchemesEns().WithMapOfSecuritySchemeOrRefValuesItem(
+		name,
+		openapi3.SecuritySchemeOrRef{
+			SecurityScheme: &scheme,
+		},
+	)
+
+	cfg := MiddlewareConfig{}
+
+	for _, o := range options {
+		o(&cfg)
+	}
+
+	return securityMiddleware(c, name, cfg)
+}
+
 // HTTPBasicSecurityMiddleware creates middleware to expose Basic Security schema.
 func HTTPBasicSecurityMiddleware(
 	c *openapi.Collector,
@@ -49,22 +72,9 @@ func HTTPBasicSecurityMiddleware(
 		hss.WithDescription(description)
 	}
 
-	c.Reflector().SpecEns().ComponentsEns().SecuritySchemesEns().WithMapOfSecuritySchemeOrRefValuesItem(
-		name,
-		openapi3.SecuritySchemeOrRef{
-			SecurityScheme: &openapi3.SecurityScheme{
-				HTTPSecurityScheme: &hss,
-			},
-		},
-	)
-
-	cfg := MiddlewareConfig{}
-
-	for _, o := range options {
-		o(&cfg)
-	}
-
-	return securityMiddleware(c, name, cfg)
+	return SecurityMiddleware(c, name, openapi3.SecurityScheme{
+		HTTPSecurityScheme: &hss,
+	}, options...)
 }
 
 // HTTPBearerSecurityMiddleware creates middleware to expose HTTP Bearer security schema.
@@ -85,22 +95,9 @@ func HTTPBearerSecurityMiddleware(
 		hss.WithDescription(description)
 	}
 
-	c.Reflector().SpecEns().ComponentsEns().SecuritySchemesEns().WithMapOfSecuritySchemeOrRefValuesItem(
-		name,
-		openapi3.SecuritySchemeOrRef{
-			SecurityScheme: &openapi3.SecurityScheme{
-				HTTPSecurityScheme: &hss,
-			},
-		},
-	)
-
-	cfg := MiddlewareConfig{}
-
-	for _, o := range options {
-		o(&cfg)
-	}
-
-	return securityMiddleware(c, name, cfg)
+	return SecurityMiddleware(c, name, openapi3.SecurityScheme{
+		HTTPSecurityScheme: &hss,
+	}, options...)
 }
 
 // AnnotateOpenAPI applies OpenAPI annotation to relevant handlers.
