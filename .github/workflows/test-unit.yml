@@ -7,6 +7,7 @@ on:
   pull_request:
 env:
   GO111MODULE: "on"
+  RUN_BASE_COVERAGE: "on"  # Runs test for PR base in case base test coverage is missing.
 jobs:
   test:
     strategy:
@@ -20,22 +21,38 @@ jobs:
           go-version: ${{ matrix.go-version }}
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Go cache
+        uses: actions/cache@v2
+        with:
+          # In order:
+          # * Module download cache
+          # * Build cache (Linux)
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-cache
       - name: Restore base test coverage
+        if: matrix.go-version == '1.16.x'
         uses: actions/cache@v2
         with:
           path: |
             unit-base.txt
           # Use base sha for PR or new commit hash for master/main push in test result key.
           key: ${{ runner.os }}-unit-test-coverage-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
-      - name: Restore vendor
-        uses: actions/cache@v2
+      - name: Checkout base code
+        if: matrix.go-version == '1.16.x' && env.RUN_BASE_COVERAGE == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
+        uses: actions/checkout@v2
         with:
-          path: |
-            vendor
-          key: ${{ runner.os }}-go${{ matrix.go-version }}-vendor-${{ hashFiles('**/go.mod') }}
-      - name: Populate dependencies
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: __base
+      - name: Run test for base code
+        if: matrix.go-version == '1.16.x' && env.RUN_BASE_COVERAGE == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
         run: |
-          (test -d vendor && echo vendor found) || (go mod vendor && du -sh vendor && du -sh ~/go/pkg/mod)
+          cd __base
+          make test-unit
+          go tool cover -func=./unit.coverprofile | sed -e 's/.go:[0-9]*:\t/.go\t/g' | sed -e 's/\t\t*/\t/g'  > ../unit-base.txt
       - name: Test
         id: test
         run: |

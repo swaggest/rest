@@ -1,4 +1,4 @@
-name: bench
+name: bench-examples
 on:
   pull_request:
   workflow_dispatch:
@@ -39,7 +39,7 @@ jobs:
           path: |
             ~/go/pkg/mod
             ~/.cache/go-build
-          key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-cache-examples-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-cache
       - name: Restore benchstat
@@ -68,25 +68,25 @@ jobs:
         run: |
           export REF_NAME=master
           cd __base
-          BENCH_COUNT=5 make bench-run bench-stat
-          cp bench-master.txt ../bench-master.txt
+          BENCH_COUNT=5 make bench-run-examples bench-stat-examples
+          cp bench-examples-master.txt ../bench-examples-master.txt
       - name: Benchmark
         id: bench
         run: |
           export REF_NAME=new
-          BENCH_COUNT=5 make bench-run bench-stat
-          OUTPUT=$(make bench-stat)
+          BENCH_COUNT=5 make bench-run-examples bench-stat-examples
+          OUTPUT=$(make bench-stat-examples)
           OUTPUT="${OUTPUT//'%'/'%25'}"
           OUTPUT="${OUTPUT//$'\n'/'%0A'}"
           OUTPUT="${OUTPUT//$'\r'/'%0D'}"
           echo "::set-output name=result::$OUTPUT"
-      - name: Comment Benchmark Result
+      - name: Comment Benchmark Examples Result
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          header: bench
+          header: bench-examples
           message: |
-            ### Benchmark Result
+            ### Examples Benchmark Result
             <details><summary>Benchmark diff with base branch</summary>
 
             ```
