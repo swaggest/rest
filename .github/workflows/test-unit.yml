@@ -34,6 +34,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-cache
       - name: Restore base test coverage
+        if: matrix.go-version == '1.16.x'
         uses: actions/cache@v2
         with:
           path: |
@@ -41,13 +42,13 @@ jobs:
           # Use base sha for PR or new commit hash for master/main push in test result key.
           key: ${{ runner.os }}-unit-test-coverage-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
       - name: Checkout base code
-        if: env.RUN_BASE_COVERAGE == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
+        if: matrix.go-version == '1.16.x' && env.RUN_BASE_COVERAGE == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           path: __base
       - name: Run test for base code
-        if: env.RUN_BASE_COVERAGE == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
+        if: matrix.go-version == '1.16.x' && env.RUN_BASE_COVERAGE == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
         run: |
           cd __base
           make test-unit
