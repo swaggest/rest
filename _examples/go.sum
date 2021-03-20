@@ -11,6 +11,8 @@ github.com/bool64/dev v0.1.17/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2z
 github.com/bool64/dev v0.1.18/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.1.19 h1:SLAOGmJIrbroYjkGuV0MBLtww2NddzPDne1C7ATJdJk=
 github.com/bool64/dev v0.1.19/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
+github.com/bool64/dev v0.1.23 h1:t6NCynoHSlx7O2jXPzHilTUgomnXjJTraJkAALC2LfY=
+github.com/bool64/dev v0.1.23/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/httptestbench v0.1.1 h1:08112fXc5F1XuTWLdC9lPGB4FSWNACoeUWTeoR0a2qA=
 github.com/bool64/httptestbench v0.1.1/go.mod h1:gSmfFacu85Je3u6ZjmLZsFolcv7cwg1fLNUCzq2UUsM=
 github.com/bool64/shared v0.1.0/go.mod h1:khzw051JtnOZH6lX21rQ+sqbeC0FFEcU1wfchRS7EyU=
