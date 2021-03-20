@@ -11,7 +11,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggest/assertjson v1.6.3
-	github.com/swaggest/jsonschema-go v0.3.17
+	github.com/swaggest/jsonschema-go v0.3.18
 	github.com/swaggest/openapi-go v0.2.9
 	github.com/swaggest/rest v0.1.17
 	github.com/swaggest/swgui v1.2.0
