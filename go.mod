@@ -3,7 +3,7 @@ module github.com/swaggest/rest
 go 1.13
 
 require (
-	github.com/bool64/dev v0.1.23
+	github.com/bool64/dev v0.1.24
 	github.com/bool64/shared v0.1.2
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/go-chi/chi v1.5.2

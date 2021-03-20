@@ -29,6 +29,9 @@ linters:
     - forbidigo
     - exhaustivestruct
     - ifshort
+    - interfacer
+    - maligned
+    - forcetypeassert
     - cyclop # TODO review issues.
 
 issues:
