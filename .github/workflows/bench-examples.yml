@@ -69,7 +69,7 @@ jobs:
           export REF_NAME=master
           cd __base
           BENCH_COUNT=5 make bench-run-examples bench-stat-examples
-          cp bench-master.txt ../bench-master.txt
+          cp bench-examples-master.txt ../bench-examples-master.txt
       - name: Benchmark
         id: bench
         run: |
