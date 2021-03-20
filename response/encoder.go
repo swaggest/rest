@@ -134,7 +134,7 @@ func (h *Encoder) writeJSONResponse(
 		return
 	}
 
-	e := jsonEncoderPool.Get().(*jsonEncoder) // nolint:errcheck
+	e := jsonEncoderPool.Get().(*jsonEncoder) // nolint
 
 	e.buf.Reset()
 	defer jsonEncoderPool.Put(e)
@@ -176,7 +176,7 @@ func (h *Encoder) writeJSONResponse(
 func (h *Encoder) WriteErrResponse(w http.ResponseWriter, r *http.Request, statusCode int, response interface{}) {
 	contentType := "application/json; charset=utf-8"
 
-	e := jsonEncoderPool.Get().(*jsonEncoder) // nolint:errcheck
+	e := jsonEncoderPool.Get().(*jsonEncoder) // nolint
 
 	e.buf.Reset()
 	defer jsonEncoderPool.Put(e)
