@@ -8,7 +8,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.1.1
 	github.com/go-chi/chi/v5 v5.0.1
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
-	github.com/santhosh-tekuri/jsonschema/v3 v3.0.1
+	github.com/santhosh-tekuri/jsonschema/v2 v2.2.0
 	github.com/stretchr/testify v1.7.0
 	github.com/swaggest/assertjson v1.6.3
 	github.com/swaggest/form v1.11.1
