@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest/chirouter"
 	"github.com/swaggest/rest/nethttp"

@@ -266,8 +266,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/chirouter"
 	"github.com/swaggest/rest/jsonschema"
@@ -373,3 +373,5 @@ This project adheres to [Semantic Versioning](https://semver.org/#semantic-versi
 
 Before version `1.0.0`, breaking changes are tagged with `MINOR` bump, features and fixes are tagged with `PATCH` bump.
 After version `1.0.0`, breaking changes are tagged with `MAJOR` bump.
+
+Breaking changes are described in [UPGRADE.md](./UPGRADE.md).
