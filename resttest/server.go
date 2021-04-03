@@ -19,6 +19,7 @@ type Expectation struct {
 	Method        string
 	RequestURI    string
 	RequestHeader map[string]string
+	RequestCookie map[string]string
 	RequestBody   []byte
 
 	Status         int
@@ -177,11 +178,20 @@ func (sm *ServerMock) checkRequest(req *http.Request, expectation Expectation) e
 		return fmt.Errorf("request uri %q expected, %q received", expectation.RequestURI, req.RequestURI)
 	}
 
-	if len(expectation.RequestHeader) != 0 {
-		for k, v := range expectation.RequestHeader {
-			if req.Header.Get(k) != v {
-				return fmt.Errorf("header %q with value %q expected, %q received", k, v, req.Header.Get(k))
-			}
+	for k, v := range expectation.RequestHeader {
+		if req.Header.Get(k) != v {
+			return fmt.Errorf("header %q with value %q expected, %q received", k, v, req.Header.Get(k))
+		}
+	}
+
+	for n, v := range expectation.RequestCookie {
+		c, err := req.Cookie(n)
+		if err != nil {
+			return fmt.Errorf("failed to find cookie %q with value %q: %w", n, v, err)
+		}
+
+		if c.Value != v {
+			return fmt.Errorf("header %q with value %q expected, %q received", n, v, c.Value)
 		}
 	}
 

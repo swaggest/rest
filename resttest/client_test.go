@@ -23,6 +23,14 @@ func TestNewClient(t *testing.T) {
 		assert.Equal(t, "abc", r.Header.Get("X-Header"))
 		assert.Equal(t, "def", r.Header.Get("X-Custom"))
 
+		c, err := r.Cookie("c1")
+		assert.NoError(t, err)
+		assert.Equal(t, "1", c.Value)
+
+		c, err = r.Cookie("c2")
+		assert.NoError(t, err)
+		assert.Equal(t, "2", c.Value)
+
 		ncnt := atomic.AddInt64(&cnt, 1)
 		rw.Header().Set("Content-Type", "application/json")
 		if ncnt > 1 {
@@ -52,6 +60,8 @@ func TestNewClient(t *testing.T) {
 		WithHeader("X-Custom", "def").
 		WithContentType("application/json").
 		WithBody([]byte(`{"foo":"bar"}`)).
+		WithCookie("c1", "1").
+		WithCookie("c2", "2").
 		WithURI("/foo?q=1").
 		Concurrently()
 

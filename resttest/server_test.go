@@ -27,10 +27,12 @@ func assertRoundTrip(t *testing.T, baseURL string, expectation resttest.Expectat
 	req, err := http.NewRequest(expectation.Method, baseURL+expectation.RequestURI, bodyReader)
 	require.NoError(t, err)
 
-	if len(expectation.RequestHeader) > 0 {
-		for k, v := range expectation.RequestHeader {
-			req.Header.Set(k, v)
-		}
+	for k, v := range expectation.RequestHeader {
+		req.Header.Set(k, v)
+	}
+
+	for n, v := range expectation.RequestCookie {
+		req.AddCookie(&http.Cookie{Name: n, Value: v})
 	}
 
 	resp, err := http.DefaultTransport.RoundTrip(req)
@@ -80,6 +82,7 @@ func TestServerMock_ServeHTTP(t *testing.T) {
 		Method:        http.MethodPost,
 		RequestURI:    "/test?test=test",
 		RequestHeader: map[string]string{"Authorization": "Bearer token"},
+		RequestCookie: map[string]string{"c1": "v1", "c2": "v2"},
 		RequestBody:   []byte(`{"request":"body"}`),
 
 		Status:       http.StatusCreated,

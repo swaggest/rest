@@ -28,6 +28,7 @@ type Client struct {
 	respBody []byte
 
 	reqHeaders map[string]string
+	reqCookies []http.Cookie
 	reqBody    []byte
 	reqMethod  string
 	reqURI     string
@@ -64,6 +65,7 @@ func NewClient(baseURL string) *Client {
 // Reset deletes client state.
 func (c *Client) Reset() *Client {
 	c.reqHeaders = map[string]string{}
+	c.reqCookies = nil
 
 	c.resp = nil
 	c.respBody = nil
@@ -119,6 +121,13 @@ func (c *Client) WithContentType(contentType string) *Client {
 // WithHeader sets request header.
 func (c *Client) WithHeader(key, value string) *Client {
 	c.reqHeaders[http.CanonicalHeaderKey(key)] = value
+
+	return c
+}
+
+// WithCookie sets request cookie.
+func (c *Client) WithCookie(name, value string) *Client {
+	c.reqCookies = append(c.reqCookies, http.Cookie{Name: name, Value: value})
 
 	return c
 }
@@ -254,16 +263,17 @@ func (c *Client) doOnce() (*http.Response, error) {
 		return nil, err
 	}
 
-	if len(c.Headers) > 0 {
-		for k, v := range c.Headers {
-			req.Header.Set(k, v)
-		}
+	for k, v := range c.Headers {
+		req.Header.Set(k, v)
 	}
 
-	if len(c.reqHeaders) > 0 {
-		for k, v := range c.reqHeaders {
-			req.Header.Set(k, v)
-		}
+	for k, v := range c.reqHeaders {
+		req.Header.Set(k, v)
+	}
+
+	for _, v := range c.reqCookies {
+		v := v
+		req.AddCookie(&v)
 	}
 
 	return http.DefaultTransport.RoundTrip(req)
