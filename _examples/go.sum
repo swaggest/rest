@@ -6,10 +6,8 @@ github.com/andybalholm/brotli v1.0.1/go.mod h1:loMXtMfwqflxFJPmdbJO0a3KNoPuLBgiu
 github.com/bool64/dev v0.1.7/go.mod h1:pn52JC52uSgpazChx9CeXyG+S3sW2V36HHoLNBbscdg=
 github.com/bool64/dev v0.1.10/go.mod h1:pn52JC52uSgpazChx9CeXyG+S3sW2V36HHoLNBbscdg=
 github.com/bool64/dev v0.1.12/go.mod h1:pn52JC52uSgpazChx9CeXyG+S3sW2V36HHoLNBbscdg=
-github.com/bool64/dev v0.1.15/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.1.17/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.1.18/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
-github.com/bool64/dev v0.1.19/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.1.24/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.1.25 h1:iSfcaS1FP6F2TlMI1daAvqk6PYl23XDf6oZu7WRXB8Y=
 github.com/bool64/dev v0.1.25/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
@@ -131,8 +129,8 @@ github.com/swaggest/assertjson v1.6.0/go.mod h1:2dZU3TJoGcH+QPrekon0+zG5hJnZUpdE
 github.com/swaggest/assertjson v1.6.3/go.mod h1:fShyZuy4F57C1smqdYNVYDyehECSJLmvYiCGwWyQEKo=
 github.com/swaggest/assertjson v1.6.4 h1:SZy0H6Dyi+2Jn1PfKBFk+uwQ+3FcwtPthEpcpV84xTg=
 github.com/swaggest/assertjson v1.6.4/go.mod h1:HAXV18oavcbNHwN6wvfzYVrLuAoi3/mJ6sN0ZgNMX9U=
-github.com/swaggest/form v1.11.1 h1:dNRMhld2VkVA6J9sjKaWSoabEP92G5NNlLs9wW+zN/Q=
-github.com/swaggest/form v1.11.1/go.mod h1:XI/xmw62iJuKxhbqvxOj1ri7VJFAaeRsX5qNdHVkbB4=
+github.com/swaggest/form v1.11.2 h1:DN3jhIh7PaJjOirfWq/DL6nbuXcjdVPazmtez3Bcy4w=
+github.com/swaggest/form v1.11.2/go.mod h1:nMN5aLiSG/Yg0YVbhXuqUKpMWc6MngThr/anrHRKuyk=
 github.com/swaggest/jsonschema-go v0.2.1/go.mod h1:QFauBdPTrU1UltwocM5FzOWnVjVVtcWkJWG3NlK9sV0=
 github.com/swaggest/jsonschema-go v0.2.4/go.mod h1:m4VV88Gbi7lCrt9ckJzigK1rMlEeFjdZUkJr1o5MnDE=
 github.com/swaggest/jsonschema-go v0.3.7/go.mod h1:TrWgbug4p2ZgcxnHDz+CvYvEtJ5KckL/XOV4mSR6FGw=
@@ -155,8 +153,8 @@ github.com/swaggest/swgen v0.6.27 h1:bO3CtX4NvuetPuABMChEEp2N/bjsJraegaJpYZ72aoI
 github.com/swaggest/swgen v0.6.27/go.mod h1:tQLsoQVLcvtAMzNbm26JbWXDHZM4BBRuI5nemk3gEDw=
 github.com/swaggest/swgui v1.2.1 h1:iXNmGf07MaPfbVFxEsh7ez8eNPtREan4vHxU8AQnwKg=
 github.com/swaggest/swgui v1.2.1/go.mod h1:hJoCC9hcPB55IPKWtTi5//gV+xn4AVyLoEHkm8mhcP4=
-github.com/swaggest/usecase v0.1.3 h1:rK/t7PR3pt6pDEVQuT9n/aXHbMtKNzulqniQ/GSOiCc=
-github.com/swaggest/usecase v0.1.3/go.mod h1:d94PwelVQeMv4RH0VsRMFqRNrk6ferEqg2AetDcjPWo=
+github.com/swaggest/usecase v0.1.5 h1:xMDWXnYGysVaF2f3ZnmDsn2FlZ8fd3FJD+O+8wl4aNQ=
+github.com/swaggest/usecase v0.1.5/go.mod h1:uubX4ZbjQK1Bnl0xX9hOYpb/IUiSoVKk/yQImawbNMU=
 github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6KllzawFIhcdPw=
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasthttp v1.17.0/go.mod h1:jjraHZVbKOXftJfsOYoAjaeygpj5hr8ermTRJNroD7A=
