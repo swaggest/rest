@@ -16,6 +16,6 @@ require (
 	github.com/swaggest/openapi-go v0.2.9
 	github.com/swaggest/rest v0.1.17
 	github.com/swaggest/swgui v1.2.1
-	github.com/swaggest/usecase v0.1.3
+	github.com/swaggest/usecase v0.1.5
 	github.com/valyala/fasthttp v1.22.0
 )
