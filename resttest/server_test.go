@@ -265,3 +265,67 @@ func TestServerMock_vars(t *testing.T) {
 
 	assert.Equal(t, `{"bar":"foo","dynEcho":"abc"}`, string(body))
 }
+
+func TestServerMock_ExpectAsync(t *testing.T) {
+	sm, url := resttest.NewServerMock()
+	sm.Expect(resttest.Expectation{
+		Method:       http.MethodGet,
+		RequestURI:   "/",
+		ResponseBody: []byte(`{"bar":"foo"}`),
+	})
+	sm.ExpectAsync(resttest.Expectation{
+		Method:       http.MethodGet,
+		RequestURI:   "/async1",
+		ResponseBody: []byte(`{"bar":"async1"}`),
+	})
+	sm.ExpectAsync(resttest.Expectation{
+		Method:       http.MethodGet,
+		RequestURI:   "/async2",
+		ResponseBody: []byte(`{"bar":"async2"}`),
+		Unlimited:    true,
+	})
+
+	go func() {
+		req, err := http.NewRequest(http.MethodGet, url+"/async1", nil)
+		require.NoError(t, err)
+
+		resp, err := http.DefaultTransport.RoundTrip(req)
+		require.NoError(t, err)
+
+		body, err := ioutil.ReadAll(resp.Body)
+		require.NoError(t, err)
+
+		require.NoError(t, resp.Body.Close())
+		assert.Equal(t, `{"bar":"async1"}`, string(body))
+	}()
+
+	go func() {
+		for i := 0; i < 50; i++ {
+			req, err := http.NewRequest(http.MethodGet, url+"/async2", nil)
+			require.NoError(t, err)
+
+			resp, err := http.DefaultTransport.RoundTrip(req)
+			require.NoError(t, err)
+
+			body, err := ioutil.ReadAll(resp.Body)
+			require.NoError(t, err)
+
+			require.NoError(t, resp.Body.Close())
+			assert.Equal(t, `{"bar":"async2"}`, string(body))
+		}
+	}()
+
+	req, err := http.NewRequest(http.MethodGet, url+"/", nil)
+	require.NoError(t, err)
+
+	resp, err := http.DefaultTransport.RoundTrip(req)
+	require.NoError(t, err)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	require.NoError(t, resp.Body.Close())
+	assert.Equal(t, `{"bar":"foo"}`, string(body))
+
+	assert.NoError(t, sm.ExpectationsWereMet())
+}

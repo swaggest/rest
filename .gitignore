@@ -1,7 +1,6 @@
-.idea
-coverage.txt
-unit.coverprofile
 *_last_run.json
-.vscode
-bench-*.txt
-vendor
+/.idea
+/*.coverprofile
+/.vscode
+/bench-*.txt
+/vendor

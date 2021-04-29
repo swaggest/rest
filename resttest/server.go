@@ -49,6 +49,7 @@ type ServerMock struct {
 	mu           sync.Mutex
 	server       *httptest.Server
 	expectations []Expectation
+	async        []Expectation
 }
 
 // NewServerMock creates mocked server.
@@ -66,6 +67,18 @@ func (sm *ServerMock) Expect(e Expectation) {
 	defer sm.mu.Unlock()
 
 	sm.expectations = append(sm.expectations, e)
+}
+
+// ExpectAsync sets non-sequential expectation.
+//
+// Asynchronous expectations are checked for every incoming request,
+// first match is used for response.
+// If there are no matches, regular (sequential expectations are used).
+func (sm *ServerMock) ExpectAsync(e Expectation) {
+	sm.mu.Lock()
+	defer sm.mu.Unlock()
+
+	sm.async = append(sm.async, e)
 }
 
 // Close closes mocked server.
@@ -125,10 +138,47 @@ func (sm *ServerMock) writeResponse(rw http.ResponseWriter, expectation Expectat
 	return !sm.checkFail(rw, err)
 }
 
+func (sm *ServerMock) checkAsync(rw http.ResponseWriter, req *http.Request) bool {
+	for i, expectation := range sm.async {
+		if err := sm.checkRequest(req, expectation); err != nil {
+			continue
+		}
+
+		if !sm.writeResponse(rw, expectation) {
+			return true
+		}
+
+		if expectation.Unlimited {
+			return true
+		}
+
+		if expectation.Repeated > 0 {
+			expectation.Repeated--
+			sm.async[i] = expectation
+
+			if expectation.Repeated > 0 {
+				return true
+			}
+		}
+
+		// Deleting expectation.
+		sm.async[i] = sm.async[len(sm.async)-1]
+		sm.async = sm.async[:len(sm.async)-1]
+
+		return true
+	}
+
+	return false
+}
+
 // ServeHTTP asserts request expectations and serves mocked response.
 func (sm *ServerMock) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
+
+	if sm.checkAsync(rw, req) {
+		return
+	}
 
 	if len(sm.expectations) == 0 {
 		body, err := ioutil.ReadAll(req.Body)
@@ -263,21 +313,33 @@ func (sm *ServerMock) ExpectationsWereMet() error {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
-	if len(sm.expectations) != 0 {
-		if len(sm.expectations) == 1 && sm.expectations[0].Unlimited {
-			return nil
+	var unmet string
+
+	for _, e := range sm.expectations {
+		if e.Unlimited {
+			continue
 		}
 
-		unmet := ""
+		if e.Method != "" || e.RequestURI != "" {
+			unmet += ", " + e.Method + " " + e.RequestURI
+		} else {
+			unmet += ", response " + string(e.ResponseBody)
+		}
+	}
 
-		for _, e := range sm.expectations {
-			if e.Method != "" || e.RequestURI != "" {
-				unmet += ", " + e.Method + " " + e.RequestURI
-			} else {
-				unmet += ", response " + string(e.ResponseBody)
-			}
+	for _, e := range sm.async {
+		if e.Unlimited {
+			continue
 		}
 
+		if e.Method != "" || e.RequestURI != "" {
+			unmet += ", " + e.Method + " " + e.RequestURI
+		} else {
+			unmet += ", response " + string(e.ResponseBody)
+		}
+	}
+
+	if unmet != "" {
 		return errors.New("there are remaining expectations that were not met: " + unmet[2:])
 	}
 
