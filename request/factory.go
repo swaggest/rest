@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/swaggest/form"
+	"github.com/swaggest/form/v5"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/refl"
 	"github.com/swaggest/rest"

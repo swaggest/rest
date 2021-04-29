@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/swaggest/form"
+	"github.com/swaggest/form/v5"
 	"github.com/swaggest/refl"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/usecase"

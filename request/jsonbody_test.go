@@ -1,4 +1,4 @@
-package request
+package request // nolint:testpackage
 
 import (
 	"bytes"
