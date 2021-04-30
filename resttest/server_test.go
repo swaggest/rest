@@ -285,7 +285,12 @@ func TestServerMock_ExpectAsync(t *testing.T) {
 		Unlimited:    true,
 	})
 
+	wg := sync.WaitGroup{}
+	wg.Add(2)
+
 	go func() {
+		defer wg.Done()
+
 		req, err := http.NewRequest(http.MethodGet, url+"/async1", nil)
 		require.NoError(t, err)
 
@@ -300,6 +305,8 @@ func TestServerMock_ExpectAsync(t *testing.T) {
 	}()
 
 	go func() {
+		defer wg.Done()
+
 		for i := 0; i < 50; i++ {
 			req, err := http.NewRequest(http.MethodGet, url+"/async2", nil)
 			require.NoError(t, err)
@@ -327,5 +334,6 @@ func TestServerMock_ExpectAsync(t *testing.T) {
 	require.NoError(t, resp.Body.Close())
 	assert.Equal(t, `{"bar":"foo"}`, string(body))
 
+	wg.Wait()
 	assert.NoError(t, sm.ExpectationsWereMet())
 }
