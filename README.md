@@ -41,31 +41,6 @@ to build REST services.
 
 ## Usage
 
-### Creating Use Case Interactor
-
-HTTP transport is decoupled from business logic by adapting 
-[use case interactors](https://pkg.go.dev/github.com/swaggest/usecase#Interactor).
-
-Use case interactor can define input and output ports that are used to map data between Go values and transport.
-It can provide information about itself that will be exposed in generated documentation.
-
-For modularity particular use case interactor instance can be assembled by embedding relevant traits in a struct, 
-for example you can skip adding `usecase.WithInput` if your use case does not imply any input.
-
-```go
-// Create use case interactor.
-u := struct {
-    usecase.Info
-    usecase.Interactor
-    usecase.WithInput
-    usecase.WithOutput
-}{}
-
-// Describe use case interactor.
-u.SetTitle("Greeter")
-u.SetDescription("Greeter greets you.")
-```
-
 ### Request Decoder
 
 Go struct with optional field tags defines input port. 
@@ -77,7 +52,6 @@ type helloInput struct {
     Locale string `query:"locale" default:"en-US" pattern:"^[a-z]{2}-[A-Z]{2}$"`
     Name   string `path:"name" minLength:"3"` // Field tags define parameter location and JSON schema constraints.
 }
-u.Input = new(helloInput)
 ```
 
 Input data can be located in:
@@ -97,11 +71,10 @@ type helloInput struct {
     Locale string `default:"en-US" pattern:"^[a-z]{2}-[A-Z]{2}$"`
     Name   string `minLength:"3"` // Field tags define parameter location and JSON schema constraints.
 }
-u.Input = new(helloInput)
 ```
 
 ```go
-// Add use case handler to router.
+// Add use case handler with custom input mapping to router.
 r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u,
     nethttp.RequestMapping(new(struct {
        Locale string `query:"locale"`
@@ -130,7 +103,6 @@ type helloOutput struct {
     Now     time.Time `header:"X-Now" json:"-"`
     Message string    `json:"message"`
 }
-u.Output = new(helloOutput)
 ```
 
 Output data can be located in:
@@ -146,11 +118,10 @@ type helloOutput struct {
     Now     time.Time `json:"-"`
     Message string    `json:"message"`
 }
-u.Output = new(helloOutput)
 ```
 
 ```go
-// Add use case handler to router.
+// Add use case handler with custom output headers mapping to router.
 r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u,
     nethttp.ResponseHeaderMapping(new(struct {
         Now     time.Time `header:"X-Now"`
@@ -160,6 +131,64 @@ r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u,
 
 Additional field tags describe JSON schema constraints, please check 
 [documentation](https://pkg.go.dev/github.com/swaggest/jsonschema-go#Reflector.Reflect).
+
+### Creating Use Case Interactor
+
+HTTP transport is decoupled from business logic by adapting
+[use case interactors](https://pkg.go.dev/github.com/swaggest/usecase#Interactor).
+
+Use case interactor can define input and output ports that are used to map data between Go values and transport.
+It can provide information about itself that will be exposed in generated documentation.
+
+```go
+// Create use case interactor with references to input/output types and interaction function.
+u := usecase.NewIOI(new(helloInput), new(helloOutput), func(ctx context.Context, input, output interface{}) error {
+    var (
+        in  = input.(*helloInput)
+        out = output.(*helloOutput)
+    )
+
+    msg, available := messages[in.Locale]
+    if !available {
+        return status.Wrap(errors.New("unknown locale"), status.InvalidArgument)
+    }
+
+    out.Message = fmt.Sprintf(msg, in.Name)
+    out.Now = time.Now()
+
+    return nil
+})
+```
+
+For modularity particular use case interactor instance can be assembled by embedding relevant traits in a struct,
+for example you can skip adding `usecase.WithInput` if your use case does not imply any input.
+
+```go
+// Create use case interactor.
+u := struct {
+    usecase.Info
+    usecase.Interactor
+    usecase.WithInput
+    usecase.WithOutput
+}{}
+
+// Describe use case interactor.
+u.SetTitle("Greeter")
+u.SetDescription("Greeter greets you.")
+u.Input = new(helloInput)
+u.Output = new(helloOutput)
+u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+    // Do something about input to prepare output.
+    return nil
+})
+```
+
+### Adding use case to router
+
+```go
+// Add use case handler to router.
+r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u))
+```
 
 ## API Schema Collector
 
