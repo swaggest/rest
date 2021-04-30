@@ -141,23 +141,23 @@ Use case interactor can define input and output ports that are used to map data 
 It can provide information about itself that will be exposed in generated documentation.
 
 ```go
-	// Create use case interactor with references to input/output types and interaction function.
-	u := usecase.NewIOI(new(helloInput), new(helloOutput), func(ctx context.Context, input, output interface{}) error {
-		var (
-			in  = input.(*helloInput)
-			out = output.(*helloOutput)
-		)
+// Create use case interactor with references to input/output types and interaction function.
+u := usecase.NewIOI(new(helloInput), new(helloOutput), func(ctx context.Context, input, output interface{}) error {
+    var (
+        in  = input.(*helloInput)
+        out = output.(*helloOutput)
+    )
 
-		msg, available := messages[in.Locale]
-		if !available {
-			return status.Wrap(errors.New("unknown locale"), status.InvalidArgument)
-		}
+    msg, available := messages[in.Locale]
+    if !available {
+        return status.Wrap(errors.New("unknown locale"), status.InvalidArgument)
+    }
 
-		out.Message = fmt.Sprintf(msg, in.Name)
-		out.Now = time.Now()
+    out.Message = fmt.Sprintf(msg, in.Name)
+    out.Now = time.Now()
 
-		return nil
-	})
+    return nil
+})
 ```
 
 For modularity particular use case interactor instance can be assembled by embedding relevant traits in a struct,
