@@ -36,8 +36,9 @@ type Client struct {
 	// reqConcurrency is a number of simultaneous requests to send.
 	reqConcurrency int
 
-	otherRespBody []byte
-	otherResp     *http.Response
+	otherRespBody     []byte
+	otherResp         *http.Response
+	otherRespExpected bool
 }
 
 var (
@@ -46,6 +47,7 @@ var (
 	errUnexpectedBody           = errors.New("unexpected body")
 	errUnexpectedResponseStatus = errors.New("unexpected response status")
 	errOperationNotIdempotent   = errors.New("operation is not idempotent")
+	errNoOtherResponses         = errors.New("all responses have same status, no other responses")
 )
 
 const defaultConcurrencyLevel = 10
@@ -77,6 +79,7 @@ func (c *Client) Reset() *Client {
 	c.reqConcurrency = 0
 	c.otherResp = nil
 	c.otherRespBody = nil
+	c.otherRespExpected = false
 
 	return c
 }
@@ -303,17 +306,52 @@ func (c *Client) ExpectResponseHeader(key, value string) error {
 	return c.assertResponseHeader(key, value, c.resp)
 }
 
+// CheckUnexpectedOtherResponses fails if other responses were present, but not expected with
+// ExpectOther* functions.
+//
+// Does not affect single (non-concurrent) calls.
+func (c *Client) CheckUnexpectedOtherResponses() error {
+	if c.otherRespExpected || c.otherResp == nil {
+		return nil
+	}
+
+	return c.assertResponseCode(c.resp.StatusCode, c.otherResp)
+}
+
+// ExpectNoOtherResponses sets expectation for only one response status to be received  during concurrent
+// calling.
+//
+// Does not affect single (non-concurrent) calls.
+func (c *Client) ExpectNoOtherResponses() error {
+	if c.resp == nil {
+		if err := c.do(); err != nil {
+			return err
+		}
+	}
+
+	if c.otherResp != nil {
+		return c.assertResponseCode(c.resp.StatusCode, c.otherResp)
+	}
+
+	return nil
+}
+
 // ExpectOtherResponsesStatus sets expectation for response status to be received one or more times during concurrent
 // calling.
 //
 // For example, it may describe "Not Found" response on multiple DELETE or "Conflict" response on multiple POST.
 // Does not affect single (non-concurrent) calls.
 func (c *Client) ExpectOtherResponsesStatus(statusCode int) error {
+	c.otherRespExpected = true
+
 	if c.resp == nil {
-		err := c.do()
-		if err != nil {
+		if err := c.do(); err != nil {
 			return err
 		}
+	}
+
+	if c.otherResp == nil {
+		return errNoOtherResponses
 	}
 
 	return c.assertResponseCode(statusCode, c.otherResp)
@@ -322,11 +360,16 @@ func (c *Client) ExpectOtherResponsesStatus(statusCode int) error {
 // ExpectOtherResponsesHeader sets expectation for response header value to be received one or more times during
 // concurrent calling.
 func (c *Client) ExpectOtherResponsesHeader(key, value string) error {
+	c.otherRespExpected = true
+
 	if c.resp == nil {
-		err := c.do()
-		if err != nil {
+		if err := c.do(); err != nil {
 			return err
 		}
+	}
+
+	if c.otherResp == nil {
+		return errNoOtherResponses
 	}
 
 	return c.assertResponseHeader(key, value, c.otherResp)
@@ -375,11 +418,17 @@ func (c *Client) ExpectResponseBody(body []byte) error {
 // For example, it may describe "Not Found" response on multiple DELETE or "Conflict" response on multiple POST.
 // Does not affect single (non-concurrent) calls.
 func (c *Client) ExpectOtherResponsesBody(body []byte) error {
+	c.otherRespExpected = true
+
 	if c.resp == nil {
 		err := c.do()
 		if err != nil {
 			return err
 		}
+	}
+
+	if c.otherResp == nil {
+		return errNoOtherResponses
 	}
 
 	return c.checkBody(body, c.otherRespBody)

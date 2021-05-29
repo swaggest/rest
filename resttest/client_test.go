@@ -71,6 +71,8 @@ func TestNewClient(t *testing.T) {
 	assert.NoError(t, c.ExpectOtherResponsesStatus(http.StatusConflict))
 	assert.NoError(t, c.ExpectOtherResponsesBody([]byte(`{"error":"conflict"}`)))
 	assert.NoError(t, c.ExpectOtherResponsesHeader("Content-Type", "application/json"))
+	assert.NoError(t, c.CheckUnexpectedOtherResponses())
+	assert.EqualError(t, c.ExpectNoOtherResponses(), "unexpected response status, expected: 202 (Accepted), received: 409 (Conflict)")
 
 	val, found := vars.Get("$var1")
 	assert.True(t, found)
