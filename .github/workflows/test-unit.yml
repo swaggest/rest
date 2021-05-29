@@ -1,3 +1,4 @@
+# This script is provided by github.com/bool64/dev.
 name: test-unit
 on:
   push:
@@ -51,8 +52,7 @@ jobs:
         if: matrix.go-version == '1.16.x' && env.RUN_BASE_COVERAGE == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
         run: |
           cd __base
-          make test-unit
-          go tool cover -func=./unit.coverprofile | sed -e 's/.go:[0-9]*:\t/.go\t/g' | sed -e 's/\t\t*/\t/g'  > ../unit-base.txt
+          make | grep test-unit && (make test-unit && go tool cover -func=./unit.coverprofile | sed -e 's/.go:[0-9]*:\t/.go\t/g' | sed -e 's/\t\t*/\t/g'  > ../unit-base.txt) || echo "No test-unit in base"
       - name: Test
         id: test
         run: |
