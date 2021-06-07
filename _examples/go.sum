@@ -10,8 +10,8 @@ github.com/bool64/dev v0.1.17/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2z
 github.com/bool64/dev v0.1.18/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.1.25/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.1.27/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
-github.com/bool64/dev v0.1.32 h1:/9dpNGF/73diJzQxZS2hOxOPrsbTyLhr0VrQztylSKY=
-github.com/bool64/dev v0.1.32/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
+github.com/bool64/dev v0.1.35 h1:uouBAq2kAJ+k9UypYRs118bAYttNQWDyK4IzjfLb5fc=
+github.com/bool64/dev v0.1.35/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/httptestbench v0.1.1 h1:08112fXc5F1XuTWLdC9lPGB4FSWNACoeUWTeoR0a2qA=
 github.com/bool64/httptestbench v0.1.1/go.mod h1:gSmfFacu85Je3u6ZjmLZsFolcv7cwg1fLNUCzq2UUsM=
 github.com/bool64/shared v0.1.0/go.mod h1:khzw051JtnOZH6lX21rQ+sqbeC0FFEcU1wfchRS7EyU=
@@ -126,8 +126,8 @@ github.com/swaggest/assertjson v1.4.1/go.mod h1:v7atNMMlIa5ry2H1rgCHhvz7eho8yfP8
 github.com/swaggest/assertjson v1.6.0/go.mod h1:2dZU3TJoGcH+QPrekon0+zG5hJnZUpdEAxiLoxmJALI=
 github.com/swaggest/assertjson v1.6.4 h1:SZy0H6Dyi+2Jn1PfKBFk+uwQ+3FcwtPthEpcpV84xTg=
 github.com/swaggest/assertjson v1.6.4/go.mod h1:HAXV18oavcbNHwN6wvfzYVrLuAoi3/mJ6sN0ZgNMX9U=
-github.com/swaggest/form/v5 v5.0.0 h1:dPCt04lJ5O/R9VvoClMaE7yBn9QivXo4E/T0nyZhLfA=
-github.com/swaggest/form/v5 v5.0.0/go.mod h1:iBeFldvqZEU/Na/xI3TdY68LuTqA56T7B1ylKVxva0A=
+github.com/swaggest/form/v5 v5.0.1 h1:YQH0REX7iMKhtoVPWXREZgbt50VYXNCKK61psnD8Fgo=
+github.com/swaggest/form/v5 v5.0.1/go.mod h1:vdnaSTze7cxVKhWiCabrfm1YeLwWLpb9P941Gxv4FnA=
 github.com/swaggest/jsonschema-go v0.2.1/go.mod h1:QFauBdPTrU1UltwocM5FzOWnVjVVtcWkJWG3NlK9sV0=
 github.com/swaggest/jsonschema-go v0.2.4/go.mod h1:m4VV88Gbi7lCrt9ckJzigK1rMlEeFjdZUkJr1o5MnDE=
 github.com/swaggest/jsonschema-go v0.3.7/go.mod h1:TrWgbug4p2ZgcxnHDz+CvYvEtJ5KckL/XOV4mSR6FGw=

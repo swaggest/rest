@@ -145,7 +145,8 @@ func (r *Wrapper) resolvePattern(pattern string) string {
 }
 
 func (r *Wrapper) prepareHandler(method, pattern string, h http.Handler) http.Handler {
-	mw := append(r.middlewares, nethttp.HandlerWithRouteMiddleware(method, r.resolvePattern(pattern)))
+	mw := r.middlewares
+	mw = append(mw, nethttp.HandlerWithRouteMiddleware(method, r.resolvePattern(pattern)))
 	h = nethttp.WrapHandler(h, mw...)
 
 	return h
