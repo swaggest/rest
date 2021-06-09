@@ -20,6 +20,7 @@ import (
 type Client struct {
 	ConcurrencyLevel int
 	JSONComparer     assertjson.Comparer
+	OnBodyMismatch   func(received []byte) // Optional, called when received body does not match expected.
 
 	baseURL string
 	Headers map[string]string
@@ -456,6 +457,10 @@ func (c *Client) checkBody(expected, received []byte) error {
 				received = recCompact
 			}
 
+			if c.OnBodyMismatch != nil {
+				c.OnBodyMismatch(received)
+			}
+
 			return fmt.Errorf("%w\nreceived:\n%s ", err, string(received))
 		}
 
@@ -463,6 +468,10 @@ func (c *Client) checkBody(expected, received []byte) error {
 	}
 
 	if !bytes.Equal(expected, received) {
+		if c.OnBodyMismatch != nil {
+			c.OnBodyMismatch(received)
+		}
+
 		return fmt.Errorf("%w, expected: %s, received: %s",
 			errUnexpectedBody, string(expected), string(received))
 	}
