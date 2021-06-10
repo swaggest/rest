@@ -46,6 +46,9 @@ type ServerMock struct {
 	// JSONComparer controls JSON equality check.
 	JSONComparer assertjson.Comparer
 
+	// OnBodyMismatch is called when received body does not match expected, optional.
+	OnBodyMismatch func(received []byte)
+
 	mu           sync.Mutex
 	server       *httptest.Server
 	expectations []Expectation
@@ -183,6 +186,10 @@ func (sm *ServerMock) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if len(sm.expectations) == 0 {
 		body, err := ioutil.ReadAll(req.Body)
 		if err == nil && len(body) > 0 {
+			if sm.OnBodyMismatch != nil {
+				sm.OnBodyMismatch(body)
+			}
+
 			sm.checkFail(rw, fmt.Errorf("unexpected request received: %s %s, body:\n%s", req.Method,
 				req.RequestURI, string(body)))
 		} else {
@@ -217,6 +224,32 @@ func (sm *ServerMock) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	sm.expectations = sm.expectations[1:]
+}
+
+func (sm *ServerMock) checkBody(expected, received []byte) (err error) {
+	defer func() {
+		if err != nil && sm.OnBodyMismatch != nil {
+			sm.OnBodyMismatch(received)
+		}
+	}()
+
+	if !json5.Valid(expected) || !json5.Valid(received) {
+		if !bytes.Equal(expected, received) {
+			return errors.New("unexpected request body")
+		}
+	} else {
+		// Performing JSON comparison for JSON payloads and binary comparison otherwise.
+		expected, err := json5.Downgrade(expected)
+		if err != nil {
+			return err
+		}
+
+		if err = sm.JSONComparer.FailNotEqual(expected, received); err != nil {
+			return fmt.Errorf("unexpected request body: %w", err)
+		}
+	}
+
+	return nil
 }
 
 func (sm *ServerMock) checkRequest(req *http.Request, expectation Expectation) error {
@@ -254,24 +287,7 @@ func (sm *ServerMock) checkRequest(req *http.Request, expectation Expectation) e
 		return nil
 	}
 
-	if !json5.Valid(expectation.RequestBody) || !json5.Valid(reqBody) {
-		if !bytes.Equal(expectation.RequestBody, reqBody) {
-			return errors.New("unexpected request body")
-		}
-	} else {
-		// Performing JSON comparison for JSON payloads and binary comparison otherwise.
-		expectation.RequestBody, err = json5.Downgrade(expectation.RequestBody)
-		if err != nil {
-			return err
-		}
-
-		err := sm.JSONComparer.FailNotEqual(expectation.RequestBody, reqBody)
-		if err != nil {
-			return fmt.Errorf("unexpected request body: %w", err)
-		}
-	}
-
-	return nil
+	return sm.checkBody(expectation.RequestBody, reqBody)
 }
 
 func (sm *ServerMock) checkFail(rw http.ResponseWriter, err error) bool {

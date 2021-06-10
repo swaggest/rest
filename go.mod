@@ -12,7 +12,7 @@ require (
 	github.com/swaggest/assertjson v1.6.4
 	github.com/swaggest/form/v5 v5.0.1
 	github.com/swaggest/jsonschema-go v0.3.19
-	github.com/swaggest/openapi-go v0.2.9
+	github.com/swaggest/openapi-go v0.2.10
 	github.com/swaggest/refl v0.1.7
 	github.com/swaggest/usecase v0.1.5
 )
