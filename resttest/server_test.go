@@ -66,6 +66,10 @@ func TestServerMock_ServeHTTP(t *testing.T) {
 	mock, baseURL := resttest.NewServerMock()
 	defer mock.Close()
 
+	mock.OnBodyMismatch = func(received []byte) {
+		assert.Equal(t, `{"foo":"bar"}`, string(received))
+	}
+
 	mock.DefaultResponseHeaders = map[string]string{
 		"Content-Type": "application/json",
 	}
@@ -75,6 +79,14 @@ func TestServerMock_ServeHTTP(t *testing.T) {
 		RequestURI:   "/test?test=test",
 		Status:       http.StatusInternalServerError,
 		ResponseBody: []byte("unexpected request received: GET /test?test=test"),
+	})
+
+	// Requesting mock without expectations fails.
+	assertRoundTrip(t, baseURL, resttest.Expectation{
+		RequestURI:   "/test?test=test",
+		Status:       http.StatusInternalServerError,
+		RequestBody:  []byte(`{"foo":"bar"}`),
+		ResponseBody: []byte("unexpected request received: GET /test?test=test, body:\n{\"foo\":\"bar\"}"),
 	})
 
 	// Setting expectations for first request.
