@@ -129,11 +129,16 @@ func TestServerMock_ServeHTTP_error(t *testing.T) {
 	mock, baseURL := resttest.NewServerMock()
 	defer mock.Close()
 
+	mock.OnBodyMismatch = func(received []byte) {
+		assert.Equal(t, `{"request":"body"}`, string(received))
+	}
+
 	// Setting expectations for first request.
 	mock.Expect(resttest.Expectation{
 		Method:        http.MethodPost,
 		RequestURI:    "/test?test=test",
 		RequestHeader: map[string]string{"X-Foo": "bar"},
+		RequestBody:   []byte(`{"foo":"bar"}`),
 	})
 
 	// Sending request with wrong uri.
@@ -180,6 +185,26 @@ func TestServerMock_ServeHTTP_error(t *testing.T) {
 
 	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	assert.Equal(t, `header "X-Foo" with value "bar" expected, "space" received`, string(respBody))
+
+	// Sending request with wrong body.
+	req, err = http.NewRequest(http.MethodPost, baseURL+"/test?test=test", bytes.NewReader([]byte(`{"request":"body"}`)))
+	require.NoError(t, err)
+	req.Header.Set("X-Foo", "bar")
+
+	resp, err = http.DefaultTransport.RoundTrip(req)
+	require.NoError(t, err)
+
+	respBody, err = ioutil.ReadAll(resp.Body)
+	require.NoError(t, resp.Body.Close())
+	require.NoError(t, err)
+
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	assert.Equal(t, `unexpected request body: not equal:
+ {
+-  "foo": "bar"
++  "request": "body"
+ }
+`, string(respBody))
 }
 
 func TestServerMock_ServeHTTP_concurrency(t *testing.T) {
