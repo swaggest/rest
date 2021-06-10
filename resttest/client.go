@@ -435,7 +435,7 @@ func (c *Client) ExpectOtherResponsesBody(body []byte) error {
 	return c.checkBody(body, c.otherRespBody)
 }
 
-func (c *Client) checkBody(expected, received []byte) error {
+func (c *Client) checkBody(expected, received []byte) (err error) {
 	if len(received) == 0 {
 		if len(expected) == 0 {
 			return nil
@@ -443,6 +443,12 @@ func (c *Client) checkBody(expected, received []byte) error {
 
 		return errEmptyBody
 	}
+
+	defer func() {
+		if err != nil && c.OnBodyMismatch != nil {
+			c.OnBodyMismatch(received)
+		}
+	}()
 
 	if json5.Valid(expected) && json5.Valid(received) {
 		expected, err := json5.Downgrade(expected)
@@ -457,10 +463,6 @@ func (c *Client) checkBody(expected, received []byte) error {
 				received = recCompact
 			}
 
-			if c.OnBodyMismatch != nil {
-				c.OnBodyMismatch(received)
-			}
-
 			return fmt.Errorf("%w\nreceived:\n%s ", err, string(received))
 		}
 
@@ -468,10 +470,6 @@ func (c *Client) checkBody(expected, received []byte) error {
 	}
 
 	if !bytes.Equal(expected, received) {
-		if c.OnBodyMismatch != nil {
-			c.OnBodyMismatch(received)
-		}
-
 		return fmt.Errorf("%w, expected: %s, received: %s",
 			errUnexpectedBody, string(expected), string(received))
 	}

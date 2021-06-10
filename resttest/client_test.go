@@ -78,3 +78,21 @@ func TestNewClient(t *testing.T) {
 	assert.True(t, found)
 	assert.Equal(t, "abc", val)
 }
+
+func TestNewClient_failedExpectation(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		_, err := writer.Write([]byte(`{"bar":"foo"}`))
+		assert.NoError(t, err)
+	}))
+	defer srv.Close()
+	c := resttest.NewClient(srv.URL)
+
+	c.OnBodyMismatch = func(received []byte) {
+		assert.Equal(t, `{"bar":"foo"}`, string(received))
+		println(received)
+	}
+
+	c.WithURI("/")
+	assert.EqualError(t, c.ExpectResponseBody([]byte(`{"foo":"bar}"`)),
+		"unexpected body, expected: {\"foo\":\"bar}\", received: {\"bar\":\"foo\"}")
+}
