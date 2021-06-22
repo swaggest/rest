@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"github.com/santhosh-tekuri/jsonschema/v2"
+	jsonschema "github.com/santhosh-tekuri/jsonschema/v3"
 	"github.com/swaggest/rest"
 )
 
