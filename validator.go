@@ -7,7 +7,7 @@ type Validator interface {
 	// ValidateData validates decoded request/response data and returns error in case of invalid data.
 	ValidateData(in ParamIn, namedData map[string]interface{}) error
 
-	// ValidateData validates JSON encoded body and returns error in case of invalid data.
+	// ValidateJSONBody validates JSON encoded body and returns error in case of invalid data.
 	ValidateJSONBody(jsonBody []byte) error
 
 	// HasConstraints indicates if there are validation rules for parameter location.

@@ -53,16 +53,29 @@ var (
 
 const defaultConcurrencyLevel = 10
 
-// NewClient creates client instance.
+// NewClient creates client instance, baseURL may be empty if Client.SetBaseURL is used later.
 func NewClient(baseURL string) *Client {
+	c := &Client{
+		baseURL:      baseURL,
+		JSONComparer: assertjson.Comparer{IgnoreDiff: assertjson.IgnoreDiff},
+	}
+
+	c.Reset()
+
+	if baseURL != "" {
+		c.SetBaseURL(baseURL)
+	}
+
+	return c
+}
+
+// SetBaseURL changes baseURL configured with constructor.
+func (c *Client) SetBaseURL(baseURL string) {
 	if !strings.HasPrefix(baseURL, "http://") && !strings.HasPrefix(baseURL, "https://") {
 		baseURL = "http://" + baseURL
 	}
 
-	return (&Client{
-		baseURL:      baseURL,
-		JSONComparer: assertjson.Comparer{IgnoreDiff: assertjson.IgnoreDiff},
-	}).Reset()
+	c.baseURL = baseURL
 }
 
 // Reset deletes client state.
