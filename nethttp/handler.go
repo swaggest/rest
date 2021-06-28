@@ -1,6 +1,7 @@
 package nethttp
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"reflect"
@@ -87,6 +88,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		err           error
 	)
 
+	if h.responseEncoder == nil {
+		panic("response encoder is not initialized, please use SetResponseEncoder")
+	}
+
+	output = h.responseEncoder.MakeOutput(w, h.HandlerTrait)
+
 	if h.inputBufferType != nil {
 		if h.requestDecoder == nil {
 			panic("request decoder is not initialized, please use SetRequestDecoder")
@@ -100,17 +107,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if err != nil {
-			h.handleDecodeError(w, r, err)
+			h.handleDecodeError(w, r, err, input, output)
 
 			return
 		}
 	}
-
-	if h.responseEncoder == nil {
-		panic("response encoder is not initialized, please use SetResponseEncoder")
-	}
-
-	output = h.responseEncoder.MakeOutput(w, h.HandlerTrait)
 
 	err = h.useCase.Interact(r.Context(), input, output)
 
@@ -154,11 +155,13 @@ func closeMultipartForm(r *http.Request) {
 	}
 }
 
-func (h *Handler) handleDecodeError(w http.ResponseWriter, r *http.Request, err error) {
+type decodeErrCtxKey struct{}
+
+func (h *Handler) handleDecodeError(w http.ResponseWriter, r *http.Request, err error, input, output interface{}) {
 	err = status.Wrap(err, status.InvalidArgument)
 
 	if h.failingUseCase != nil {
-		err = h.failingUseCase.Interact(r.Context(), "decoding failed", err)
+		err = h.failingUseCase.Interact(context.WithValue(r.Context(), decodeErrCtxKey{}, err), input, output)
 	}
 
 	h.handleErrResponse(w, r, err)

@@ -17,7 +17,7 @@ func UseCaseMiddlewares(mw ...usecase.Middleware) func(http.Handler) http.Handle
 
 		u := uh.UseCase()
 		fu := usecase.Interact(func(ctx context.Context, input, output interface{}) error {
-			return output.(error)
+			return ctx.Value(decodeErrCtxKey{}).(error)
 		})
 
 		uh.SetUseCase(usecase.Wrap(u, mw...))
