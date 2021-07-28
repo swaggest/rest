@@ -43,7 +43,7 @@ func Test_taskLifeSpan(t *testing.T) {
 	assert.NoError(t, rc.ExpectResponseStatus(http.StatusBadRequest))
 	assert.NoError(t, rc.ExpectResponseBody([]byte(`{
 	 "status":"INVALID_ARGUMENT",
-	 "error":"invalid argument: failed to decode json: parsing time \"\\\"2020-35-17T11:12:42.085Z\\\"\": month out of range"
+	 "error":"<ignore-diff>"
 	}`)))
 
 	rc.Reset().WithMethod(http.MethodPost).WithURI("/dev/tasks").
@@ -63,7 +63,7 @@ func Test_taskLifeSpan(t *testing.T) {
 	assert.NoError(t, rc.ExpectResponseStatus(http.StatusBadRequest))
 	assert.NoError(t, rc.ExpectResponseBody([]byte(`{
 	 "status":"INVALID_ARGUMENT",
-	 "error":"invalid argument: failed to decode json: parsing time \"\\\"2XXX-05-17T11:12:42.085Z\\\"\" as \"\\\"2006-01-02T15:04:05Z07:00\\\"\": cannot parse \"-05-17T11:12:42.085Z\\\"\" as \"2006\""
+	 "error":"<ignore-diff>"
 	}`)))
 
 	rc.Reset().WithMethod(http.MethodGet).WithURI("/dev/tasks/1").Concurrently()
