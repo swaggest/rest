@@ -14,7 +14,7 @@ import (
 	"github.com/swaggest/rest/request"
 	"github.com/swaggest/rest/response"
 	"github.com/swaggest/rest/response/gzip"
-	v3 "github.com/swaggest/swgui/v3"
+	v4 "github.com/swaggest/swgui/v4"
 )
 
 func NewRouter() http.Handler {
@@ -96,7 +96,7 @@ func NewRouter() http.Handler {
 
 	// Swagger UI endpoint at /docs.
 	r.Method(http.MethodGet, "/docs/openapi.json", apiSchema)
-	r.Mount("/docs", v3.NewHandler(apiSchema.Reflector().Spec.Info.Title,
+	r.Mount("/docs", v4.NewHandler(apiSchema.Reflector().Spec.Info.Title,
 		"/docs/openapi.json", "/docs"))
 
 	return r
