@@ -41,9 +41,10 @@ func Test_taskLifeSpan(t *testing.T) {
 		Concurrently()
 
 	assert.NoError(t, rc.ExpectResponseStatus(http.StatusBadRequest))
-	assert.NoError(t, rc.ExpectResponseBody([]byte(`{"status":"INVALID_ARGUMENT",`+
-		`"error":"invalid argument: failed to decode json: `+
-		`parsing time \"\"2020-35-17T11:12:42.085Z\"\": month out of range"}`)))
+	assert.NoError(t, rc.ExpectResponseBody([]byte(`{
+	 "status":"INVALID_ARGUMENT",
+	 "error":"<ignore-diff>"
+	}`)))
 
 	rc.Reset().WithMethod(http.MethodPost).WithURI("/dev/tasks").
 		WithContentType("application/json").
@@ -60,11 +61,12 @@ func Test_taskLifeSpan(t *testing.T) {
 		Concurrently()
 
 	assert.NoError(t, rc.ExpectResponseStatus(http.StatusBadRequest))
-	assert.NoError(t, rc.ExpectResponseBody([]byte(`{"status":"INVALID_ARGUMENT",`+
-		`"error":"invalid argument: failed to decode json: parsing time \"\"2XXX-05-17T11:12:42.085Z\"\" `+
-		`as \"\"2006-01-02T15:04:05Z07:00\"\": cannot parse \"-05-17T11:12:42.085Z\"\" as \"2006\""}`)))
+	assert.NoError(t, rc.ExpectResponseBody([]byte(`{
+	 "status":"INVALID_ARGUMENT",
+	 "error":"<ignore-diff>"
+	}`)))
 
-	rc.Reset().WithMethod(http.MethodGet).WithPath("/dev/tasks/1").Concurrently()
+	rc.Reset().WithMethod(http.MethodGet).WithURI("/dev/tasks/1").Concurrently()
 	assert.NoError(t, rc.ExpectResponseStatus(http.StatusOK))
 	assert.NoError(t, rc.ExpectResponseBody([]byte(`{"id":1,"goal":"string","deadline":"2020-05-17T11:12:42.085Z",`+
 		`"createdAt":"<ignore-diff>"}`)))

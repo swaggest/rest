@@ -1,7 +1,7 @@
 BENCH_COUNT ?= 5
 REF_NAME ?= $(shell git symbolic-ref HEAD --short | tr / - 2>/dev/null)
 
-#GOLANGCI_LINT_VERSION := "v1.40.1" # Optional configuration to pinpoint golangci-lint version.
+#GOLANGCI_LINT_VERSION := "v1.41.1" # Optional configuration to pinpoint golangci-lint version.
 
 # The head of Makefile determines location of dev-go to include standard targets.
 GO ?= go
