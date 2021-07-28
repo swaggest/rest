@@ -449,7 +449,7 @@
         }
       },
       "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
-      "FormDataMultipartFileHeader":{"type":"string","format":"binary"},
+      "FormDataMultipartFileHeader":{"type":"string","format":"binary","nullable":true},
       "RestErrResponse":{
         "type":"object",
         "properties":{
