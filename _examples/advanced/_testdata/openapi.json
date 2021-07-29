@@ -346,7 +346,7 @@
         "type":"object",
         "properties":{"id":{"type":"integer"},"text":{"type":"array","items":{"type":"string"},"nullable":true}}
       },
-      "AdvancedHeaderOutput":{"type":"object","properties":{"inBody":{"type":"string"}}},
+      "AdvancedHeaderOutput":{"type":"object","properties":{"inBody":{"type":"string","deprecated":true}}},
       "AdvancedInfo":{
         "type":"object",
         "properties":{
@@ -374,10 +374,17 @@
           }
         }
       },
-      "AdvancedInputWithJSONType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}}},
+      "AdvancedInputWithJSONType2":{
+        "type":"object",
+        "properties":{
+          "id":{"type":"integer"},"name":{"type":"string"},
+          "namedStruct":{"allOf":[{"deprecated":true},{"$ref":"#/components/schemas/AdvancedJSONPayloadType2"}]}
+        }
+      },
       "AdvancedInputWithJSONType3":{"type":"object","properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}}},
       "AdvancedJSONMapPayload":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
       "AdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}}},
+      "AdvancedJSONPayloadType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}}},
       "AdvancedJSONSlicePayload":{"type":"array","items":{"type":"integer"},"nullable":true},
       "AdvancedJsonMapReq":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
       "AdvancedJsonOutput":{
@@ -414,7 +421,7 @@
         "type":"object",
         "properties":{
           "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},
-          "inQuery":{"type":"string","format":"date"},"name":{"type":"string"}
+          "inQuery":{"type":"string","format":"date","deprecated":true},"name":{"type":"string"}
         }
       },
       "AdvancedOutputWithJSONType3":{

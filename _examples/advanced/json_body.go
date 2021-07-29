@@ -14,15 +14,16 @@ func jsonBody() usecase.Interactor {
 	}
 
 	type inputWithJSON struct {
-		Header string          `header:"X-Header" description:"Simple scalar value in header."`
-		Query  jsonschema.Date `query:"in_query" description:"Simple scalar value in query."`
-		Path   string          `path:"in-path" description:"Simple scalar value in path"`
+		Header      string          `header:"X-Header" description:"Simple scalar value in header."`
+		Query       jsonschema.Date `query:"in_query" description:"Simple scalar value in query."`
+		Path        string          `path:"in-path" description:"Simple scalar value in path"`
+		NamedStruct JSONPayload     `json:"namedStruct" deprecated:"true"`
 		JSONPayload
 	}
 
 	type outputWithJSON struct {
 		Header string          `json:"inHeader"`
-		Query  jsonschema.Date `json:"inQuery"`
+		Query  jsonschema.Date `json:"inQuery" deprecated:"true"`
 		Path   string          `json:"inPath"`
 		JSONPayload
 	}
