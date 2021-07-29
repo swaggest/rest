@@ -18,7 +18,7 @@ func outputHeaders() usecase.Interactor {
 
 	type headerOutput struct {
 		Header string `header:"X-Header" json:"-" description:"Sample response header."`
-		InBody string `json:"inBody"`
+		InBody string `json:"inBody" deprecated:"true"`
 	}
 
 	u.Output = new(headerOutput)
