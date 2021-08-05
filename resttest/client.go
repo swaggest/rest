@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"sort"
 	"strings"
 	"sync"
 
@@ -23,13 +24,18 @@ type Client struct {
 	OnBodyMismatch   func(received []byte) // Optional, called when received body does not match expected.
 
 	baseURL string
+
+	// Headers are default headers added to all requests, can be overridden by WithHeader.
 	Headers map[string]string
+
+	// Cookies are default cookies added to all requests, can be overridden by WithCookie.
+	Cookies map[string]string
 
 	resp     *http.Response
 	respBody []byte
 
 	reqHeaders map[string]string
-	reqCookies []http.Cookie
+	reqCookies map[string]string
 	reqBody    []byte
 	reqMethod  string
 	reqURI     string
@@ -81,7 +87,7 @@ func (c *Client) SetBaseURL(baseURL string) {
 // Reset deletes client state.
 func (c *Client) Reset() *Client {
 	c.reqHeaders = map[string]string{}
-	c.reqCookies = nil
+	c.reqCookies = map[string]string{}
 
 	c.resp = nil
 	c.respBody = nil
@@ -144,7 +150,7 @@ func (c *Client) WithHeader(key, value string) *Client {
 
 // WithCookie sets request cookie.
 func (c *Client) WithCookie(name, value string) *Client {
-	c.reqCookies = append(c.reqCookies, http.Cookie{Name: name, Value: value})
+	c.reqCookies[name] = value
 
 	return c
 }
@@ -288,7 +294,25 @@ func (c *Client) doOnce() (*http.Response, error) {
 		req.Header.Set(k, v)
 	}
 
-	for _, v := range c.reqCookies {
+	cookies := make([]http.Cookie, 0, len(c.Cookies)+len(c.reqCookies))
+
+	for n, v := range c.Cookies {
+		if _, found := c.reqCookies[n]; found {
+			continue
+		}
+
+		cookies = append(cookies, http.Cookie{Name: n, Value: v})
+	}
+
+	for n, v := range c.reqCookies {
+		cookies = append(cookies, http.Cookie{Name: n, Value: v})
+	}
+
+	sort.Slice(cookies, func(i, j int) bool {
+		return cookies[i].Name < cookies[j].Name
+	})
+
+	for _, v := range cookies {
 		v := v
 		req.AddCookie(&v)
 	}

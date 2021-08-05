@@ -31,6 +31,10 @@ func TestNewClient(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "2", c.Value)
 
+		c, err = r.Cookie("foo")
+		assert.NoError(t, err)
+		assert.Equal(t, "bar", c.Value)
+
 		ncnt := atomic.AddInt64(&cnt, 1)
 		rw.Header().Set("Content-Type", "application/json")
 		if ncnt > 1 {
@@ -53,6 +57,10 @@ func TestNewClient(t *testing.T) {
 	c.ConcurrencyLevel = 50
 	c.Headers = map[string]string{
 		"X-Header": "abc",
+	}
+	c.Cookies = map[string]string{
+		"foo": "bar",
+		"c1":  "to-be-overridden",
 	}
 
 	c.Reset().
