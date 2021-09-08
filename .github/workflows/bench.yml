@@ -20,7 +20,7 @@ jobs:
   bench:
     strategy:
       matrix:
-        go-version: [ 1.16.x ]
+        go-version: [ 1.17.x ]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -74,7 +74,12 @@ jobs:
         id: bench
         run: |
           export REF_NAME=new
-          BENCH_COUNT=5 make bench-run bench-stat
+          BENCH_COUNT=5 make bench
+          OUTPUT=$(make bench-stat-diff)
+          OUTPUT="${OUTPUT//'%'/'%25'}"
+          OUTPUT="${OUTPUT//$'\n'/'%0A'}"
+          OUTPUT="${OUTPUT//$'\r'/'%0D'}"
+          echo "::set-output name=diff::$OUTPUT"
           OUTPUT=$(make bench-stat)
           OUTPUT="${OUTPUT//'%'/'%25'}"
           OUTPUT="${OUTPUT//$'\n'/'%0A'}"
@@ -88,6 +93,13 @@ jobs:
           message: |
             ### Benchmark Result
             <details><summary>Benchmark diff with base branch</summary>
+
+            ```
+            ${{ steps.bench.outputs.diff }}
+            ```
+            </details>
+
+            <details><summary>Benchmark result</summary>
 
             ```
             ${{ steps.bench.outputs.result }}
