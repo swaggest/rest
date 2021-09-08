@@ -8,7 +8,7 @@ jobs:
   gorelease:
     strategy:
       matrix:
-        go-version: [ 1.16.x ]
+        go-version: [ 1.17.x ]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -38,7 +38,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           header: gorelease
           message: |
-            ### Exported API Changes Report
+            ### API Changes
 
             <pre>
             ${{ steps.gorelease.outputs.report }}

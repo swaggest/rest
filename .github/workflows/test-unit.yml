@@ -13,7 +13,7 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: [ 1.13.x, 1.14.x, 1.15.x, 1.16.x ]
+        go-version: [ 1.13.x, 1.14.x, 1.15.x, 1.16.x, 1.17.x ]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go
@@ -35,7 +35,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-cache
       - name: Restore base test coverage
-        if: matrix.go-version == '1.16.x'
+        if: matrix.go-version == '1.17.x'
         uses: actions/cache@v2
         with:
           path: |
@@ -43,13 +43,13 @@ jobs:
           # Use base sha for PR or new commit hash for master/main push in test result key.
           key: ${{ runner.os }}-unit-test-coverage-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
       - name: Checkout base code
-        if: matrix.go-version == '1.16.x' && env.RUN_BASE_COVERAGE == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
+        if: matrix.go-version == '1.17.x' && env.RUN_BASE_COVERAGE == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           path: __base
       - name: Run test for base code
-        if: matrix.go-version == '1.16.x' && env.RUN_BASE_COVERAGE == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
+        if: matrix.go-version == '1.17.x' && env.RUN_BASE_COVERAGE == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
         run: |
           cd __base
           make | grep test-unit && (make test-unit && go tool cover -func=./unit.coverprofile | sed -e 's/.go:[0-9]*:\t/.go\t/g' | sed -e 's/\t\t*/\t/g'  > ../unit-base.txt) || echo "No test-unit in base"
@@ -69,7 +69,7 @@ jobs:
         if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
         run: cp unit.txt unit-base.txt
       - name: Comment Test Coverage
-        if: matrix.go-version == '1.16.x'
+        if: matrix.go-version == '1.17.x'
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -85,7 +85,7 @@ jobs:
             </details>
 
       - name: Upload code coverage
-        if: matrix.go-version == '1.16.x'
+        if: matrix.go-version == '1.17.x'
         uses: codecov/codecov-action@v1
         with:
           file: ./unit.coverprofile
