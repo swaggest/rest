@@ -274,6 +274,12 @@ func TestServerMock_ResetExpectations(t *testing.T) {
 		ResponseBody: []byte("body"),
 	})
 
+	mock.ExpectAsync(resttest.Expectation{
+		Method:       http.MethodGet,
+		RequestURI:   "/test-async?test=test",
+		ResponseBody: []byte("body"),
+	})
+
 	assert.Error(t, mock.ExpectationsWereMet())
 	mock.ResetExpectations()
 	assert.NoError(t, mock.ExpectationsWereMet())

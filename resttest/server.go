@@ -321,6 +321,7 @@ func (sm *ServerMock) ResetExpectations() {
 	defer sm.mu.Unlock()
 
 	sm.expectations = nil
+	sm.async = nil
 }
 
 // ExpectationsWereMet checks whether all queued expectations
