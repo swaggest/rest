@@ -2,8 +2,9 @@ github.com/bool64/dev v0.1.17/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2z
 github.com/bool64/dev v0.1.25/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.1.35/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.1.37/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
-github.com/bool64/dev v0.1.41 h1:L554LCQZc3d7mtcdPUgDbSrCVbr48/30zgu0VuC/FTA=
 github.com/bool64/dev v0.1.41/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
+github.com/bool64/dev v0.1.42 h1:Ps0IvNNf/v1MlIXt8Q5YKcKjYsIVLY/fb/5BmA7gepg=
+github.com/bool64/dev v0.1.42/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/shared v0.1.3 h1:gj7XZPYa1flQsCg3q9AIju+W2A1jaexK0fdFu2XtaG0=
 github.com/bool64/shared v0.1.3/go.mod h1:RF1p1Oi29ofgOvinBpetbF5mceOUP3kpMkvLbWOmtm0=
 github.com/cespare/xxhash/v2 v2.1.2 h1:YRXhKfTDauu4ajMg1TPgFO5jnlC2HCbmLXMcTG5cbYE=
@@ -76,8 +77,8 @@ github.com/swaggest/openapi-go v0.2.12 h1:lfge7dJMDqehKdYYYd5wYj7MhuaaiHVoghD8Gd
 github.com/swaggest/openapi-go v0.2.12/go.mod h1:vRXsxIkIg851HF0XiIeUQ5L2DMbag2oCpid9CUXRwbo=
 github.com/swaggest/refl v1.0.0 h1:yAFdjLQjmFuH4FHiD+HMaDUbF4cW0PbH5uhNoN4bme4=
 github.com/swaggest/refl v1.0.0/go.mod h1:acYd5x8NNxivp+ZHdRZKJYz66n/qjo3Q9Sa/jAivljQ=
-github.com/swaggest/usecase v1.0.1 h1:tCGRgoY6TSLJ+xnnZ0BSil9gcuvNQY7wbqDc+jymMkg=
-github.com/swaggest/usecase v1.0.1/go.mod h1:D7JKGbqF6TBkjeQEH5padC7PAAoAyxM89aiJwjaMteU=
+github.com/swaggest/usecase v1.1.0 h1:/xnKM5QgLeIP4uERvxuxY8Hi+wJ4znetPWoozylQKN0=
+github.com/swaggest/usecase v1.1.0/go.mod h1:rS2SGKc3XFi0/suwH4AWNIA8mRA5s4n2waW7ECkRPs4=
 github.com/yosuke-furukawa/json5 v0.1.2-0.20201207051438-cf7bb3f354ff h1:7YqG491bE4vstXRz1lD38rbSgbXnirvROz1lZiOnPO8=
 github.com/yosuke-furukawa/json5 v0.1.2-0.20201207051438-cf7bb3f354ff/go.mod h1:sw49aWDqNdRJ6DYUtIQiaA3xyj2IL9tjeNYmX2ixwcU=
 github.com/yudai/gojsondiff v1.0.0 h1:27cbfqXLVEJ1o8I6v3y9lg8Ydm53EKqHXAOMxEGlCOA=
