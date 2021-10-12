@@ -65,6 +65,7 @@ type Handler struct {
 	useCase usecase.Interactor
 
 	inputBufferType reflect.Type
+	inputIsPtr      bool
 
 	responseEncoder ResponseEncoder
 }
@@ -99,8 +100,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			panic("request decoder is not initialized, please use SetRequestDecoder")
 		}
 
-		input = reflect.New(h.inputBufferType).Interface()
-		err = h.requestDecoder.Decode(r, input, h.ReqValidator)
+		iv := reflect.New(h.inputBufferType)
+		err = h.requestDecoder.Decode(r, iv.Interface(), h.ReqValidator)
+
+		if !h.inputIsPtr {
+			input = iv.Elem().Interface()
+		} else {
+			input = iv.Interface()
+		}
 
 		if r.MultipartForm != nil {
 			defer closeMultipartForm(r)
@@ -179,6 +186,7 @@ func (h *Handler) setupInputBuffer() {
 	if h.inputBufferType != nil {
 		if h.inputBufferType.Kind() == reflect.Ptr {
 			h.inputBufferType = h.inputBufferType.Elem()
+			h.inputIsPtr = true
 		}
 	}
 }

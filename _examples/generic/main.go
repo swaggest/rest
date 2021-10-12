@@ -1,3 +1,6 @@
+//go:build go1.18
+// +build go1.18
+
 package main
 
 import (
@@ -67,19 +70,14 @@ func main() {
 	}
 
 	// Create use case interactor with references to input/output types and interaction function.
-	u := usecase.NewIOI(new(helloInput), new(helloOutput), func(ctx context.Context, input, output interface{}) error {
-		var (
-			in  = input.(*helloInput)
-			out = output.(*helloOutput)
-		)
-
-		msg, available := messages[in.Locale]
+	u := usecase.NewInteractor(func(ctx context.Context, input helloInput, output *helloOutput) error {
+		msg, available := messages[input.Locale]
 		if !available {
 			return status.Wrap(errors.New("unknown locale"), status.InvalidArgument)
 		}
 
-		out.Message = fmt.Sprintf(msg, in.Name)
-		out.Now = time.Now()
+		output.Message = fmt.Sprintf(msg, input.Name)
+		output.Now = time.Now()
 
 		return nil
 	})
