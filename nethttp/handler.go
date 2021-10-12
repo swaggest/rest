@@ -82,6 +82,21 @@ func (h *Handler) SetRequestDecoder(requestDecoder RequestDecoder) {
 	h.requestDecoder = requestDecoder
 }
 
+func (h *Handler) decodeRequest(r *http.Request) (interface{}, error) {
+	if h.requestDecoder == nil {
+		panic("request decoder is not initialized, please use SetRequestDecoder")
+	}
+
+	iv := reflect.New(h.inputBufferType)
+	err := h.requestDecoder.Decode(r, iv.Interface(), h.ReqValidator)
+
+	if !h.inputIsPtr {
+		return iv.Elem().Interface(), err
+	}
+
+	return iv.Interface(), err
+}
+
 // ServeHTTP serves http inputPort with use case interactor.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var (
@@ -96,18 +111,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	output = h.responseEncoder.MakeOutput(w, h.HandlerTrait)
 
 	if h.inputBufferType != nil {
-		if h.requestDecoder == nil {
-			panic("request decoder is not initialized, please use SetRequestDecoder")
-		}
-
-		iv := reflect.New(h.inputBufferType)
-		err = h.requestDecoder.Decode(r, iv.Interface(), h.ReqValidator)
-
-		if !h.inputIsPtr {
-			input = iv.Elem().Interface()
-		} else {
-			input = iv.Interface()
-		}
+		input, err = h.decodeRequest(r)
 
 		if r.MultipartForm != nil {
 			defer closeMultipartForm(r)
