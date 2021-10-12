@@ -33,7 +33,6 @@ require (
 	github.com/swaggest/form/v5 v5.0.1 // indirect
 	github.com/swaggest/refl v1.0.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
-	github.com/vearutop/statigz v1.1.4 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.2-0.20201207051438-cf7bb3f354ff // indirect
 	github.com/yudai/gojsondiff v1.0.0 // indirect
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect

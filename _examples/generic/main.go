@@ -21,7 +21,7 @@ import (
 	"github.com/swaggest/rest/request"
 	"github.com/swaggest/rest/response"
 	"github.com/swaggest/rest/response/gzip"
-	swgui "github.com/swaggest/swgui/v3emb"
+	swgui "github.com/swaggest/swgui/v4"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 )

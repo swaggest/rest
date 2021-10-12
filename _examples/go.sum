@@ -102,7 +102,6 @@ github.com/valyala/fasthttp v1.17.0/go.mod h1:jjraHZVbKOXftJfsOYoAjaeygpj5hr8erm
 github.com/valyala/fasthttp v1.22.0 h1:OpwH5KDOJ9cS2bq8fD+KfT4IrksK0llvkHf4MZx42jQ=
 github.com/valyala/fasthttp v1.22.0/go.mod h1:0mw2RjXGOzxf4NL2jni3gUQ7LfjjUSiG5sskOUUSEpU=
 github.com/valyala/tcplisten v0.0.0-20161114210144-ceec8f93295a/go.mod h1:v3UYOV9WzVtRmSR+PDvWpU/qWl4Wa5LApYYX4ZtKbio=
-github.com/vearutop/statigz v1.1.4 h1:2gpLdp/CPzJ6s2QMjHgZ0tnAmu2peO2G5SQEL27MWtU=
 github.com/vearutop/statigz v1.1.4/go.mod h1:mxG5Aj8YTjlkZzlgo8jcsthR6fnHpBhmh5q5pVKza0s=
 github.com/yosuke-furukawa/json5 v0.1.2-0.20201207051438-cf7bb3f354ff h1:7YqG491bE4vstXRz1lD38rbSgbXnirvROz1lZiOnPO8=
 github.com/yosuke-furukawa/json5 v0.1.2-0.20201207051438-cf7bb3f354ff/go.mod h1:sw49aWDqNdRJ6DYUtIQiaA3xyj2IL9tjeNYmX2ixwcU=
