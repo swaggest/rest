@@ -56,11 +56,15 @@ type reqTest struct {
 }
 
 type reqTestCustomMapping struct {
-	Header   int `required:"true"`
-	Cookie   string
+	reqEmbedding
 	Query    string
 	Path     string
 	FormData string
+}
+
+type reqEmbedding struct {
+	Header int `required:"true"`
+	Cookie string
 }
 
 type reqJSONTest struct {

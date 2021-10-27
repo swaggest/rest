@@ -252,7 +252,7 @@ func (df *DecoderFactory) makeCustomMappingDecoder(customMapping rest.RequestMap
 
 		dec.RegisterTagNameFunc(func(field reflect.StructField) string {
 			n := mm[field.Name]
-			if n == "" {
+			if n == "" && !field.Anonymous {
 				return "-"
 			}
 
