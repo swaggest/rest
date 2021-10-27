@@ -159,6 +159,7 @@ func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping 
 	// Move header names to custom mapping and/or apply canonical form to match net/http request decoder.
 	if hdm, exists := cm[rest.ParamInHeader]; !exists && refl.HasTaggedFields(input, string(rest.ParamInHeader)) {
 		hdm = make(map[string]string)
+
 		refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
 			hdm[sf.Name] = http.CanonicalHeaderKey(tag)
 		}, string(rest.ParamInHeader))
@@ -171,12 +172,14 @@ func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping 
 	}
 
 	fields := make(map[string]bool)
+
 	refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
 		fields[sf.Name] = true
 	}, "")
 
 	// Check if there are non-existent fields in mapping.
 	var nonExistent []string
+
 	for _, items := range cm {
 		for k := range items {
 			if _, exists := fields[k]; !exists {
@@ -248,7 +251,12 @@ func (df *DecoderFactory) makeCustomMappingDecoder(customMapping rest.RequestMap
 		}
 
 		dec.RegisterTagNameFunc(func(field reflect.StructField) string {
-			return mm[field.Name]
+			n := mm[field.Name]
+			if n == "" {
+				return "-"
+			}
+
+			return n
 		})
 
 		for _, c := range df.customDecoders {
