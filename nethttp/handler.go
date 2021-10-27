@@ -245,14 +245,12 @@ type RequestDecoder interface {
 // ResponseEncoder writes data from use case output/error into http.ResponseWriter.
 type ResponseEncoder interface {
 	WriteErrResponse(w http.ResponseWriter, r *http.Request, statusCode int, response interface{})
-
 	WriteSuccessfulResponse(
 		w http.ResponseWriter,
 		r *http.Request,
 		output interface{},
 		ht rest.HandlerTrait,
 	)
-
 	SetupOutput(output interface{}, ht *rest.HandlerTrait)
 	MakeOutput(w http.ResponseWriter, ht rest.HandlerTrait) interface{}
 }

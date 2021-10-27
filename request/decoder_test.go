@@ -48,11 +48,23 @@ func BenchmarkDecoder_Decode(b *testing.B) {
 }
 
 type reqTest struct {
-	Header   int    `header:"X-In-Header" required:"true"`
+	Header   int    `header:"X-In-HeAdEr" required:"true"` // Headers are mapped using canonical names.
 	Cookie   string `cookie:"in_cookie"`
 	Query    string `query:"in_query"`
 	Path     string `path:"in_path"`
 	FormData string `formData:"inFormData"`
+}
+
+type reqTestCustomMapping struct {
+	reqEmbedding
+	Query    string
+	Path     string
+	FormData string
+}
+
+type reqEmbedding struct {
+	Header int `required:"true"`
+	Cookie string
 }
 
 type reqJSONTest struct {
@@ -67,7 +79,7 @@ func TestDecoder_Decode(t *testing.T) {
 	assert.NoError(t, err)
 
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-	req.Header.Set("X-In-Header", "123")
+	req.Header.Set("X-In-hEaDeR", "123")
 
 	c := http.Cookie{
 		Name:  "in_cookie",
@@ -92,6 +104,24 @@ func TestDecoder_Decode(t *testing.T) {
 	assert.Equal(t, 123, input.Header)
 	assert.Equal(t, "jkl", input.Cookie)
 	assert.Equal(t, "mno", input.Path)
+
+	inputCM := new(reqTestCustomMapping)
+	decCM := df.MakeDecoder(http.MethodPost, input, map[rest.ParamIn]map[string]string{
+		rest.ParamInHeader: {
+			"Header": "X-In-HeAdEr", // Headers are mapped using canonical names.
+		},
+		rest.ParamInCookie:   {"Cookie": "in_cookie"},
+		rest.ParamInQuery:    {"Query": "in_query"},
+		rest.ParamInPath:     {"Path": "in_path"},
+		rest.ParamInFormData: {"FormData": "inFormData"},
+	})
+
+	assert.NoError(t, decCM.Decode(req, inputCM, nil))
+	assert.Equal(t, "abc", inputCM.Query)
+	assert.Equal(t, "def", inputCM.FormData)
+	assert.Equal(t, 123, inputCM.Header)
+	assert.Equal(t, "jkl", inputCM.Cookie)
+	assert.Equal(t, "mno", inputCM.Path)
 }
 
 // BenchmarkDecoderFunc_Decode-4   	  440503	      2525 ns/op	    1513 B/op	      12 allocs/op.
@@ -144,7 +174,7 @@ func TestDecoder_Decode_required(t *testing.T) {
 		MakeRequestValidator(http.MethodPost, input, nil)
 
 	err = dec.Decode(req, input, validator)
-	assert.Equal(t, rest.ValidationErrors{"header:X-In-Header": []string{"missing value"}}, err)
+	assert.Equal(t, rest.ValidationErrors{"header:X-In-HeAdEr": []string{"missing value"}}, err)
 }
 
 func TestDecoder_Decode_json(t *testing.T) {
