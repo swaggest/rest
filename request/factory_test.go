@@ -150,6 +150,24 @@ func TestDecoderFactory_MakeDecoder_default(t *testing.T) {
 	assert.Equal(t, 321, i.ID)
 }
 
+func TestDecoderFactory_MakeDecoder_invalidMapping(t *testing.T) {
+	assert.PanicsWithValue(t, "non existent fields in mapping: ID2, WrongName", func() {
+		type MyInput struct {
+			ID   int    `default:"123"`
+			Name string `default:"foo"`
+		}
+
+		df := request.NewDecoderFactory()
+
+		customMapping := rest.RequestMapping{
+			rest.ParamInQuery:  map[string]string{"ID2": "id"},
+			rest.ParamInHeader: map[string]string{"WrongName": "X-Name"},
+		}
+
+		_ = df.MakeDecoder(http.MethodPost, new(MyInput), customMapping)
+	})
+}
+
 func TestDecoderFactory_MakeDecoder_customMapping(t *testing.T) {
 	type MyInput struct {
 		ID   int    `default:"123"`

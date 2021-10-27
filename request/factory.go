@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/url"
 	"reflect"
+	"sort"
 	"strings"
 
 	"github.com/swaggest/form/v5"
@@ -103,12 +104,14 @@ func (df *DecoderFactory) MakeDecoder(
 		df.makeDefaultDecoder(input, &m)
 	}
 
-	if len(customMapping) > 0 {
-		df.makeCustomMappingDecoder(customMapping, &m)
+	cm := df.prepareCustomMapping(input, customMapping)
+
+	if len(cm) > 0 {
+		df.makeCustomMappingDecoder(cm, &m)
 	}
 
 	for in, formDecoder := range df.formDecoders {
-		if _, exists := customMapping[in]; exists {
+		if _, exists := cm[in]; exists {
 			continue
 		}
 
@@ -144,6 +147,50 @@ func (df *DecoderFactory) MakeDecoder(
 	}
 
 	return &m
+}
+
+func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping rest.RequestMapping) rest.RequestMapping {
+	// Copy custom mapping to avoid mutability issues on original map.
+	cm := make(rest.RequestMapping, len(customMapping))
+	for k, v := range customMapping {
+		cm[k] = v
+	}
+
+	// Move header names to custom mapping and/or apply canonical form to match net/http request decoder.
+	if hdm, exists := cm[rest.ParamInHeader]; !exists && refl.HasTaggedFields(input, string(rest.ParamInHeader)) {
+		hdm = make(map[string]string)
+		refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
+			hdm[sf.Name] = http.CanonicalHeaderKey(tag)
+		}, string(rest.ParamInHeader))
+
+		cm[rest.ParamInHeader] = hdm
+	} else if exists {
+		for k, v := range hdm {
+			hdm[k] = http.CanonicalHeaderKey(v)
+		}
+	}
+
+	fields := make(map[string]bool)
+	refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
+		fields[sf.Name] = true
+	}, "")
+
+	// Check if there are non-existent fields in mapping.
+	var nonExistent []string
+	for _, items := range cm {
+		for k := range items {
+			if _, exists := fields[k]; !exists {
+				nonExistent = append(nonExistent, k)
+			}
+		}
+	}
+
+	if len(nonExistent) > 0 {
+		sort.Strings(nonExistent)
+		panic("non existent fields in mapping: " + strings.Join(nonExistent, ", "))
+	}
+
+	return cm
 }
 
 // jsonParams configures custom decoding for parameters with JSON struct values.
