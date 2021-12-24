@@ -325,8 +325,8 @@
         "operationId":"reqRespMapping",
         "parameters":[
           {
-            "name":"X-Header","in":"header","description":"Simple scalar value.",
-            "schema":{"type":"string","description":"Simple scalar value."}
+            "name":"X-Header","in":"header","description":"Simple scalar value with sample validation.","required":true,
+            "schema":{"minLength":3,"type":"string","description":"Simple scalar value with sample validation."}
           }
         ],
         "requestBody":{
@@ -336,8 +336,14 @@
           "204":{
             "description":"No Content",
             "headers":{
-              "X-Value-1":{"style":"simple","schema":{"type":"string"}},
-              "X-Value-2":{"style":"simple","schema":{"type":"integer"}}
+              "X-Value-1":{
+                "style":"simple","description":"Simple scalar value with sample validation.","required":true,
+                "schema":{"minLength":3,"type":"string","description":"Simple scalar value with sample validation."}
+              },
+              "X-Value-2":{
+                "style":"simple","description":"Simple scalar value with sample validation.","required":true,
+                "schema":{"minimum":3,"type":"integer","description":"Simple scalar value with sample validation."}
+              }
             }
           }
         }
@@ -470,7 +476,10 @@
           "name":{"minLength":3,"type":"string"}
         }
       },
-      "FormDataAdvancedInputPort":{"type":"object","properties":{"val2":{"type":"integer","description":"Simple scalar value."}}},
+      "FormDataAdvancedInputPort":{
+        "required":["val2"],"type":"object",
+        "properties":{"val2":{"minimum":3,"type":"integer","description":"Simple scalar value with sample validation."}}
+      },
       "FormDataAdvancedUpload":{
         "type":"object",
         "properties":{

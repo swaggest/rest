@@ -36,10 +36,12 @@ func BenchmarkRequestValidator_ValidateRequestData(b *testing.B) {
 func TestRequestValidator_ValidateData(t *testing.T) {
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodPost, new(struct {
-			Cookie string `cookie:"in_cookie" minimum:"100" required:"true"`
-			Query  string `query:"in_query_ignored" minLength:"3"`
+			Cookie   string `cookie:"in_cookie" minimum:"100" required:"true"`
+			Query    string `query:"in_query_ignored" minLength:"3"`
+			FormData string `formData:"inFormDataIgnored" minLength:"3"`
 		}), rest.RequestMapping{
-			rest.ParamInQuery: map[string]string{"Query": "in_query"},
+			rest.ParamInQuery:    map[string]string{"Query": "in_query"},
+			rest.ParamInFormData: map[string]string{"FormData": "inFormData"},
 		})
 
 	err := validator.ValidateData(rest.ParamInCookie, map[string]interface{}{"in_cookie": 123})
@@ -59,6 +61,11 @@ func TestRequestValidator_ValidateData(t *testing.T) {
 	assert.NoError(t, validator.ValidateData(rest.ParamInQuery, map[string]interface{}{"in_query_ignored": 123}))
 	assert.NoError(t, validator.ValidateData("unknown", map[string]interface{}{}))
 	assert.NoError(t, validator.ValidateData(rest.ParamInCookie, map[string]interface{}{"in_cookie": "abc"}))
+
+	assert.NoError(t, validator.ValidateData(rest.ParamInFormData, map[string]interface{}{"inFormData": "abc"}))
+
+	err = validator.ValidateData(rest.ParamInFormData, map[string]interface{}{"inFormData": "ab"})
+	assert.Equal(t, err, rest.ValidationErrors{"formData:inFormData": []string{"#: length must be >= 3, but got 2"}})
 }
 
 func TestFactory_MakeResponseValidator(t *testing.T) {

@@ -71,8 +71,10 @@ func ValidatorMiddleware(factory rest.RequestValidatorFactory) func(http.Handler
 			return handler
 		}
 
-		handlerTrait.RestHandler().ReqValidator = factory.MakeRequestValidator(
-			withRoute.RouteMethod(), useCaseWithInput.InputPort(), nil)
+		rh := handlerTrait.RestHandler()
+
+		rh.ReqValidator = factory.MakeRequestValidator(
+			withRoute.RouteMethod(), useCaseWithInput.InputPort(), rh.ReqMapping)
 
 		return handler
 	}

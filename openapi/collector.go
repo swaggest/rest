@@ -10,6 +10,7 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/usecase"
@@ -293,33 +294,58 @@ func (c *Collector) ProvideRequestJSONSchemas(
 		return err
 	}
 
-	if op.RequestBody != nil && op.RequestBody.RequestBody != nil {
-		for ct, content := range op.RequestBody.RequestBody.Content {
-			var in rest.ParamIn
+	if op.RequestBody == nil || op.RequestBody.RequestBody == nil {
+		return nil
+	}
 
-			switch ct {
-			case "application/json":
-				in = rest.ParamInBody
-			case "application/x-www-form-urlencoded":
-				in = rest.ParamInFormData
-			default:
-				continue
-			}
+	for ct, content := range op.RequestBody.RequestBody.Content {
+		schema := content.Schema.ToJSONSchema(c.Reflector().Spec)
+		if schema.IsTrivial(c.Reflector().ResolveJSONSchemaRef) {
+			continue
+		}
 
-			schema := content.Schema.ToJSONSchema(c.Reflector().Spec)
-			if schema.IsTrivial(c.Reflector().ResolveJSONSchemaRef) {
-				continue
-			}
-
+		if ct == "application/json" {
 			schemaData, err := schema.JSONSchemaBytes()
 			if err != nil {
-				return errors.New("failed to build JSON Schema for request body")
+				return fmt.Errorf("failed to build JSON Schema for request body: %w", err)
 			}
 
-			err = validator.AddSchema(in, "body", schemaData, false)
+			err = validator.AddSchema(rest.ParamInBody, "body", schemaData, false)
 			if err != nil {
 				return fmt.Errorf("failed to add validation schema for request body: %w", err)
 			}
+		}
+
+		if ct == "application/x-www-form-urlencoded" {
+			if err = provideFormDataSchemas(schema, validator); err != nil {
+				return err
+			}
+		}
+	}
+
+	return nil
+}
+
+func provideFormDataSchemas(schema jsonschema.SchemaOrBool, validator rest.JSONSchemaValidator) error {
+	for name, sch := range schema.TypeObject.Properties {
+		sb, err := sch.JSONSchemaBytes()
+		if err != nil {
+			return fmt.Errorf("failed to build JSON Schema for form data parameter %q: %w", name, err)
+		}
+
+		isRequired := false
+
+		for _, req := range schema.TypeObject.Required {
+			if req == name {
+				isRequired = true
+
+				break
+			}
+		}
+
+		err = validator.AddSchema(rest.ParamInFormData, name, sb, isRequired)
+		if err != nil {
+			return fmt.Errorf("failed to add validation schema for request body: %w", err)
 		}
 	}
 
