@@ -15,7 +15,7 @@ env:
   GO111MODULE: "on"
   CACHE_BENCHMARK: "off"    # Enables benchmark result reuse between runs, may skew latency results.
   RUN_BASE_BENCHMARK: "on"  # Runs benchmark for PR base in case benchmark result is missing.
-  GO_VERSION: 1.17.x
+  GO_VERSION: tip
 jobs:
   bench:
     runs-on: ubuntu-latest
@@ -77,7 +77,7 @@ jobs:
           export REF_NAME=master
           cd __base
           BENCH_COUNT=5 make bench-run-examples
-          ls -lah .
+          cp bench-examples-master.txt ../bench-examples-master.txt
       - name: Benchmark
         id: bench
         run: |
