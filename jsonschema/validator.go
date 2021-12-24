@@ -85,7 +85,7 @@ func (f Factory) MakeResponseValidator(
 	return &v
 }
 
-const ephermalSchemaID = "https://rest/schema.json"
+const ephemeralSchemaID = "https://rest/schema.json"
 
 // AddSchema registers schema for validation.
 func (v *Validator) AddSchema(in rest.ParamIn, name string, jsonSchema []byte, required bool) error {
@@ -113,12 +113,12 @@ func (v *Validator) AddSchema(in rest.ParamIn, name string, jsonSchema []byte, r
 
 	compiler := jsonschema.NewCompiler()
 
-	err := compiler.AddResource(ephermalSchemaID, bytes.NewBuffer(jsonSchema))
+	err := compiler.AddResource(ephemeralSchemaID, bytes.NewBuffer(jsonSchema))
 	if err != nil {
 		return err
 	}
 
-	schema, err := compiler.Compile(ephermalSchemaID)
+	schema, err := compiler.Compile(ephemeralSchemaID)
 	if err != nil {
 		return err
 	}
