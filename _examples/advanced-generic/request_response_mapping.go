@@ -11,13 +11,13 @@ import (
 
 func reqRespMapping() usecase.Interactor {
 	type inputPort struct {
-		Val1 string `description:"Simple scalar value."`
-		Val2 int    `description:"Simple scalar value."`
+		Val1 string `description:"Simple scalar value with sample validation." required:"true" minLength:"3"`
+		Val2 int    `description:"Simple scalar value with sample validation." required:"true" minimum:"3"`
 	}
 
 	type outputPort struct {
-		Val1 string `json:"-"`
-		Val2 int    `json:"-"`
+		Val1 string `json:"-" description:"Simple scalar value with sample validation." required:"true" minLength:"3"`
+		Val2 int    `json:"-" description:"Simple scalar value with sample validation." required:"true" minimum:"3"`
 	}
 
 	u := usecase.NewInteractor(func(ctx context.Context, in inputPort, out *outputPort) (err error) {

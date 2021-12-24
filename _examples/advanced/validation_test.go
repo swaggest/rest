@@ -27,3 +27,20 @@ func Benchmark_validation(b *testing.B) {
 		return resp.StatusCode() == http.StatusOK
 	})
 }
+
+func Benchmark_noValidation(b *testing.B) {
+	r := NewRouter()
+
+	srv := httptest.NewServer(r)
+	defer srv.Close()
+
+	httptestbench.RoundTrip(b, 50, func(i int, req *fasthttp.Request) {
+		req.Header.SetMethod(http.MethodPost)
+		req.SetRequestURI(srv.URL + "/no-validation?q=true")
+		req.Header.Set("X-Input", "12")
+		req.Header.Set("Content-Type", "application/json")
+		req.SetBody([]byte(`{"data":{"value":"abc"}}`))
+	}, func(i int, resp *fasthttp.Response) bool {
+		return resp.StatusCode() == http.StatusOK
+	})
+}

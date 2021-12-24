@@ -4,11 +4,15 @@
 package main
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/bool64/httptestbench"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/swaggest/assertjson"
 	"github.com/valyala/fasthttp"
 )
 
@@ -25,4 +29,23 @@ func Benchmark_outputHeaders(b *testing.B) {
 	}, func(i int, resp *fasthttp.Response) bool {
 		return resp.StatusCode() == http.StatusOK
 	})
+}
+
+func Test_outputHeaders(t *testing.T) {
+	r := NewRouter()
+
+	srv := httptest.NewServer(r)
+	defer srv.Close()
+
+	resp, err := http.Get(srv.URL + "/output-headers")
+	require.NoError(t, err)
+
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	assert.NoError(t, resp.Body.Close())
+
+	assert.Equal(t, "abc", resp.Header.Get("X-Header"))
+	assertjson.Equal(t, []byte(`{"inBody":"def"}`), body)
 }

@@ -76,7 +76,10 @@ jobs:
         run: |
           export REF_NAME=master
           cd __base
-          BENCH_COUNT=5 make bench-run-examples bench-stat-examples
+          BENCH_COUNT=5 make bench-run-examples
+          ls -lah
+          pwd
+          cat bench-examples-master.txt
           cp bench-examples-master.txt ../bench-examples-master.txt
       - name: Benchmark
         id: bench
@@ -91,7 +94,6 @@ jobs:
         continue-on-error: true
         uses: marocchino/sticky-pull-request-comment@v2
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           header: bench-examples
           message: |
             ### Examples Benchmark Result

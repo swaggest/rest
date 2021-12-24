@@ -42,13 +42,12 @@ REF_NAME ?= $(shell git symbolic-ref HEAD --short | tr / - 2>/dev/null)
 test: test-unit test-examples
 
 test-examples:
-	cd _examples && go test -race ./...
+	cd _examples && $(GO) test -race ./...
 
 ## Run benchmark for app examples, iterations count controlled by BENCH_COUNT, default 5.
 bench-run-examples:
-	@cd _examples && $(GO) test -bench=. -count=$(BENCH_COUNT) -run=^a  ./... >../bench-examples-$(REF_NAME).txt
+	@cd _examples && set -o pipefail && $(GO) test -bench=. -count=$(BENCH_COUNT) -run=^a  ./... | tee ../bench-examples-$(REF_NAME).txt
 
 ## Show result of benchmark for app examples.
-bench-stat-examples:
-	@test -s $(GOPATH)/bin/benchstat || GO111MODULE=off GOFLAGS= GOBIN=$(GOPATH)/bin $(GO) get -u golang.org/x/perf/cmd/benchstat
+bench-stat-examples: bench-stat-cli
 	@test -s bench-examples-master.txt && benchstat bench-examples-master.txt bench-examples-$(REF_NAME).txt || benchstat bench-examples-$(REF_NAME).txt

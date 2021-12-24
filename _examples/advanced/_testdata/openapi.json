@@ -209,6 +209,27 @@
         }
       }
     },
+    "/no-validation":{
+      "post":{
+        "summary":"No Validation","description":"Input/Output without validation.",
+        "operationId":"_examples/advanced.noValidation",
+        "parameters":[
+          {"name":"q","in":"query","schema":{"type":"boolean"}},
+          {"name":"X-Input","in":"header","schema":{"type":"integer"}}
+        ],
+        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputPortType3"}}}},
+        "responses":{
+          "200":{
+            "description":"OK",
+            "headers":{
+              "X-Output":{"style":"simple","schema":{"type":"integer"}},
+              "X-Query":{"style":"simple","schema":{"type":"boolean"}}
+            },
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType3"}}}
+          }
+        }
+      }
+    },
     "/output-csv-writer":{
       "get":{
         "summary":"Output With Stream Writer","description":"Output with stream writer.","operationId":"",
@@ -287,8 +308,8 @@
         "operationId":"reqRespMapping",
         "parameters":[
           {
-            "name":"X-Header","in":"header","description":"Simple scalar value.",
-            "schema":{"type":"string","description":"Simple scalar value."}
+            "name":"X-Header","in":"header","description":"Simple scalar value with sample validation.","required":true,
+            "schema":{"minLength":3,"type":"string","description":"Simple scalar value with sample validation."}
           }
         ],
         "requestBody":{
@@ -298,8 +319,14 @@
           "204":{
             "description":"No Content",
             "headers":{
-              "X-Value-1":{"style":"simple","schema":{"type":"string"}},
-              "X-Value-2":{"style":"simple","schema":{"type":"integer"}}
+              "X-Value-1":{
+                "style":"simple","description":"Simple scalar value with sample validation.","required":true,
+                "schema":{"minLength":3,"type":"string","description":"Simple scalar value with sample validation."}
+              },
+              "X-Value-2":{
+                "style":"simple","description":"Simple scalar value with sample validation.","required":true,
+                "schema":{"minimum":3,"type":"integer","description":"Simple scalar value with sample validation."}
+              }
             }
           }
         }
@@ -374,6 +401,7 @@
           }
         }
       },
+      "AdvancedInputPortType3":{"type":"object","properties":{"data":{"type":"object","properties":{"value":{"type":"string"}}}}},
       "AdvancedInputWithJSONType2":{
         "type":"object",
         "properties":{
@@ -406,6 +434,7 @@
         "required":["data"],"type":"object",
         "properties":{"data":{"type":"object","properties":{"value":{"maxLength":7,"type":"string"}}}}
       },
+      "AdvancedOutputPortType3":{"type":"object","properties":{"data":{"type":"object","properties":{"value":{"type":"string"}}}}},
       "AdvancedOutputQueryObject":{
         "type":"object",
         "properties":{"inQuery":{"type":"object","additionalProperties":{"type":"number"},"nullable":true}}
@@ -432,7 +461,10 @@
           "name":{"minLength":3,"type":"string"}
         }
       },
-      "FormDataAdvancedInputPort":{"type":"object","properties":{"val2":{"type":"integer","description":"Simple scalar value."}}},
+      "FormDataAdvancedInputPort":{
+        "required":["val2"],"type":"object",
+        "properties":{"val2":{"minimum":3,"type":"integer","description":"Simple scalar value with sample validation."}}
+      },
       "FormDataAdvancedUpload":{
         "type":"object",
         "properties":{
