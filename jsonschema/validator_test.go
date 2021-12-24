@@ -3,6 +3,7 @@ package jsonschema_test
 import (
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/rest"
@@ -77,4 +78,16 @@ func TestFactory_MakeResponseValidator(t *testing.T) {
 	assert.Error(t, validator.ValidateData(rest.ParamInHeader, map[string]interface{}{
 		"X-Trace": "abcd", // maxLength:"3" violated.
 	}))
+}
+
+func TestNullableTime(t *testing.T) {
+	type request struct {
+		ExpiryDate *time.Time `json:"expiryDate"`
+	}
+
+	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
+		MakeRequestValidator(http.MethodPost, new(request), nil)
+	err := validator.ValidateJSONBody([]byte(`{"expiryDate":null}`))
+
+	assert.NoError(t, err, "%+v", err)
 }
