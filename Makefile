@@ -49,6 +49,5 @@ bench-run-examples:
 	@cd _examples && $(GO) test -bench=. -count=$(BENCH_COUNT) -run=^a  ./... >../bench-examples-$(REF_NAME).txt
 
 ## Show result of benchmark for app examples.
-bench-stat-examples:
-	@test -s $(GOPATH)/bin/benchstat || GO111MODULE=off GOFLAGS= GOBIN=$(GOPATH)/bin $(GO) get -u golang.org/x/perf/cmd/benchstat
+bench-stat-examples: bench-stat-cli
 	@test -s bench-examples-master.txt && benchstat bench-examples-master.txt bench-examples-$(REF_NAME).txt || benchstat bench-examples-$(REF_NAME).txt
