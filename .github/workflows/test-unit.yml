@@ -9,17 +9,28 @@ on:
 env:
   GO111MODULE: "on"
   RUN_BASE_COVERAGE: "on"  # Runs test for PR base in case base test coverage is missing.
+  COV_GO_VERSION: 1.17.x   # Version of Go to collect coverage
 jobs:
   test:
     strategy:
       matrix:
-        go-version: [ 1.13.x, 1.14.x, 1.15.x, 1.16.x, 1.17.x ]
+        go-version: [ 1.13.x, 1.14.x, 1.15.x, 1.16.x, 1.17.x, tip ]
     runs-on: ubuntu-latest
     steps:
-      - name: Install Go
+      - name: Install Go stable
+        if: matrix.go-version != 'tip'
         uses: actions/setup-go@v2
         with:
           go-version: ${{ matrix.go-version }}
+      - name: Install Go tip
+        if: matrix.go-version == 'tip'
+        run: |
+          curl -sL https://storage.googleapis.com/go-build-snap/go/linux-amd64/$(git ls-remote https://github.com/golang/go.git HEAD | awk '{print $1;}').tar.gz -o gotip.tar.gz
+          ls -lah gotip.tar.gz
+          mkdir -p ~/sdk/gotip
+          tar -C ~/sdk/gotip -xzf gotip.tar.gz
+          ~/sdk/gotip/bin/go version
+          echo "PATH=$HOME/go/bin:$HOME/sdk/gotip/bin/:$PATH" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Go cache
@@ -35,7 +46,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-go-cache
       - name: Restore base test coverage
-        if: matrix.go-version == '1.17.x'
+        id: base-coverage
+        if: matrix.go-version == env.COV_GO_VERSION
         uses: actions/cache@v2
         with:
           path: |
@@ -43,13 +55,13 @@ jobs:
           # Use base sha for PR or new commit hash for master/main push in test result key.
           key: ${{ runner.os }}-unit-test-coverage-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
       - name: Checkout base code
-        if: matrix.go-version == '1.17.x' && env.RUN_BASE_COVERAGE == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
+        if: matrix.go-version == env.COV_GO_VERSION && env.RUN_BASE_COVERAGE == 'on' && steps.base-coverage.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
         uses: actions/checkout@v2
         with:
           ref: ${{ github.event.pull_request.base.sha }}
           path: __base
       - name: Run test for base code
-        if: matrix.go-version == '1.17.x' && env.RUN_BASE_COVERAGE == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
+        if: matrix.go-version == env.COV_GO_VERSION && env.RUN_BASE_COVERAGE == 'on' && steps.base-coverage.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
         run: |
           cd __base
           make | grep test-unit && (make test-unit && go tool cover -func=./unit.coverprofile | sed -e 's/.go:[0-9]*:\t/.go\t/g' | sed -e 's/\t\t*/\t/g'  > ../unit-base.txt) || echo "No test-unit in base"
@@ -59,17 +71,18 @@ jobs:
           make test-unit
           go tool cover -func=./unit.coverprofile | sed -e 's/.go:[0-9]*:\t/.go\t/g' | sed -e 's/\t\t*/\t/g'  > unit.txt
           OUTPUT=$(test -e unit-base.txt && (diff unit-base.txt unit.txt || exit 0) || cat unit.txt)
-          OUTPUT="${OUTPUT//'%'/'%25'}"
-          OUTPUT="${OUTPUT//$'\n'/'%0A'}"
-          OUTPUT="${OUTPUT//$'\r'/'%0D'}"
+          echo "${OUTPUT}"
+          OUTPUT="${OUTPUT//$'\n'/%0A}"
           TOTAL=$(grep 'total:' unit.txt)
+          echo "${TOTAL}"
           echo "::set-output name=diff::$OUTPUT"
           echo "::set-output name=total::$TOTAL"
       - name: Store base coverage
         if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
         run: cp unit.txt unit-base.txt
       - name: Comment Test Coverage
-        if: matrix.go-version == '1.17.x'
+        continue-on-error: true
+        if: matrix.go-version == env.COV_GO_VERSION
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -85,7 +98,7 @@ jobs:
             </details>
 
       - name: Upload code coverage
-        if: matrix.go-version == '1.17.x'
+        if: matrix.go-version == env.COV_GO_VERSION
         uses: codecov/codecov-action@v1
         with:
           file: ./unit.coverprofile
