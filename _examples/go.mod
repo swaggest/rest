@@ -27,7 +27,7 @@ require (
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	github.com/santhosh-tekuri/jsonschema/v3 v3.1.0 // indirect
+	github.com/santhosh-tekuri/jsonschema/v5 v5.0.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shurcooL/httpgzip v0.0.0-20190720172056-320755c1c1b0 // indirect
 	github.com/swaggest/form/v5 v5.0.1 // indirect

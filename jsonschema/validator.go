@@ -5,7 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 
-	"github.com/santhosh-tekuri/jsonschema/v3"
+	"github.com/santhosh-tekuri/jsonschema/v5"
 	"github.com/swaggest/rest"
 )
 
@@ -85,6 +85,8 @@ func (f Factory) MakeResponseValidator(
 	return &v
 }
 
+const ephermalSchemaID = "https://rest/schema.json"
+
 // AddSchema registers schema for validation.
 func (v *Validator) AddSchema(in rest.ParamIn, name string, jsonSchema []byte, required bool) error {
 	if v.JSONMarshal == nil {
@@ -111,12 +113,12 @@ func (v *Validator) AddSchema(in rest.ParamIn, name string, jsonSchema []byte, r
 
 	compiler := jsonschema.NewCompiler()
 
-	err := compiler.AddResource("schema.json", bytes.NewBuffer(jsonSchema))
+	err := compiler.AddResource(ephermalSchemaID, bytes.NewBuffer(jsonSchema))
 	if err != nil {
 		return err
 	}
 
-	schema, err := compiler.Compile("schema.json")
+	schema, err := compiler.Compile(ephermalSchemaID)
 	if err != nil {
 		return err
 	}
@@ -153,7 +155,12 @@ func (v *Validator) ValidateJSONBody(jsonBody []byte) error {
 		return nil
 	}
 
-	err := schema.Validate(bytes.NewBuffer(jsonBody))
+	var val interface{}
+	if err := json.Unmarshal(jsonBody, &val); err != nil {
+		return err
+	}
+
+	err := schema.Validate(val)
 	if err == nil {
 		return nil
 	}
@@ -194,14 +201,26 @@ func (v *Validator) ValidateData(in rest.ParamIn, namedData map[string]interface
 			continue
 		}
 
-		jsonValue, err := v.JSONMarshal(value)
-		if err != nil {
-			return err
-		}
-
-		err = schema.Validate(bytes.NewBuffer(jsonValue))
+		err := schema.Validate(value)
 		if err == nil {
 			continue
+		}
+
+		if _, ok := err.(jsonschema.InvalidJSONTypeError); ok { // nolint:errorlint // Error is not wrapped, type assertion is more performant.
+			b, e := json.Marshal(value)
+			if e != nil {
+				return e
+			}
+
+			var val interface{}
+			if e := json.Unmarshal(b, &val); e != nil {
+				return e
+			}
+
+			err = schema.Validate(val)
+			if err == nil {
+				continue
+			}
 		}
 
 		if errs == nil {
@@ -226,7 +245,10 @@ func (v *Validator) ValidateData(in rest.ParamIn, namedData map[string]interface
 }
 
 func appendError(errorMessages []string, err *jsonschema.ValidationError) []string {
-	errorMessages = append(errorMessages, err.InstancePtr+": "+err.Message)
+	if err.Message != "doesn't validate with https://rest/schema.json#" || len(err.Causes) == 0 {
+		errorMessages = append(errorMessages, "#"+err.InstanceLocation+": "+err.Message)
+	}
+
 	for _, ec := range err.Causes {
 		errorMessages = appendError(errorMessages, ec)
 	}

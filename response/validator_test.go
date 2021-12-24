@@ -62,5 +62,5 @@ func TestValidatorMiddleware(t *testing.T) {
 	wh.ServeHTTP(w, r)
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	assert.Equal(t, `{"status":"INTERNAL","error":"internal: bad response: validation failed",`+
-		`"context":{"body":["#/items: minimum 3 items allowed, but found 1 items"]}}`+"\n", w.Body.String())
+		`"context":{"body":["#/items: minimum 3 items required, but found 1 items"]}}`+"\n", w.Body.String())
 }

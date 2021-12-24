@@ -2,7 +2,6 @@ package request_test
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -198,9 +197,8 @@ func TestDecoder_Decode_json(t *testing.T) {
 
 	err = dec.Decode(req, input, validator)
 	assert.Equal(t, rest.ValidationErrors{"body": []string{
-		"#: validation failed",
-		"#: missing properties: \"bodyOne\"",
-		"#/bodyTwo: minimum 2 items allowed, but found 1 items",
+		"#: missing properties: 'bodyOne'",
+		"#/bodyTwo: minimum 2 items required, but found 1 items",
 	}}, err)
 
 	req, err = http.NewRequestWithContext(context.Background(), http.MethodPost, "/",
@@ -209,7 +207,7 @@ func TestDecoder_Decode_json(t *testing.T) {
 
 	err = dec.Decode(req, input, validator)
 	assert.Error(t, err)
-	assert.Equal(t, rest.ValidationErrors{"body": []string{"#/bodyTwo: minimum 2 items allowed, but found 1 items"}}, err)
+	assert.Equal(t, rest.ValidationErrors{"body": []string{"#/bodyTwo: minimum 2 items required, but found 1 items"}}, err)
 }
 
 // BenchmarkDecoder_Decode_json-4   	   36660	     29688 ns/op	   12310 B/op	     169 allocs/op.
@@ -404,5 +402,5 @@ func TestDecoder_Decode_dateTime(t *testing.T) {
 		MakeRequestValidator(http.MethodGet, input, nil)
 
 	err = dec.Decode(req, input, validator)
-	assert.NoError(t, err, fmt.Sprintf("%v", err))
+	assert.NoError(t, err, "%#v", err)
 }

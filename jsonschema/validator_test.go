@@ -45,16 +45,16 @@ func TestRequestValidator_ValidateData(t *testing.T) {
 		})
 
 	err := validator.ValidateData(rest.ParamInCookie, map[string]interface{}{"in_cookie": 123})
-	assert.Equal(t, err, rest.ValidationErrors{"cookie:in_cookie": []string{"#: expected string, but got number"}})
+	assert.Equal(t, rest.ValidationErrors{"cookie:in_cookie": []string{"#: expected string, but got number"}}, err)
 
 	err = validator.ValidateData(rest.ParamInCookie, map[string]interface{}{})
-	assert.Equal(t, err, rest.ValidationErrors{"cookie:in_cookie": []string{"missing value"}})
+	assert.Equal(t, rest.ValidationErrors{"cookie:in_cookie": []string{"missing value"}}, err)
 
 	err = validator.ValidateData(rest.ParamInQuery, map[string]interface{}{"in_query": 123})
-	assert.Equal(t, err, rest.ValidationErrors{"query:in_query": []string{"#: expected string, but got number"}})
+	assert.Equal(t, rest.ValidationErrors{"query:in_query": []string{"#: expected string, but got number"}}, err)
 
 	err = validator.ValidateData(rest.ParamInQuery, map[string]interface{}{"in_query": "ab"})
-	assert.Equal(t, err, rest.ValidationErrors{"query:in_query": []string{"#: length must be >= 3, but got 2"}})
+	assert.Equal(t, rest.ValidationErrors{"query:in_query": []string{"#: length must be >= 3, but got 2"}}, err)
 
 	assert.NoError(t, validator.ValidateData(rest.ParamInQuery, map[string]interface{}{}))
 	assert.NoError(t, validator.ValidateData(rest.ParamInQuery, map[string]interface{}{"unknown": 123}))
@@ -77,7 +77,8 @@ func TestFactory_MakeResponseValidator(t *testing.T) {
 			"Trace": "X-Trace",
 		})
 
-	assert.NoError(t, validator.ValidateJSONBody([]byte(`{"name":"John"}`)))
+	err := validator.ValidateJSONBody([]byte(`{"name":"John"}`))
+	assert.NoError(t, err, "%#v", err)
 	assert.Error(t, validator.ValidateJSONBody([]byte(`{"name":""}`))) // minLength:"1" violated.
 	assert.NoError(t, validator.ValidateData(rest.ParamInHeader, map[string]interface{}{
 		"X-Trace": "abc",
