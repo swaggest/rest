@@ -3,18 +3,25 @@ name: gorelease
 on:
   pull_request:
 env:
-  GO111MODULE: "on"
+  GO_VERSION: 1.17.x
 jobs:
   gorelease:
-    strategy:
-      matrix:
-        go-version: [ 1.17.x ]
     runs-on: ubuntu-latest
     steps:
-      - name: Install Go
+      - name: Install Go stable
+        if: env.GO_VERSION != 'tip'
         uses: actions/setup-go@v2
         with:
-          go-version: ${{ matrix.go-version }}
+          go-version: ${{ env.GO_VERSION }}
+      - name: Install Go tip
+        if: env.GO_VERSION == 'tip'
+        run: |
+          curl -sL https://storage.googleapis.com/go-build-snap/go/linux-amd64/$(git ls-remote https://github.com/golang/go.git HEAD | awk '{print $1;}').tar.gz -o gotip.tar.gz
+          ls -lah gotip.tar.gz
+          mkdir -p ~/sdk/gotip
+          tar -C ~/sdk/gotip -xzf gotip.tar.gz
+          ~/sdk/gotip/bin/go version
+          echo "PATH=$HOME/go/bin:$HOME/sdk/gotip/bin/:$PATH" >> $GITHUB_ENV
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Gorelease cache
@@ -28,17 +35,16 @@ jobs:
         run: |
           test -e ~/go/bin/gorelease || go install golang.org/x/exp/cmd/gorelease@latest
           OUTPUT=$(gorelease || exit 0)
-          OUTPUT="${OUTPUT//'%'/'%25'}"
-          OUTPUT="${OUTPUT//$'\n'/'%0A'}"
-          OUTPUT="${OUTPUT//$'\r'/'%0D'}"
+          echo "${OUTPUT}"
+          OUTPUT="${OUTPUT//$'\n'/%0A}"
           echo "::set-output name=report::$OUTPUT"
       - name: Comment Report
+        continue-on-error: true
         uses: marocchino/sticky-pull-request-comment@v2
         with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           header: gorelease
           message: |
-            ### API Changes
+            ### Go API Changes
 
             <pre>
             ${{ steps.gorelease.outputs.report }}
