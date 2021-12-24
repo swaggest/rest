@@ -15,7 +15,7 @@ func outputHeaders() usecase.Interactor {
 		InBody string `json:"inBody" deprecated:"true"`
 	}
 
-	u := usecase.NewInteractor(func(ctx context.Context, _ interface{}, out *headerOutput) (err error) {
+	u := usecase.NewInteractor(func(ctx context.Context, _ struct{}, out *headerOutput) (err error) {
 		out.Header = "abc"
 		out.InBody = "def"
 

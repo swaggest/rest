@@ -88,6 +88,7 @@ func NewRouter() http.Handler {
 	))
 
 	r.Method(http.MethodPost, "/validation", nethttp.NewHandler(validation()))
+	r.Method(http.MethodPost, "/no-validation", nethttp.NewHandler(noValidation()))
 
 	// Type mapping is necessary to pass interface as structure into documentation.
 	apiSchema.Reflector().AddTypeMapping(new(gzipPassThroughOutput), new(gzipPassThroughStruct))

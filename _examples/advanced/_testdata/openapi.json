@@ -209,6 +209,27 @@
         }
       }
     },
+    "/no-validation":{
+      "post":{
+        "summary":"No Validation","description":"Input/Output without validation.",
+        "operationId":"_examples/advanced.noValidation",
+        "parameters":[
+          {"name":"q","in":"query","schema":{"type":"boolean"}},
+          {"name":"X-Input","in":"header","schema":{"type":"integer"}}
+        ],
+        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputPortType3"}}}},
+        "responses":{
+          "200":{
+            "description":"OK",
+            "headers":{
+              "X-Output":{"style":"simple","schema":{"type":"integer"}},
+              "X-Query":{"style":"simple","schema":{"type":"boolean"}}
+            },
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType3"}}}
+          }
+        }
+      }
+    },
     "/output-csv-writer":{
       "get":{
         "summary":"Output With Stream Writer","description":"Output with stream writer.","operationId":"",
@@ -374,6 +395,7 @@
           }
         }
       },
+      "AdvancedInputPortType3":{"type":"object","properties":{"data":{"type":"object","properties":{"value":{"type":"string"}}}}},
       "AdvancedInputWithJSONType2":{
         "type":"object",
         "properties":{
@@ -406,6 +428,7 @@
         "required":["data"],"type":"object",
         "properties":{"data":{"type":"object","properties":{"value":{"maxLength":7,"type":"string"}}}}
       },
+      "AdvancedOutputPortType3":{"type":"object","properties":{"data":{"type":"object","properties":{"value":{"type":"string"}}}}},
       "AdvancedOutputQueryObject":{
         "type":"object",
         "properties":{"inQuery":{"type":"object","additionalProperties":{"type":"number"},"nullable":true}}
