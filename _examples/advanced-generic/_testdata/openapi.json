@@ -210,6 +210,40 @@
         }
       }
     },
+    "/no-validation":{
+      "post":{
+        "summary":"Validation","description":"Input/Output with validation.",
+        "operationId":"_examples/advanced-generic.validation",
+        "parameters":[
+          {
+            "name":"q","in":"query",
+            "description":"This parameter will bypass explicit validation as it does not have constraints.",
+            "schema":{
+              "type":"boolean",
+              "description":"This parameter will bypass explicit validation as it does not have constraints."
+            }
+          },
+          {
+            "name":"X-Input","in":"header","description":"Request minimum: 10, response maximum: 20.",
+            "schema":{"minimum":10,"type":"integer","description":"Request minimum: 10, response maximum: 20."}
+          }
+        ],
+        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputPortType2"}}}},
+        "responses":{
+          "200":{
+            "description":"OK",
+            "headers":{
+              "X-Output":{"style":"simple","schema":{"maximum":20,"type":"integer"}},
+              "X-Query":{
+                "style":"simple","description":"This header bypasses validation as it does not have constraints.",
+                "schema":{"type":"boolean","description":"This header bypasses validation as it does not have constraints."}
+              }
+            },
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType2"}}}
+          }
+        }
+      }
+    },
     "/output-csv-writer":{
       "get":{
         "summary":"Output With Stream Writer","description":"Output with stream writer.",

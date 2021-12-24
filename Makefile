@@ -42,7 +42,7 @@ REF_NAME ?= $(shell git symbolic-ref HEAD --short | tr / - 2>/dev/null)
 test: test-unit test-examples
 
 test-examples:
-	cd _examples && go test -race ./...
+	cd _examples && $(GO) test -race ./...
 
 ## Run benchmark for app examples, iterations count controlled by BENCH_COUNT, default 5.
 bench-run-examples:
