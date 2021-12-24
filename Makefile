@@ -46,7 +46,7 @@ test-examples:
 
 ## Run benchmark for app examples, iterations count controlled by BENCH_COUNT, default 5.
 bench-run-examples:
-	@cd _examples && $(GO) test -bench=. -count=$(BENCH_COUNT) -run=^a  ./... >../bench-examples-$(REF_NAME).txt
+	@set -o pipefail && cd _examples && $(GO) test -bench=. -count=$(BENCH_COUNT) -run=^a  ./... | tee ../bench-examples-$(REF_NAME).txt
 
 ## Show result of benchmark for app examples.
 bench-stat-examples: bench-stat-cli
