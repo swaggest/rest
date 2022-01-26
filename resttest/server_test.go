@@ -2,7 +2,6 @@ package resttest_test
 
 import (
 	"bytes"
-	"github.com/bool64/httpmock"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -10,6 +9,7 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/bool64/httpmock"
 	"github.com/bool64/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

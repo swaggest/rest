@@ -1,13 +1,13 @@
 package resttest_test
 
 import (
-	"github.com/bool64/httpmock"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"sync/atomic"
 	"testing"
 
+	"github.com/bool64/httpmock"
 	"github.com/bool64/shared"
 	"github.com/stretchr/testify/assert"
 )

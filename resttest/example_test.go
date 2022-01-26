@@ -2,8 +2,9 @@ package resttest_test
 
 import (
 	"fmt"
-	"github.com/bool64/httpmock"
 	"net/http"
+
+	"github.com/bool64/httpmock"
 )
 
 func ExampleNewClient() {
