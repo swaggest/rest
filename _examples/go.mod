@@ -6,6 +6,7 @@ replace github.com/swaggest/rest => ../
 
 require (
 	github.com/bool64/dev v0.2.5
+	github.com/bool64/httpmock v0.1.1
 	github.com/bool64/httptestbench v0.1.1
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -21,7 +22,6 @@ require (
 
 require (
 	github.com/andybalholm/brotli v1.0.3 // indirect
-	github.com/bool64/httpmock v0.1.1 // indirect
 	github.com/bool64/shared v0.1.4 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
