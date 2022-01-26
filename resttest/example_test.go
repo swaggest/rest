@@ -4,19 +4,19 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/swaggest/rest/resttest"
+	"github.com/bool64/httpmock"
 )
 
 func ExampleNewClient() {
 	// Prepare server mock.
-	sm, url := resttest.NewServerMock()
+	sm, url := httpmock.NewServer()
 	defer sm.Close()
 
 	// This example shows Client and ServerMock working together for sake of portability.
 	// In real-world scenarios Client would complement real server or ServerMock would complement real HTTP client.
 
 	// Set successful expectation for first request out of concurrent batch.
-	exp := resttest.Expectation{
+	exp := httpmock.Expectation{
 		Method:     http.MethodPost,
 		RequestURI: "/foo?q=1",
 		RequestHeader: map[string]string{
@@ -37,7 +37,7 @@ func ExampleNewClient() {
 	sm.Expect(exp)
 
 	// Prepare client request.
-	c := resttest.NewClient(url)
+	c := httpmock.NewClient(url)
 	c.ConcurrencyLevel = 50
 	c.Headers = map[string]string{
 		"X-Header": "abc",

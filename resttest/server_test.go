@@ -9,13 +9,13 @@ import (
 	"sync"
 	"testing"
 
+	"github.com/bool64/httpmock"
 	"github.com/bool64/shared"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/swaggest/rest/resttest"
 )
 
-func assertRoundTrip(t *testing.T, baseURL string, expectation resttest.Expectation) {
+func assertRoundTrip(t *testing.T, baseURL string, expectation httpmock.Expectation) {
 	t.Helper()
 
 	var bodyReader io.Reader
@@ -63,7 +63,7 @@ func assertRoundTrip(t *testing.T, baseURL string, expectation resttest.Expectat
 
 func TestServerMock_ServeHTTP(t *testing.T) {
 	// Creating REST service mock.
-	mock, baseURL := resttest.NewServerMock()
+	mock, baseURL := httpmock.NewServer()
 	defer mock.Close()
 
 	mock.OnBodyMismatch = func(received []byte) {
@@ -75,14 +75,14 @@ func TestServerMock_ServeHTTP(t *testing.T) {
 	}
 
 	// Requesting mock without expectations fails.
-	assertRoundTrip(t, baseURL, resttest.Expectation{
+	assertRoundTrip(t, baseURL, httpmock.Expectation{
 		RequestURI:   "/test?test=test",
 		Status:       http.StatusInternalServerError,
 		ResponseBody: []byte("unexpected request received: GET /test?test=test"),
 	})
 
 	// Requesting mock without expectations fails.
-	assertRoundTrip(t, baseURL, resttest.Expectation{
+	assertRoundTrip(t, baseURL, httpmock.Expectation{
 		RequestURI:   "/test?test=test",
 		Status:       http.StatusInternalServerError,
 		RequestBody:  []byte(`{"foo":"bar"}`),
@@ -90,7 +90,7 @@ func TestServerMock_ServeHTTP(t *testing.T) {
 	})
 
 	// Setting expectations for first request.
-	exp1 := resttest.Expectation{
+	exp1 := httpmock.Expectation{
 		Method:        http.MethodPost,
 		RequestURI:    "/test?test=test",
 		RequestHeader: map[string]string{"Authorization": "Bearer token"},
@@ -103,7 +103,7 @@ func TestServerMock_ServeHTTP(t *testing.T) {
 	mock.Expect(exp1)
 
 	// Setting expectations for second request.
-	exp2 := resttest.Expectation{
+	exp2 := httpmock.Expectation{
 		Method:      http.MethodPost,
 		RequestURI:  "/test?test=test",
 		RequestBody: []byte(`not a JSON`),
@@ -129,7 +129,7 @@ func TestServerMock_ServeHTTP(t *testing.T) {
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 	// Requesting mock without expectations fails.
-	assertRoundTrip(t, baseURL, resttest.Expectation{
+	assertRoundTrip(t, baseURL, httpmock.Expectation{
 		RequestURI:   "/test?test=test",
 		Status:       http.StatusInternalServerError,
 		ResponseBody: []byte("unexpected request received: GET /test?test=test"),
@@ -138,7 +138,7 @@ func TestServerMock_ServeHTTP(t *testing.T) {
 
 func TestServerMock_ServeHTTP_error(t *testing.T) {
 	// Creating REST service mock.
-	mock, baseURL := resttest.NewServerMock()
+	mock, baseURL := httpmock.NewServer()
 	defer mock.Close()
 
 	mock.OnBodyMismatch = func(received []byte) {
@@ -146,7 +146,7 @@ func TestServerMock_ServeHTTP_error(t *testing.T) {
 	}
 
 	// Setting expectations for first request.
-	mock.Expect(resttest.Expectation{
+	mock.Expect(httpmock.Expectation{
 		Method:        http.MethodPost,
 		RequestURI:    "/test?test=test",
 		RequestHeader: map[string]string{"X-Foo": "bar"},
@@ -221,14 +221,14 @@ func TestServerMock_ServeHTTP_error(t *testing.T) {
 
 func TestServerMock_ServeHTTP_concurrency(t *testing.T) {
 	// Creating REST service mock.
-	mock, url := resttest.NewServerMock()
+	mock, url := httpmock.NewServer()
 	defer mock.Close()
 
 	n := 50
 
 	for i := 0; i < n; i++ {
 		// Setting expectations for first request.
-		mock.Expect(resttest.Expectation{
+		mock.Expect(httpmock.Expectation{
 			Method:       http.MethodGet,
 			RequestURI:   "/test?test=test",
 			ResponseBody: []byte("body"),
@@ -265,16 +265,16 @@ func TestServerMock_ServeHTTP_concurrency(t *testing.T) {
 
 func TestServerMock_ResetExpectations(t *testing.T) {
 	// Creating REST service mock.
-	mock, _ := resttest.NewServerMock()
+	mock, _ := httpmock.NewServer()
 	defer mock.Close()
 
-	mock.Expect(resttest.Expectation{
+	mock.Expect(httpmock.Expectation{
 		Method:       http.MethodGet,
 		RequestURI:   "/test?test=test",
 		ResponseBody: []byte("body"),
 	})
 
-	mock.ExpectAsync(resttest.Expectation{
+	mock.ExpectAsync(httpmock.Expectation{
 		Method:       http.MethodGet,
 		RequestURI:   "/test-async?test=test",
 		ResponseBody: []byte("body"),
@@ -286,9 +286,9 @@ func TestServerMock_ResetExpectations(t *testing.T) {
 }
 
 func TestServerMock_vars(t *testing.T) {
-	sm, url := resttest.NewServerMock()
+	sm, url := httpmock.NewServer()
 	sm.JSONComparer.Vars = &shared.Vars{}
-	sm.Expect(resttest.Expectation{
+	sm.Expect(httpmock.Expectation{
 		Method:       http.MethodGet,
 		RequestURI:   "/",
 		RequestBody:  []byte(`{"foo":"bar","dyn":"$var1"}`),
@@ -310,18 +310,18 @@ func TestServerMock_vars(t *testing.T) {
 }
 
 func TestServerMock_ExpectAsync(t *testing.T) {
-	sm, url := resttest.NewServerMock()
-	sm.Expect(resttest.Expectation{
+	sm, url := httpmock.NewServer()
+	sm.Expect(httpmock.Expectation{
 		Method:       http.MethodGet,
 		RequestURI:   "/",
 		ResponseBody: []byte(`{"bar":"foo"}`),
 	})
-	sm.ExpectAsync(resttest.Expectation{
+	sm.ExpectAsync(httpmock.Expectation{
 		Method:       http.MethodGet,
 		RequestURI:   "/async1",
 		ResponseBody: []byte(`{"bar":"async1"}`),
 	})
-	sm.ExpectAsync(resttest.Expectation{
+	sm.ExpectAsync(httpmock.Expectation{
 		Method:       http.MethodGet,
 		RequestURI:   "/async2",
 		ResponseBody: []byte(`{"bar":"async2"}`),

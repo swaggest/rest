@@ -7,9 +7,9 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/bool64/httpmock"
 	"github.com/bool64/shared"
 	"github.com/stretchr/testify/assert"
-	"github.com/swaggest/rest/resttest"
 )
 
 func TestNewClient(t *testing.T) {
@@ -52,7 +52,7 @@ func TestNewClient(t *testing.T) {
 
 	vars := &shared.Vars{}
 
-	c := resttest.NewClient(srv.URL)
+	c := httpmock.NewClient(srv.URL)
 	c.JSONComparer.Vars = vars
 	c.ConcurrencyLevel = 50
 	c.Headers = map[string]string{
@@ -93,7 +93,7 @@ func TestNewClient_failedExpectation(t *testing.T) {
 		assert.NoError(t, err)
 	}))
 	defer srv.Close()
-	c := resttest.NewClient(srv.URL)
+	c := httpmock.NewClient(srv.URL)
 
 	c.OnBodyMismatch = func(received []byte) {
 		assert.Equal(t, `{"bar":"foo"}`, string(received))

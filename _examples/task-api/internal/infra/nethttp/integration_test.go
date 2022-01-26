@@ -5,11 +5,11 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/bool64/httpmock"
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/rest/_examples/task-api/internal/infra"
 	"github.com/swaggest/rest/_examples/task-api/internal/infra/nethttp"
 	"github.com/swaggest/rest/_examples/task-api/internal/infra/service"
-	"github.com/swaggest/rest/resttest"
 )
 
 func Test_taskLifeSpan(t *testing.T) {
@@ -19,7 +19,7 @@ func Test_taskLifeSpan(t *testing.T) {
 	srv := httptest.NewServer(nethttp.NewRouter(l))
 	defer srv.Close()
 
-	rc := resttest.NewClient(srv.URL)
+	rc := httpmock.NewClient(srv.URL)
 
 	rc.WithMethod(http.MethodPost).WithURI("/dev/tasks").
 		WithContentType("application/json").

@@ -76,6 +76,7 @@ jobs:
         run: |
           export REF_NAME=master
           cd __base
+          go mod tidy
           BENCH_COUNT=5 make bench-run-examples
           ls -lah
           pwd
@@ -85,6 +86,7 @@ jobs:
         id: bench
         run: |
           export REF_NAME=new
+          go mod tidy
           BENCH_COUNT=5 make bench-run-examples bench-stat-examples
           OUTPUT=$(make bench-stat-examples)
           echo "${OUTPUT}"
