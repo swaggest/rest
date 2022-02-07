@@ -42,11 +42,11 @@ REF_NAME ?= $(shell git symbolic-ref HEAD --short | tr / - 2>/dev/null)
 test: test-unit test-examples
 
 test-examples:
-	cd _examples && $(GO) test -race ./...
+	cd _examples && $(GO) mod tidy && $(GO) test -race ./...
 
 ## Run benchmark for app examples, iterations count controlled by BENCH_COUNT, default 5.
 bench-run-examples:
-	@cd _examples && set -o pipefail && $(GO) test -bench=. -count=$(BENCH_COUNT) -run=^a  ./... | tee ../bench-examples-$(REF_NAME).txt
+	@cd _examples && $(GO) mod tidy && set -o pipefail && $(GO) test -bench=. -count=$(BENCH_COUNT) -run=^a  ./... | tee ../bench-examples-$(REF_NAME).txt
 
 ## Show result of benchmark for app examples.
 bench-stat-examples: bench-stat-cli
