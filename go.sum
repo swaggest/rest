@@ -77,8 +77,8 @@ github.com/swaggest/openapi-go v0.2.15/go.mod h1:3Xd0go1dJkxlSlBHpVV3h76TccououB
 github.com/swaggest/refl v1.0.0/go.mod h1:acYd5x8NNxivp+ZHdRZKJYz66n/qjo3Q9Sa/jAivljQ=
 github.com/swaggest/refl v1.0.1 h1:YQHb7Ic6EMpdUpxQmTWmf/O4IWN6iIErxJNWA7LwyyM=
 github.com/swaggest/refl v1.0.1/go.mod h1:dnx+n9YaI0o+FH+OR2tJZWLABBVIPs9qc4VY9UdrhLE=
-github.com/swaggest/usecase v1.1.0 h1:/xnKM5QgLeIP4uERvxuxY8Hi+wJ4znetPWoozylQKN0=
-github.com/swaggest/usecase v1.1.0/go.mod h1:rS2SGKc3XFi0/suwH4AWNIA8mRA5s4n2waW7ECkRPs4=
+github.com/swaggest/usecase v1.1.2 h1:2LfuSyjYtPtpHnxqPwV87/eunbhGBC5HKdRp8/fINBk=
+github.com/swaggest/usecase v1.1.2/go.mod h1:abZWuMFYujaeLDODqRySJZpWD/ugsnE3Wj9K6jUeCjo=
 github.com/yosuke-furukawa/json5 v0.1.2-0.20201207051438-cf7bb3f354ff h1:7YqG491bE4vstXRz1lD38rbSgbXnirvROz1lZiOnPO8=
 github.com/yosuke-furukawa/json5 v0.1.2-0.20201207051438-cf7bb3f354ff/go.mod h1:sw49aWDqNdRJ6DYUtIQiaA3xyj2IL9tjeNYmX2ixwcU=
 github.com/yudai/gojsondiff v1.0.0 h1:27cbfqXLVEJ1o8I6v3y9lg8Ydm53EKqHXAOMxEGlCOA=

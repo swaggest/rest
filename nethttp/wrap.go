@@ -61,6 +61,10 @@ func HandlerAs(handler http.Handler, target interface{}) bool {
 			handler = wrap.Handler
 		}
 
+		if handler == nil {
+			break
+		}
+
 		if reflect.TypeOf(handler).AssignableTo(targetType) {
 			val.Elem().Set(reflect.ValueOf(handler))
 

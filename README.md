@@ -284,6 +284,8 @@ r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u))
 
 ## Example
 
+For non-generic use case, see another [example](./_examples/basic/main.go).
+
 ```go
 package main
 
@@ -295,45 +297,24 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/chirouter"
-	"github.com/swaggest/rest/jsonschema"
-	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/openapi"
-	"github.com/swaggest/rest/request"
-	"github.com/swaggest/rest/response"
 	"github.com/swaggest/rest/response/gzip"
-	"github.com/swaggest/swgui/v3cdn"
+	"github.com/swaggest/rest/web"
+	swgui "github.com/swaggest/swgui/v4"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 )
 
 func main() {
+	s := web.DefaultService()
+
 	// Init API documentation schema.
-	apiSchema := &openapi.Collector{}
-	apiSchema.Reflector().SpecEns().Info.Title = "Basic Example"
-	apiSchema.Reflector().SpecEns().Info.WithDescription("This app showcases a trivial REST API.")
-	apiSchema.Reflector().SpecEns().Info.Version = "v1.2.3"
-
-	// Setup request decoder and validator.
-	validatorFactory := jsonschema.NewFactory(apiSchema, apiSchema)
-	decoderFactory := request.NewDecoderFactory()
-	decoderFactory.ApplyDefaults = true
-	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
-
-	// Create router.
-	r := chirouter.NewWrapper(chi.NewRouter())
+	s.OpenAPI.Info.Title = "Basic Example"
+	s.OpenAPI.Info.WithDescription("This app showcases a trivial REST API.")
+	s.OpenAPI.Info.Version = "v1.2.3"
 
 	// Setup middlewares.
-	r.Use(
-		middleware.Recoverer,                          // Panic recovery.
-		nethttp.OpenAPIMiddleware(apiSchema),          // Documentation collector.
-		request.DecoderMiddleware(decoderFactory),     // Request decoder setup.
-		request.ValidatorMiddleware(validatorFactory), // Request validator setup.
-		response.EncoderMiddleware,                    // Response encoder setup.
-		gzip.Middleware,                               // Response compression with support for direct gzip pass through.
+	s.Use(
+		gzip.Middleware, // Response compression with support for direct gzip pass through.
 	)
 
 	// Declare input port type.
@@ -354,19 +335,14 @@ func main() {
 	}
 
 	// Create use case interactor with references to input/output types and interaction function.
-	u := usecase.NewIOI(new(helloInput), new(helloOutput), func(ctx context.Context, input, output interface{}) error {
-		var (
-			in  = input.(*helloInput)
-			out = output.(*helloOutput)
-		)
-
-		msg, available := messages[in.Locale]
+	u := usecase.NewInteractor(func(ctx context.Context, input helloInput, output *helloOutput) error {
+		msg, available := messages[input.Locale]
 		if !available {
 			return status.Wrap(errors.New("unknown locale"), status.InvalidArgument)
 		}
 
-		out.Message = fmt.Sprintf(msg, in.Name)
-		out.Now = time.Now()
+		output.Message = fmt.Sprintf(msg, input.Name)
+		output.Now = time.Now()
 
 		return nil
 	})
@@ -378,16 +354,14 @@ func main() {
 	u.SetExpectedErrors(status.InvalidArgument)
 
 	// Add use case handler to router.
-	r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u))
+	s.Get("/hello/{name}", u)
 
 	// Swagger UI endpoint at /docs.
-	r.Method(http.MethodGet, "/docs/openapi.json", apiSchema)
-	r.Mount("/docs", v3cdn.NewHandler(apiSchema.Reflector().Spec.Info.Title,
-		"/docs/openapi.json", "/docs"))
+	s.Docs("/docs", swgui.New)
 
 	// Start server.
 	log.Println("http://localhost:8011/docs")
-	if err := http.ListenAndServe(":8011", r); err != nil {
+	if err := http.ListenAndServe(":8011", s); err != nil {
 		log.Fatal(err)
 	}
 }
