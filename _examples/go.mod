@@ -14,7 +14,7 @@ require (
 	github.com/swaggest/assertjson v1.6.8
 	github.com/swaggest/jsonschema-go v0.3.24
 	github.com/swaggest/openapi-go v0.2.15
-	github.com/swaggest/rest v0.2.3
+	github.com/swaggest/rest v0.0.0
 	github.com/swaggest/swgui v1.4.4
 	github.com/swaggest/usecase v1.1.2
 	github.com/valyala/fasthttp v1.33.0
