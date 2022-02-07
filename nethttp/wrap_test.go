@@ -53,3 +53,9 @@ func TestWrapHandler(t *testing.T) {
 		"mw3 after", "mw2 after", "mw1 after",
 	}, flow)
 }
+
+func TestHandlerAs_nil(t *testing.T) {
+	var uh *nethttp.Handler
+
+	assert.False(t, nethttp.HandlerAs(nil, &uh))
+}

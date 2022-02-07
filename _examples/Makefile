@@ -23,7 +23,7 @@ ifeq ($(DEVGO_PATH),)
 	DEVGO_PATH := $(shell GO111MODULE=on $(GO) list ${modVendor} -f '{{.Dir}}' -m github.com/bool64/dev)
 	ifeq ($(DEVGO_PATH),)
     	$(info Module github.com/bool64/dev not found, downloading.)
-    	DEVGO_PATH := $(shell export GO111MODULE=on && $(GO) get github.com/bool64/dev && $(GO) mod tidy && $(GO) list -f '{{.Dir}}' -m github.com/bool64/dev)
+    	DEVGO_PATH := $(shell export GO111MODULE=on && $(GO) mod tidy && $(GO) list -f '{{.Dir}}' -m github.com/bool64/dev)
 	endif
 endif
 
