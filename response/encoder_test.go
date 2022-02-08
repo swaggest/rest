@@ -141,3 +141,47 @@ func TestEncoder_SetupOutput_withWriterContentType(t *testing.T) {
 	assert.Equal(t, "application/x-vnd-foo", w.Header().Get("Content-Type"))
 	assert.Equal(t, "1,2,3", w.Body.String())
 }
+
+func TestEncoder_SetupOutput_nonPtr(t *testing.T) {
+	e := response.Encoder{}
+
+	type outputPort struct {
+		Name  string   `header:"X-Name" json:"-"`
+		Items []string `json:"items"`
+	}
+
+	ht := rest.HandlerTrait{
+		SuccessContentType: "application/x-vnd-json",
+	}
+
+	validator := jsonschema.Validator{}
+	require.NoError(t, validator.AddSchema(
+		rest.ParamInHeader,
+		"X-Name",
+		[]byte(`{"type":"string","minLength":3}`),
+		false),
+	)
+
+	ht.RespValidator = &validator
+
+	e.SetupOutput(outputPort{}, &ht)
+
+	r, err := http.NewRequest(http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	w := httptest.NewRecorder()
+	output := e.MakeOutput(w, ht)
+
+	out, ok := output.(*outputPort)
+	assert.True(t, ok)
+
+	out.Name = "Jane"
+	out.Items = []string{"one", "two", "three"}
+
+	e.WriteSuccessfulResponse(w, r, output, ht)
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "Jane", w.Header().Get("X-Name"))
+	assert.Equal(t, "application/x-vnd-json", w.Header().Get("Content-Type"))
+	assert.Equal(t, "32", w.Header().Get("Content-Length"))
+	assert.Equal(t, `{"items":["one","two","three"]}`+"\n", w.Body.String())
+}
