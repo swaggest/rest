@@ -31,6 +31,18 @@ type noContent interface {
 	NoContent() bool
 }
 
+// addressable makes a pointer from a non-pointer values.
+func addressable(output interface{}) interface{} {
+	if reflect.ValueOf(output).Kind() != reflect.Ptr {
+		o := reflect.New(reflect.TypeOf(output))
+		o.Elem().Set(reflect.ValueOf(output))
+
+		output = o.Interface()
+	}
+
+	return output
+}
+
 // SetupOutput configures encoder with and instance of use case output.
 func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
 	h.outputBufferType = reflect.TypeOf(output)
@@ -40,6 +52,8 @@ func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
 	if output == nil {
 		return
 	}
+
+	output = addressable(output)
 
 	// Enable dynamic headers check in interface mode.
 	if h.unwrapInterface = reflect.ValueOf(output).Elem().Kind() == reflect.Interface; h.unwrapInterface {
