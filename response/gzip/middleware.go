@@ -4,13 +4,16 @@ import (
 	"bufio"
 	"compress/flate"
 	"compress/gzip"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
 	"strings"
 	"sync"
 
+	"github.com/swaggest/fchi"
 	gz "github.com/swaggest/rest/gzip"
+	"github.com/valyala/fasthttp"
 )
 
 const (
@@ -23,9 +26,9 @@ const (
 )
 
 // Middleware enables gzip compression of handler response for requests that accept gzip encoding.
-func Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w = maybeGzipResponseWriter(w, r)
+func Middleware(next fchi.Handler) fchi.Handler {
+	return fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
+		w = maybeGzipResponseWriter(rc)
 		if grw, ok := w.(*gzipResponseWriter); ok {
 			defer func() {
 				err := grw.Close()
@@ -35,7 +38,8 @@ func Middleware(next http.Handler) http.Handler {
 			}()
 		}
 
-		next.ServeHTTP(w, r)
+		next.ServeHTTP(ctx, rc)
+		rc.Response.Body()
 	})
 }
 
@@ -77,9 +81,9 @@ func getBufWriter(w io.Writer) *bufio.Writer {
 	return bw
 }
 
-func maybeGzipResponseWriter(w http.ResponseWriter, r *http.Request) http.ResponseWriter {
-	ae := r.Header.Get(acceptEncodingHeader)
-	if ae == "" {
+func maybeGzipResponseWriter(rc *fasthttp.RequestCtx) http.ResponseWriter {
+	ae := rc.Request.Header.Peek(acceptEncodingHeader)
+	if len(ae) == 0 {
 		return w
 	}
 

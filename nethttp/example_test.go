@@ -1,20 +1,22 @@
 package nethttp_test
 
 import (
+	"bytes"
 	"context"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest/chirouter"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/openapi"
 	"github.com/swaggest/usecase"
+	"github.com/valyala/fasthttp"
 )
 
 func ExampleSecurityMiddleware() {
 	// Create router.
-	r := chirouter.NewWrapper(chi.NewRouter())
+	r := chirouter.NewWrapper(fchi.NewRouter())
 
 	// Init API documentation schema.
 	apiSchema := &openapi.Collector{}
@@ -25,15 +27,15 @@ func ExampleSecurityMiddleware() {
 	)
 
 	// Configure an actual security middleware.
-	serviceTokenAuth := func(h http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, req *http.Request) {
-			if req.Header.Get("Authorization") != "<secret>" {
-				http.Error(w, "Authentication failed.", http.StatusUnauthorized)
+	serviceTokenAuth := func(h fchi.Handler) fchi.Handler {
+		return fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
+			if !bytes.Equal(rc.Request.Header.Peek("Authorization"), []byte("<secret>")) {
+				fchi.Error(rc, http.StatusUnauthorized, "Authentication failed.")
 
 				return
 			}
 
-			h.ServeHTTP(w, req)
+			h.ServeHTTP(ctx, rc)
 		})
 	}
 

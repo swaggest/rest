@@ -2,16 +2,17 @@ package nethttp
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"reflect"
 
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
+	"github.com/valyala/fasthttp"
 )
 
-var _ http.Handler = &Handler{}
+var _ fchi.Handler = &Handler{}
 
 // NewHandler creates use case http handler.
 func NewHandler(useCase usecase.Interactor, options ...func(h *Handler)) *Handler {
@@ -52,7 +53,7 @@ type Handler struct {
 	rest.HandlerTrait
 
 	// HandleErrResponse allows control of error response processing.
-	HandleErrResponse func(w http.ResponseWriter, r *http.Request, err error)
+	HandleErrResponse func(ctx context.Context, rc *fasthttp.RequestCtx, err error)
 
 	// requestDecoder maps data from http.Request into structured Go input value.
 	requestDecoder RequestDecoder
@@ -82,13 +83,13 @@ func (h *Handler) SetRequestDecoder(requestDecoder RequestDecoder) {
 	h.requestDecoder = requestDecoder
 }
 
-func (h *Handler) decodeRequest(r *http.Request) (interface{}, error) {
+func (h *Handler) decodeRequest(rc *fasthttp.RequestCtx) (interface{}, error) {
 	if h.requestDecoder == nil {
 		panic("request decoder is not initialized, please use SetRequestDecoder")
 	}
 
 	iv := reflect.New(h.inputBufferType)
-	err := h.requestDecoder.Decode(r, iv.Interface(), h.ReqValidator)
+	err := h.requestDecoder.Decode(rc, iv.Interface(), h.ReqValidator)
 
 	if !h.inputIsPtr {
 		return iv.Elem().Interface(), err
@@ -98,7 +99,7 @@ func (h *Handler) decodeRequest(r *http.Request) (interface{}, error) {
 }
 
 // ServeHTTP serves http inputPort with use case interactor.
-func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) ServeHTTP(ctx context.Context, rc *fasthttp.RequestCtx) {
 	var (
 		input, output interface{}
 		err           error
@@ -108,74 +109,64 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		panic("response encoder is not initialized, please use SetResponseEncoder")
 	}
 
-	output = h.responseEncoder.MakeOutput(w, h.HandlerTrait)
+	output = h.responseEncoder.MakeOutput(rc, h.HandlerTrait)
 
 	if h.inputBufferType != nil {
-		input, err = h.decodeRequest(r)
-
-		if r.MultipartForm != nil {
-			defer closeMultipartForm(r)
-		}
+		input, err = h.decodeRequest(rc)
 
 		if err != nil {
-			h.handleDecodeError(w, r, err, input, output)
+			h.handleDecodeError(ctx, rc, err, input, output)
 
 			return
 		}
 	}
 
-	err = h.useCase.Interact(r.Context(), input, output)
+	err = h.useCase.Interact(ctx, input, output)
 
 	if err != nil {
-		h.handleErrResponse(w, r, err)
+		h.handleErrResponse(ctx, rc, err)
 
 		return
 	}
 
-	h.responseEncoder.WriteSuccessfulResponse(w, r, output, h.HandlerTrait)
+	h.responseEncoder.WriteSuccessfulResponse(rc, output, h.HandlerTrait)
 }
 
-func (h *Handler) handleErrResponseDefault(w http.ResponseWriter, r *http.Request, err error) {
+func (h *Handler) handleErrResponseDefault(ctx context.Context, rc *fasthttp.RequestCtx, err error) {
 	var (
 		code int
 		er   interface{}
 	)
 
 	if h.MakeErrResp != nil {
-		code, er = h.MakeErrResp(r.Context(), err)
+		code, er = h.MakeErrResp(ctx, err)
 	} else {
 		code, er = rest.Err(err)
 	}
 
-	h.responseEncoder.WriteErrResponse(w, r, code, er)
+	h.responseEncoder.WriteErrResponse(rc, code, er)
 }
 
-func (h *Handler) handleErrResponse(w http.ResponseWriter, r *http.Request, err error) {
+func (h *Handler) handleErrResponse(ctx context.Context, rc *fasthttp.RequestCtx, err error) {
 	if h.HandleErrResponse != nil {
-		h.HandleErrResponse(w, r, err)
+		h.HandleErrResponse(ctx, rc, err)
 
 		return
 	}
 
-	h.handleErrResponseDefault(w, r, err)
-}
-
-func closeMultipartForm(r *http.Request) {
-	if err := r.MultipartForm.RemoveAll(); err != nil {
-		log.Println(err)
-	}
+	h.handleErrResponseDefault(ctx, rc, err)
 }
 
 type decodeErrCtxKey struct{}
 
-func (h *Handler) handleDecodeError(w http.ResponseWriter, r *http.Request, err error, input, output interface{}) {
+func (h *Handler) handleDecodeError(ctx context.Context, rc *fasthttp.RequestCtx, err error, input, output interface{}) {
 	err = status.Wrap(err, status.InvalidArgument)
 
 	if h.failingUseCase != nil {
-		err = h.failingUseCase.Interact(context.WithValue(r.Context(), decodeErrCtxKey{}, err), input, output)
+		err = h.failingUseCase.Interact(context.WithValue(ctx, decodeErrCtxKey{}, err), input, output)
 	}
 
-	h.handleErrResponse(w, r, err)
+	h.handleErrResponse(ctx, rc, err)
 }
 
 func (h *Handler) setupInputBuffer() {
@@ -213,7 +204,7 @@ func (h *Handler) setupOutputBuffer() {
 }
 
 type handlerWithRoute struct {
-	http.Handler
+	fchi.Handler
 	method      string
 	pathPattern string
 }
@@ -227,8 +218,8 @@ func (h handlerWithRoute) RoutePattern() string {
 }
 
 // HandlerWithRouteMiddleware wraps handler with routing information.
-func HandlerWithRouteMiddleware(method, pathPattern string) func(http.Handler) http.Handler {
-	return func(handler http.Handler) http.Handler {
+func HandlerWithRouteMiddleware(method, pathPattern string) func(fchi.Handler) fchi.Handler {
+	return func(handler fchi.Handler) fchi.Handler {
 		return handlerWithRoute{
 			Handler:     handler,
 			pathPattern: pathPattern,
@@ -239,18 +230,17 @@ func HandlerWithRouteMiddleware(method, pathPattern string) func(http.Handler) h
 
 // RequestDecoder maps data from http.Request into structured Go input value.
 type RequestDecoder interface {
-	Decode(r *http.Request, input interface{}, validator rest.Validator) error
+	Decode(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error
 }
 
 // ResponseEncoder writes data from use case output/error into http.ResponseWriter.
 type ResponseEncoder interface {
-	WriteErrResponse(w http.ResponseWriter, r *http.Request, statusCode int, response interface{})
+	WriteErrResponse(rc *fasthttp.RequestCtx, statusCode int, response interface{})
 	WriteSuccessfulResponse(
-		w http.ResponseWriter,
-		r *http.Request,
+		rc *fasthttp.RequestCtx,
 		output interface{},
 		ht rest.HandlerTrait,
 	)
 	SetupOutput(output interface{}, ht *rest.HandlerTrait)
-	MakeOutput(w http.ResponseWriter, ht rest.HandlerTrait) interface{}
+	MakeOutput(rc *fasthttp.RequestCtx, ht rest.HandlerTrait) interface{}
 }

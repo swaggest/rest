@@ -1,17 +1,17 @@
 package nethttp
 
 import (
-	"net/http"
 	"reflect"
 
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/refl"
 	"github.com/swaggest/rest"
 )
 
 // OptionsMiddleware applies options to encountered nethttp.Handler.
-func OptionsMiddleware(options ...func(h *Handler)) func(h http.Handler) http.Handler {
-	return func(h http.Handler) http.Handler {
+func OptionsMiddleware(options ...func(h *Handler)) func(h fchi.Handler) fchi.Handler {
+	return func(h fchi.Handler) fchi.Handler {
 		var rh *Handler
 
 		if HandlerAs(h, &rh) {

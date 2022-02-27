@@ -32,6 +32,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v3 v3.1.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/shurcooL/httpgzip v0.0.0-20190720172056-320755c1c1b0 // indirect
+	github.com/swaggest/fchi v1.0.3 // indirect
 	github.com/swaggest/form/v5 v5.0.1 // indirect
 	github.com/swaggest/refl v1.0.1 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
@@ -43,3 +44,5 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
+
+replace github.com/swaggest/fchi => /Users/vearutop/gohack/github.com/swaggest/fchi

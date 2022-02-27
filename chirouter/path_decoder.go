@@ -1,15 +1,15 @@
 package chirouter
 
 import (
-	"net/http"
 	"net/url"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/swaggest/fchi"
+	"github.com/valyala/fasthttp"
 )
 
 // PathToURLValues is a decoder function for parameters in path.
-func PathToURLValues(r *http.Request) (url.Values, error) {
-	if routeCtx := chi.RouteContext(r.Context()); routeCtx != nil {
+func PathToURLValues(rc *fasthttp.RequestCtx) (url.Values, error) {
+	if routeCtx := fchi.RouteContext(rc); routeCtx != nil {
 		params := make(url.Values, len(routeCtx.URLParams.Keys))
 
 		for i, key := range routeCtx.URLParams.Keys {

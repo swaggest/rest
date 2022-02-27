@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/swaggest/fchi"
+	"github.com/swaggest/fchi/middleware"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/chirouter"
@@ -29,7 +29,7 @@ func DefaultService() *Service {
 	decoderFactory.ApplyDefaults = true
 	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
-	router := chirouter.NewWrapper(chi.NewRouter())
+	router := chirouter.NewWrapper(fchi.NewRouter())
 
 	// Setup middlewares.
 	router.Use(
@@ -112,5 +112,5 @@ func (s *Service) Trace(pattern string, uc usecase.Interactor, options ...func(h
 func (s *Service) Docs(pattern string, swgui func(title, schemaURL, basePath string) http.Handler) {
 	pattern = strings.TrimRight(pattern, "/")
 	s.Method(http.MethodGet, pattern+"/openapi.json", s.OpenAPICollector)
-	s.Mount(pattern, swgui(s.OpenAPI.Info.Title, pattern+"/openapi.json", pattern))
+	s.Mount(pattern, fchi.Adapt(swgui(s.OpenAPI.Info.Title, pattern+"/openapi.json", pattern)))
 }

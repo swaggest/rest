@@ -5,14 +5,14 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
-	"github.com/swaggest/rest/response/gzip"
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/rest/web"
 	swgui "github.com/swaggest/swgui/v4"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
+	"github.com/valyala/fasthttp"
 )
 
 func main() {
@@ -25,7 +25,7 @@ func main() {
 
 	// Setup middlewares.
 	s.Use(
-		gzip.Middleware, // Response compression with support for direct gzip pass through.
+	// gzip.Middleware, // Response compression with support for direct gzip pass through.
 	)
 
 	// Declare input port type.
@@ -77,7 +77,7 @@ func main() {
 
 	// Start server.
 	log.Println("http://localhost:8011/docs")
-	if err := http.ListenAndServe(":8011", s); err != nil {
+	if err := fasthttp.ListenAndServe(":8011", fchi.RequestHandler(s)); err != nil {
 		log.Fatal(err)
 	}
 }

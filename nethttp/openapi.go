@@ -3,14 +3,15 @@ package nethttp
 import (
 	"net/http"
 
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/openapi"
 )
 
 // OpenAPIMiddleware reads info and adds validation to handler.
-func OpenAPIMiddleware(s *openapi.Collector) func(http.Handler) http.Handler {
-	return func(h http.Handler) http.Handler {
+func OpenAPIMiddleware(s *openapi.Collector) func(fchi.Handler) fchi.Handler {
+	return func(h fchi.Handler) fchi.Handler {
 		var (
 			withRoute rest.HandlerWithRoute
 			handler   *Handler
@@ -41,7 +42,7 @@ func SecurityMiddleware(
 	name string,
 	scheme openapi3.SecurityScheme,
 	options ...func(*MiddlewareConfig),
-) func(http.Handler) http.Handler {
+) func(fchi.Handler) fchi.Handler {
 	c.Reflector().SpecEns().ComponentsEns().SecuritySchemesEns().WithMapOfSecuritySchemeOrRefValuesItem(
 		name,
 		openapi3.SecuritySchemeOrRef{
@@ -63,7 +64,7 @@ func HTTPBasicSecurityMiddleware(
 	c *openapi.Collector,
 	name, description string,
 	options ...func(*MiddlewareConfig),
-) func(http.Handler) http.Handler {
+) func(fchi.Handler) fchi.Handler {
 	hss := openapi3.HTTPSecurityScheme{}
 
 	hss.WithScheme("basic")
@@ -82,7 +83,7 @@ func HTTPBearerSecurityMiddleware(
 	c *openapi.Collector,
 	name, description, bearerFormat string,
 	options ...func(*MiddlewareConfig),
-) func(http.Handler) http.Handler {
+) func(fchi.Handler) fchi.Handler {
 	hss := openapi3.HTTPSecurityScheme{}
 
 	hss.WithScheme("bearer")
@@ -104,8 +105,8 @@ func HTTPBearerSecurityMiddleware(
 func AnnotateOpenAPI(
 	s *openapi.Collector,
 	setup ...func(op *openapi3.Operation) error,
-) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
+) func(fchi.Handler) fchi.Handler {
+	return func(next fchi.Handler) fchi.Handler {
 		var withRoute rest.HandlerWithRoute
 
 		if HandlerAs(next, &withRoute) {
@@ -137,7 +138,7 @@ type MiddlewareConfig struct {
 	ResponseStatus int
 }
 
-func securityMiddleware(s *openapi.Collector, name string, cfg MiddlewareConfig) func(http.Handler) http.Handler {
+func securityMiddleware(s *openapi.Collector, name string, cfg MiddlewareConfig) func(fchi.Handler) fchi.Handler {
 	return AnnotateOpenAPI(s, func(op *openapi3.Operation) error {
 		op.Security = append(op.Security, map[string][]string{name: {}})
 

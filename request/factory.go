@@ -15,6 +15,7 @@ import (
 	"github.com/swaggest/refl"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/nethttp"
+	"github.com/valyala/fasthttp"
 )
 
 var _ DecoderMaker = &DecoderFactory{}
@@ -68,7 +69,7 @@ func NewDecoderFactory() *DecoderFactory {
 }
 
 // SetDecoderFunc adds custom decoder function for values of particular field tag name.
-func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(r *http.Request) (url.Values, error)) {
+func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(rc *fasthttp.RequestCtx) (url.Values, error)) {
 	if df.decoderFunctions == nil {
 		df.decoderFunctions = make(map[rest.ParamIn]decoderFunc)
 	}
@@ -233,7 +234,7 @@ func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 
 	dec := df.defaultValDecoder
 
-	m.decoders = append(m.decoders, func(r *http.Request, v interface{}, validator rest.Validator) error {
+	m.decoders = append(m.decoders, func(rc *fasthttp.RequestCtx, v interface{}, validator rest.Validator) error {
 		return dec.Decode(v, defaults)
 	})
 	m.in = append(m.in, defaultTag)
