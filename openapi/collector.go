@@ -329,7 +329,8 @@ func (c *Collector) ProvideRequestJSONSchemas(
 func provideFormDataSchemas(schema jsonschema.SchemaOrBool, validator rest.JSONSchemaValidator) error {
 	for name, sch := range schema.TypeObject.Properties {
 		if sch.TypeObject != nil && len(schema.TypeObject.ExtraProperties) > 0 {
-			sch.TypeObject = &(*sch.TypeObject)
+			cp := *sch.TypeObject
+			sch.TypeObject = &cp
 			sch.TypeObject.ExtraProperties = schema.TypeObject.ExtraProperties
 		}
 
