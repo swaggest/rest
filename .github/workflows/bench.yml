@@ -12,6 +12,11 @@ on:
         description: 'New Ref'
         required: true
 
+# Cancel the workflow in progress in newer build is about to start.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 env:
   GO111MODULE: "on"
   CACHE_BENCHMARK: "off"    # Enables benchmark result reuse between runs, may skew latency results.
