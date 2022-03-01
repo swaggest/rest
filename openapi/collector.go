@@ -328,6 +328,11 @@ func (c *Collector) ProvideRequestJSONSchemas(
 
 func provideFormDataSchemas(schema jsonschema.SchemaOrBool, validator rest.JSONSchemaValidator) error {
 	for name, sch := range schema.TypeObject.Properties {
+		if sch.TypeObject != nil && len(schema.TypeObject.ExtraProperties) > 0 {
+			sch.TypeObject = &(*sch.TypeObject)
+			sch.TypeObject.ExtraProperties = schema.TypeObject.ExtraProperties
+		}
+
 		sb, err := sch.JSONSchemaBytes()
 		if err != nil {
 			return fmt.Errorf("failed to build JSON Schema for form data parameter %q: %w", name, err)
