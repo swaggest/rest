@@ -63,7 +63,7 @@ Input data can be located in:
 * `header` parameter in request header.
 
 For more explicit separation of concerns between use case and transport it is possible to provide request mapping 
-separately when initializing handler.
+separately when initializing handler (please note, such mapping is [not applied](https://github.com/swaggest/rest/issues/61#issuecomment-1059851553) to `json` body).
 
 ```go
 // Declare input port type.
