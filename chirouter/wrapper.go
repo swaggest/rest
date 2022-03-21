@@ -39,13 +39,14 @@ func (r *Wrapper) copy(router chi.Router, pattern string) *Wrapper {
 
 // Use appends one of more middlewares onto the Router stack.
 func (r *Wrapper) Use(middlewares ...func(http.Handler) http.Handler) {
+	r.Router.Use(middlewares...)
 	r.middlewares = append(r.middlewares, middlewares...)
 }
 
 // With adds inline middlewares for an endpoint handler.
 func (r Wrapper) With(middlewares ...func(http.Handler) http.Handler) chi.Router {
-	c := r.copy(r.Router, "")
-	c.Use(middlewares...)
+	c := r.copy(r.Router.With(middlewares...), "")
+	c.middlewares = append(c.middlewares, middlewares...)
 
 	return c
 }
@@ -76,18 +77,20 @@ func (r *Wrapper) Route(pattern string, fn func(r chi.Router)) chi.Router {
 
 // Mount attaches another http.Handler along "./basePattern/*".
 func (r *Wrapper) Mount(pattern string, h http.Handler) {
-	p := r.prepareHandler("", pattern, h)
-	r.Router.Mount(pattern, p)
+	r.captureHandler("", pattern, h)
+	r.Router.Mount(pattern, h)
 }
 
 // Handle adds routes for `basePattern` that matches all HTTP methods.
 func (r *Wrapper) Handle(pattern string, h http.Handler) {
-	r.Router.Handle(pattern, r.prepareHandler("", pattern, h))
+	r.captureHandler("", pattern, h)
+	r.Router.Handle(pattern, h)
 }
 
 // Method adds routes for `basePattern` that matches the `method` HTTP method.
 func (r *Wrapper) Method(method, pattern string, h http.Handler) {
-	r.Router.Method(method, pattern, r.prepareHandler(method, pattern, h))
+	r.captureHandler(method, pattern, h)
+	r.Router.Method(method, pattern, h)
 }
 
 // MethodFunc adds the route `pattern` that matches `method` http method to execute the `handlerFn` http.HandlerFunc.
@@ -144,10 +147,8 @@ func (r *Wrapper) resolvePattern(pattern string) string {
 	return r.basePattern + strings.ReplaceAll(pattern, "/*/", "/")
 }
 
-func (r *Wrapper) prepareHandler(method, pattern string, h http.Handler) http.Handler {
+func (r *Wrapper) captureHandler(method, pattern string, h http.Handler) {
 	mw := r.middlewares
 	mw = append(mw, nethttp.HandlerWithRouteMiddleware(method, r.resolvePattern(pattern)))
-	h = nethttp.WrapHandler(h, mw...)
-
-	return h
+	nethttp.WrapHandler(h, mw...)
 }
