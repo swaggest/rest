@@ -39,7 +39,7 @@ type HandlerTrait struct {
 	OperationAnnotations []func(op *openapi3.Operation) error
 }
 
-// RestHandler is a an accessor.
+// RestHandler is an accessor.
 func (h *HandlerTrait) RestHandler() *HandlerTrait {
 	return h
 }
