@@ -62,6 +62,7 @@ func TestNewWrapper(t *testing.T) {
 
 		if nethttp.HandlerAs(handler, &withRoute) {
 			handlersCnt++
+
 			assert.False(t, nethttp.HandlerAs(handler, &bar), "%s", handler)
 			assert.True(t, nethttp.HandlerAs(handler, &foo), "%s", handler)
 		}
