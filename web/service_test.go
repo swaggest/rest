@@ -28,7 +28,8 @@ func TestDefaultService(t *testing.T) {
 	service.Trace("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
 	service.Options("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
 	service.Docs("/docs", func(title, schemaURL, basePath string) http.Handler {
-		return nil
+		// Mount github.com/swaggest/swgui/v4emb.New here.
+		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {})
 	})
 
 	rw := httptest.NewRecorder()

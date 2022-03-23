@@ -88,3 +88,11 @@ type wrappedHandler struct {
 	wrapped http.Handler
 	mwName  string
 }
+
+func (w *wrappedHandler) String() string {
+	if h, ok := w.wrapped.(*wrappedHandler); ok {
+		return w.mwName + "(" + h.String() + ")"
+	}
+
+	return "handler"
+}
