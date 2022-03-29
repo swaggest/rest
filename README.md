@@ -91,6 +91,9 @@ if [`request.DecoderFactory.ApplyDefaults`](https://pkg.go.dev/github.com/swagge
 set to `true`, fields of request structure that don't have explicit value but have `default` will be populated with 
 default value.
 
+If input structure implements [`request.Loader`](https://pkg.go.dev/github.com/swaggest/rest/request#Loader),  
+then `LoadFromHTTPRequest(r *http.Request) error` method will be invoked to populate input structure instead 
+of automatic decoding. This allows low level control for cases that need it.
 
 ### Response Encoder
 

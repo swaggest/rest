@@ -12,6 +12,8 @@ import (
 
 type (
 	// Loader loads data from http.Request.
+	//
+	// Implement this interface on a pointer to your input structure to disable automatic request mapping.
 	Loader interface {
 		LoadFromHTTPRequest(r *http.Request) error
 	}
