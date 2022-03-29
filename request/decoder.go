@@ -11,6 +11,11 @@ import (
 )
 
 type (
+	// Loader loads data from http.Request.
+	Loader interface {
+		LoadFromHTTPRequest(r *http.Request) error
+	}
+
 	decoderFunc      func(r *http.Request) (url.Values, error)
 	valueDecoderFunc func(r *http.Request, v interface{}, validator rest.Validator) error
 )
@@ -51,6 +56,10 @@ var _ nethttp.RequestDecoder = &decoder{}
 
 // Decode populates and validates input with data from http request.
 func (d *decoder) Decode(r *http.Request, input interface{}, validator rest.Validator) error {
+	if i, ok := input.(Loader); ok {
+		return i.LoadFromHTTPRequest(r)
+	}
+
 	for i, decode := range d.decoders {
 		err := decode(r, input, validator)
 		if err != nil {
