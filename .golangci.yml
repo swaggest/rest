@@ -50,5 +50,6 @@ issues:
         - noctx
         - funlen
         - dupl
+        - structcheck
       path: "_test.go"
 
