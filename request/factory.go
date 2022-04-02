@@ -200,6 +200,11 @@ func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping 
 func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn, input interface{}) {
 	// Check fields for struct values with json tags. E.g. query parameter with json value.
 	refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
+		// Skip unexported fields.
+		if sf.PkgPath != "" {
+			return
+		}
+
 		fieldVal := v.Interface()
 
 		if refl.HasTaggedFields(fieldVal, jsonTag) {
