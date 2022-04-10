@@ -41,10 +41,11 @@ func DefaultService() *Service {
 	)
 
 	s := Service{
-		OpenAPI:          apiSchema.Reflector().SpecEns(),
-		OpenAPICollector: apiSchema,
-		Wrapper:          router,
-		DecoderFactory:   decoderFactory,
+		OpenAPI:                  apiSchema.Reflector().SpecEns(),
+		OpenAPICollector:         apiSchema,
+		Wrapper:                  router,
+		DecoderFactory:           decoderFactory,
+		ResponseValidatorFactory: validatorFactory,
 	}
 
 	return &s
@@ -54,9 +55,10 @@ func DefaultService() *Service {
 type Service struct {
 	*chirouter.Wrapper
 
-	OpenAPI          *openapi3.Spec
-	OpenAPICollector *openapi.Collector
-	DecoderFactory   *request.DecoderFactory
+	OpenAPI                  *openapi3.Spec
+	OpenAPICollector         *openapi.Collector
+	DecoderFactory           *request.DecoderFactory
+	ResponseValidatorFactory rest.ResponseValidatorFactory
 }
 
 // Delete adds the route `pattern` that matches a DELETE http method to invoke use case interactor.
@@ -71,7 +73,7 @@ func (s *Service) Get(pattern string, uc usecase.Interactor, options ...func(h *
 
 // Head adds the route `pattern` that matches a HEAD http method to invoke use case interactor.
 func (s *Service) Head(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
-	s.Method(http.MethodGet, pattern, nethttp.NewHandler(uc, options...))
+	s.Method(http.MethodHead, pattern, nethttp.NewHandler(uc, options...))
 }
 
 // Options adds the route `pattern` that matches a OPTIONS http method to invoke use case interactor.
