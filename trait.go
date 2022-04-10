@@ -20,7 +20,8 @@ type HandlerTrait struct {
 	// SuccessContentType is a Content-Type of successful response, default application/json.
 	SuccessContentType string
 
-	// MakeErrResp overrides error response builder instead of default Err.
+	// MakeErrResp overrides error response builder instead of default Err,
+	// returned values are HTTP status code and error structure to be marshaled.
 	MakeErrResp func(ctx context.Context, err error) (int, interface{})
 
 	// ReqMapping controls request decoding into use case input.

@@ -17,7 +17,7 @@ import (
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/request"
 	"github.com/swaggest/rest/response"
-	"github.com/swaggest/swgui/v3cdn"
+	swgui "github.com/swaggest/swgui/v4emb"
 )
 
 // NewRouter creates HTTP router.
@@ -91,7 +91,7 @@ func NewRouter(locator *service.Locator) http.Handler {
 
 	// Swagger UI endpoint at /docs.
 	r.Method(http.MethodGet, "/docs/openapi.json", apiSchema)
-	r.Mount("/docs", v3cdn.NewHandler(apiSchema.Reflector().Spec.Info.Title,
+	r.Mount("/docs", swgui.NewHandler(apiSchema.Reflector().Spec.Info.Title,
 		"/docs/openapi.json", "/docs"))
 
 	r.Mount("/debug", middleware.Profiler())

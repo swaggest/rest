@@ -2,6 +2,32 @@
   "openapi":"3.0.3",
   "info":{"title":"Advanced Example","description":"This app showcases a variety of features.","version":"v1.2.3"},
   "paths":{
+    "/error-response":{
+      "get":{
+        "summary":"Declare Expected Errors",
+        "description":"This use case demonstrates documentation of expected errors.",
+        "operationId":"_examples/advanced-generic.errorResponse",
+        "parameters":[
+          {
+            "name":"type","in":"query","required":true,
+            "schema":{"enum":["ok","invalid_argument","conflict"],"type":"string"}
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOkResp"}}}
+          },
+          "400":{
+            "description":"Bad Request",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+          },
+          "409":{
+            "description":"Conflict",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+          }
+        }
+      }
+    },
     "/file-multi-upload":{
       "post":{
         "summary":"Files Uploads With 'multipart/form-data'","description":"",
@@ -212,34 +238,21 @@
     },
     "/no-validation":{
       "post":{
-        "summary":"Validation","description":"Input/Output with validation.",
-        "operationId":"_examples/advanced-generic.validation",
+        "summary":"No Validation","description":"Input/Output without validation.",
+        "operationId":"_examples/advanced-generic.noValidation",
         "parameters":[
-          {
-            "name":"q","in":"query",
-            "description":"This parameter will bypass explicit validation as it does not have constraints.",
-            "schema":{
-              "type":"boolean",
-              "description":"This parameter will bypass explicit validation as it does not have constraints."
-            }
-          },
-          {
-            "name":"X-Input","in":"header","description":"Request minimum: 10, response maximum: 20.",
-            "schema":{"minimum":10,"type":"integer","description":"Request minimum: 10, response maximum: 20."}
-          }
+          {"name":"q","in":"query","schema":{"type":"boolean"}},
+          {"name":"X-Input","in":"header","schema":{"type":"integer"}}
         ],
-        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputPortType2"}}}},
+        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputPortType3"}}}},
         "responses":{
           "200":{
             "description":"OK",
             "headers":{
-              "X-Output":{"style":"simple","schema":{"maximum":20,"type":"integer"}},
-              "X-Query":{
-                "style":"simple","description":"This header bypasses validation as it does not have constraints.",
-                "schema":{"type":"boolean","description":"This header bypasses validation as it does not have constraints."}
-              }
+              "X-Output":{"style":"simple","schema":{"type":"integer"}},
+              "X-Query":{"style":"simple","schema":{"type":"boolean"}}
             },
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType2"}}}
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType3"}}}
           }
         }
       }
@@ -261,7 +274,7 @@
           },
           "500":{
             "description":"Internal Server Error",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
           }
         }
       }
@@ -386,6 +399,7 @@
   },
   "components":{
     "schemas":{
+      "AdvancedCustomErr":{"type":"object","properties":{"details":{"type":"object","additionalProperties":{}},"msg":{"type":"string"}}},
       "AdvancedGzipPassThroughStruct":{
         "type":"object",
         "properties":{"id":{"type":"integer"},"text":{"type":"array","items":{"type":"string"},"nullable":true}}
@@ -418,6 +432,7 @@
           }
         }
       },
+      "AdvancedInputPortType3":{"type":"object","properties":{"data":{"type":"object","properties":{"value":{"type":"string"}}}}},
       "AdvancedInputWithJSONType2":{
         "type":"object",
         "properties":{
@@ -446,10 +461,12 @@
         }
       },
       "AdvancedJsonSliceReq":{"type":"array","items":{"type":"integer"}},
+      "AdvancedOkResp":{"type":"object","properties":{"status":{"type":"string"}}},
       "AdvancedOutputPortType2":{
         "required":["data"],"type":"object",
         "properties":{"data":{"type":"object","properties":{"value":{"maxLength":7,"type":"string"}}}}
       },
+      "AdvancedOutputPortType3":{"type":"object","properties":{"data":{"type":"object","properties":{"value":{"type":"string"}}}}},
       "AdvancedOutputQueryObject":{
         "type":"object",
         "properties":{"inQuery":{"type":"object","additionalProperties":{"type":"number"},"nullable":true}}
@@ -504,15 +521,6 @@
       },
       "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
       "FormDataMultipartFileHeader":{"type":"string","format":"binary","nullable":true},
-      "RestErrResponse":{
-        "type":"object",
-        "properties":{
-          "code":{"type":"integer","description":"Application-specific error code."},
-          "context":{"type":"object","additionalProperties":{},"description":"Application context."},
-          "error":{"type":"string","description":"Error message."},
-          "status":{"type":"string","description":"Status text."}
-        }
-      },
       "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}},"nullable":true}
     }
   }
