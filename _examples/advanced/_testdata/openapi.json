@@ -395,19 +395,24 @@
   },
   "components":{
     "schemas":{
-      "AdvancedCustomErr":{"type":"object","properties":{"details":{"type":"object","additionalProperties":{}},"msg":{"type":"string"}}},
+      "AdvancedCustomErr":{
+        "type":"object","properties":{"details":{"type":"object","additionalProperties":{}},"msg":{"type":"string"}},
+        "additionalProperties":false
+      },
       "AdvancedGzipPassThroughStruct":{
         "type":"object",
-        "properties":{"id":{"type":"integer"},"text":{"type":"array","items":{"type":"string"},"nullable":true}}
+        "properties":{"id":{"type":"integer"},"text":{"type":"array","items":{"type":"string"},"nullable":true}},
+        "additionalProperties":false
       },
-      "AdvancedHeaderOutput":{"type":"object","properties":{"inBody":{"type":"string","deprecated":true}}},
+      "AdvancedHeaderOutput":{"type":"object","properties":{"inBody":{"type":"string","deprecated":true}},"additionalProperties":false},
       "AdvancedInfo":{
         "type":"object",
         "properties":{
           "filename":{"type":"string"},"header":{"$ref":"#/components/schemas/TextprotoMIMEHeader"},
           "inQuery":{"type":"integer"},"peek1":{"type":"string"},"peek2":{"type":"string"},"simple":{"type":"string"},
           "size":{"type":"integer"}
-        }
+        },
+        "additionalProperties":false
       },
       "AdvancedInfoType2":{
         "type":"object",
@@ -417,29 +422,40 @@
           "inQuery":{"type":"integer"},"peeks1":{"type":"array","items":{"type":"string"},"nullable":true},
           "peeks2":{"type":"array","items":{"type":"string"},"nullable":true},"simple":{"type":"string"},
           "sizes":{"type":"array","items":{"type":"integer"},"nullable":true}
-        }
+        },
+        "additionalProperties":false
       },
       "AdvancedInputPortType2":{
         "required":["data"],"type":"object",
         "properties":{
           "data":{
             "type":"object",
-            "properties":{"value":{"minLength":3,"type":"string","description":"Request minLength: 3, response maxLength: 7"}}
+            "properties":{"value":{"minLength":3,"type":"string","description":"Request minLength: 3, response maxLength: 7"}},
+            "additionalProperties":false
           }
-        }
+        },
+        "additionalProperties":false
       },
-      "AdvancedInputPortType3":{"type":"object","properties":{"data":{"type":"object","properties":{"value":{"type":"string"}}}}},
+      "AdvancedInputPortType3":{
+        "type":"object",
+        "properties":{"data":{"type":"object","properties":{"value":{"type":"string"}},"additionalProperties":false}},
+        "additionalProperties":false
+      },
       "AdvancedInputWithJSONType2":{
         "type":"object",
         "properties":{
           "id":{"type":"integer"},"name":{"type":"string"},
           "namedStruct":{"allOf":[{"deprecated":true},{"$ref":"#/components/schemas/AdvancedJSONPayloadType2"}]}
-        }
+        },
+        "additionalProperties":false
       },
-      "AdvancedInputWithJSONType3":{"type":"object","properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}}},
+      "AdvancedInputWithJSONType3":{
+        "type":"object","properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}},
+        "additionalProperties":false
+      },
       "AdvancedJSONMapPayload":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
-      "AdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}}},
-      "AdvancedJSONPayloadType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}}},
+      "AdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
+      "AdvancedJSONPayloadType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONSlicePayload":{"type":"array","items":{"type":"integer"},"nullable":true},
       "AdvancedJsonMapReq":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
       "AdvancedJsonOutput":{
@@ -447,39 +463,49 @@
         "properties":{
           "data":{"$ref":"#/components/schemas/AdvancedJSONSlicePayload"},"inHeader":{"type":"string"},
           "inQuery":{"type":"integer"}
-        }
+        },
+        "additionalProperties":false
       },
       "AdvancedJsonOutputType2":{
         "type":"object",
         "properties":{
           "data":{"$ref":"#/components/schemas/AdvancedJSONMapPayload"},"inHeader":{"type":"string"},
           "inQuery":{"type":"integer"}
-        }
+        },
+        "additionalProperties":false
       },
       "AdvancedJsonSliceReq":{"type":"array","items":{"type":"integer"},"nullable":true},
-      "AdvancedOkResp":{"type":"object","properties":{"status":{"type":"string"}}},
+      "AdvancedOkResp":{"type":"object","properties":{"status":{"type":"string"}},"additionalProperties":false},
       "AdvancedOutputPortType2":{
         "required":["data"],"type":"object",
-        "properties":{"data":{"type":"object","properties":{"value":{"maxLength":7,"type":"string"}}}}
+        "properties":{"data":{"type":"object","properties":{"value":{"maxLength":7,"type":"string"}},"additionalProperties":false}},
+        "additionalProperties":false
       },
-      "AdvancedOutputPortType3":{"type":"object","properties":{"data":{"type":"object","properties":{"value":{"type":"string"}}}}},
+      "AdvancedOutputPortType3":{
+        "type":"object",
+        "properties":{"data":{"type":"object","properties":{"value":{"type":"string"}},"additionalProperties":false}},
+        "additionalProperties":false
+      },
       "AdvancedOutputQueryObject":{
         "type":"object",
-        "properties":{"inQuery":{"type":"object","additionalProperties":{"type":"number"},"nullable":true}}
+        "properties":{"inQuery":{"type":"object","additionalProperties":{"type":"number"},"nullable":true}},
+        "additionalProperties":false
       },
       "AdvancedOutputWithJSON":{
         "type":"object",
         "properties":{
           "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},"inQuery":{"type":"integer"},
           "name":{"type":"string"}
-        }
+        },
+        "additionalProperties":false
       },
       "AdvancedOutputWithJSONType2":{
         "type":"object",
         "properties":{
           "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},
           "inQuery":{"type":"string","format":"date","deprecated":true},"name":{"type":"string"}
-        }
+        },
+        "additionalProperties":false
       },
       "AdvancedOutputWithJSONType3":{
         "type":"object",
@@ -487,11 +513,13 @@
           "id":{"minimum":100,"type":"integer"},"inHeader":{"minLength":3,"type":"string"},
           "inPath":{"minLength":3,"type":"string"},"inQuery":{"minimum":3,"type":"integer"},
           "name":{"minLength":3,"type":"string"}
-        }
+        },
+        "additionalProperties":false
       },
       "FormDataAdvancedInputPort":{
         "required":["val2"],"type":"object",
-        "properties":{"val2":{"minimum":3,"type":"integer","description":"Simple scalar value with sample validation."}}
+        "properties":{"val2":{"minimum":3,"type":"integer","description":"Simple scalar value with sample validation."}},
+        "additionalProperties":false
       },
       "FormDataAdvancedUpload":{
         "type":"object",
@@ -499,7 +527,8 @@
           "simple":{"type":"string","description":"Simple scalar value in body."},
           "upload1":{"$ref":"#/components/schemas/FormDataMultipartFileHeader"},
           "upload2":{"$ref":"#/components/schemas/FormDataMultipartFile"}
-        }
+        },
+        "additionalProperties":false
       },
       "FormDataAdvancedUploadType2":{
         "type":"object",
@@ -513,7 +542,8 @@
             "type":"array","items":{"$ref":"#/components/schemas/FormDataMultipartFile"},
             "description":"Uploads with multipart.File.","nullable":true
           }
-        }
+        },
+        "additionalProperties":false
       },
       "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
       "FormDataMultipartFileHeader":{"type":"string","format":"binary","nullable":true},
