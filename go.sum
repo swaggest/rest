@@ -73,13 +73,14 @@ github.com/swaggest/assertjson v1.6.8/go.mod h1:Euf0upn9Vlaf1/llYHTs+Kx5K3vVbpMb
 github.com/swaggest/form/v5 v5.0.1 h1:YQH0REX7iMKhtoVPWXREZgbt50VYXNCKK61psnD8Fgo=
 github.com/swaggest/form/v5 v5.0.1/go.mod h1:vdnaSTze7cxVKhWiCabrfm1YeLwWLpb9P941Gxv4FnA=
 github.com/swaggest/jsonschema-go v0.3.24/go.mod h1:B2ZSqrrlkj21zhywlkh8VnKBmuqUwDv3dLQoPjgHk7M=
-github.com/swaggest/jsonschema-go v0.3.30 h1:ZBfKebjPZy7jKU2MvW9N7YmpYldFADr+VCmtgYz83cw=
-github.com/swaggest/jsonschema-go v0.3.30/go.mod h1:pu+U4tVOkJ2hYTY8PlUnNz6+gzFdNyXnEFZtQlELtwc=
+github.com/swaggest/jsonschema-go v0.3.31 h1:PMgghRyVEphrEsVX+3KByWUW3u42gmRN875S3MLedxY=
+github.com/swaggest/jsonschema-go v0.3.31/go.mod h1:JAF1nm+uIaMOXktuQepmkiRcgQ5yJk4Ccwx9HVt2cXw=
 github.com/swaggest/openapi-go v0.2.15 h1:Cp3c0IacJlDEvYYCBzVm3M51bINyI2XCH5RAwulSj/E=
 github.com/swaggest/openapi-go v0.2.15/go.mod h1:3Xd0go1dJkxlSlBHpVV3h76TccououBojV98hhXn6eQ=
 github.com/swaggest/refl v1.0.0/go.mod h1:acYd5x8NNxivp+ZHdRZKJYz66n/qjo3Q9Sa/jAivljQ=
-github.com/swaggest/refl v1.0.1 h1:YQHb7Ic6EMpdUpxQmTWmf/O4IWN6iIErxJNWA7LwyyM=
 github.com/swaggest/refl v1.0.1/go.mod h1:dnx+n9YaI0o+FH+OR2tJZWLABBVIPs9qc4VY9UdrhLE=
+github.com/swaggest/refl v1.0.2 h1:VmP8smuDS1EzUPn31++TzMi13CAaVJdlWpIxzj0up88=
+github.com/swaggest/refl v1.0.2/go.mod h1:DoiPoBJPYHU6Z9fIA6zXQ9uI6VRL6M8BFX5YFT+ym9g=
 github.com/swaggest/usecase v1.1.2 h1:2LfuSyjYtPtpHnxqPwV87/eunbhGBC5HKdRp8/fINBk=
 github.com/swaggest/usecase v1.1.2/go.mod h1:abZWuMFYujaeLDODqRySJZpWD/ugsnE3Wj9K6jUeCjo=
 github.com/yosuke-furukawa/json5 v0.1.2-0.20201207051438-cf7bb3f354ff h1:7YqG491bE4vstXRz1lD38rbSgbXnirvROz1lZiOnPO8=

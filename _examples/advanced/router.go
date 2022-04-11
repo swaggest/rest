@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"net/http"
+	"reflect"
 
+	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/nethttp"
@@ -19,6 +21,23 @@ func NewRouter() http.Handler {
 	s.OpenAPI.Info.Title = "Advanced Example"
 	s.OpenAPI.Info.WithDescription("This app showcases a variety of features.")
 	s.OpenAPI.Info.Version = "v1.2.3"
+
+	// An example of global schema override to disable additionalProperties for all object schemas.
+	s.OpenAPICollector.Reflector().DefaultOptions = append(s.OpenAPICollector.Reflector().DefaultOptions, func(rc *jsonschema.ReflectContext) {
+		it := rc.InterceptType
+		rc.InterceptType = func(value reflect.Value, schema *jsonschema.Schema) (bool, error) {
+			stop, err := it(value, schema)
+			if err != nil {
+				return stop, err
+			}
+
+			if schema.HasType(jsonschema.Object) && len(schema.Properties) > 0 && schema.AdditionalProperties == nil {
+				schema.AdditionalProperties = (&jsonschema.SchemaOrBool{}).WithTypeBoolean(false)
+			}
+
+			return stop, nil
+		}
+	})
 
 	s.Use(
 		// Response validator setup.

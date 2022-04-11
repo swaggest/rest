@@ -38,6 +38,7 @@ to build REST services.
 * Optimized performance.
 * Embedded [Swagger UI](https://swagger.io/tools/swagger-ui/).
 * Integration test helpers.
+* Generic interface for [use case interactors](https://pkg.go.dev/github.com/swaggest/usecase#NewInteractor). 
 
 ## Usage
 
@@ -51,6 +52,7 @@ Request decoder populates field values from `http.Request` data before use case 
 type helloInput struct {
     Locale string `query:"locale" default:"en-US" pattern:"^[a-z]{2}-[A-Z]{2}$"`
     Name   string `path:"name" minLength:"3"` // Field tags define parameter location and JSON schema constraints.
+	_      string `additionalProperties:"false"` // Field tags of unnamed fields are applied to parent schema.
 }
 ```
 
@@ -85,6 +87,8 @@ r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u,
 
 Additional field tags describe JSON schema constraints, please check 
 [documentation](https://pkg.go.dev/github.com/swaggest/jsonschema-go#Reflector.Reflect).
+
+More schema customizations are possible with [`github.com/swaggest/jsonschema-go interfaces`](https://github.com/swaggest/jsonschema-go#implementing-interfaces-on-a-type).
 
 By default `default` tags are only contributing to documentation, 
 if [`request.DecoderFactory.ApplyDefaults`](https://pkg.go.dev/github.com/swaggest/rest/request#DecoderFactory) is 
