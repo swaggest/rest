@@ -42,6 +42,8 @@ to build REST services.
 
 ## Usage
 
+Please check this [tutorial](https://dev.to/vearutop/tutorial-developing-a-restful-api-with-go-json-schema-validation-and-openapi-docs-2490) for end-to-end usage example.
+
 ### Request Decoder
 
 Go struct with optional field tags defines input port. 
