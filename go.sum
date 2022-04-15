@@ -1,8 +1,6 @@
-github.com/bool64/dev v0.1.17/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.1.25/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.1.35/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.1.41/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
-github.com/bool64/dev v0.1.42/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.2.5/go.mod h1:cTHiTDNc8EewrQPy3p1obNilpMpdmlUesDkFTF2zRWU=
 github.com/bool64/dev v0.2.10 h1:ypAGBazcwyIy2JvIJio8V3kdqO7AgIAYvcckW54qxr4=
 github.com/bool64/dev v0.2.10/go.mod h1:/csLrm+4oDSsKJRIVS0mrywAonLnYKFG8RvGT7Jh9b8=
@@ -72,13 +70,10 @@ github.com/swaggest/assertjson v1.6.8 h1:1O/9UI5M+2OJI7BeEWKGj0wTvpRXZt5FkOJ4nRk
 github.com/swaggest/assertjson v1.6.8/go.mod h1:Euf0upn9Vlaf1/llYHTs+Kx5K3vVbpMbsZhth7zlN7M=
 github.com/swaggest/form/v5 v5.0.1 h1:YQH0REX7iMKhtoVPWXREZgbt50VYXNCKK61psnD8Fgo=
 github.com/swaggest/form/v5 v5.0.1/go.mod h1:vdnaSTze7cxVKhWiCabrfm1YeLwWLpb9P941Gxv4FnA=
-github.com/swaggest/jsonschema-go v0.3.24/go.mod h1:B2ZSqrrlkj21zhywlkh8VnKBmuqUwDv3dLQoPjgHk7M=
-github.com/swaggest/jsonschema-go v0.3.31 h1:PMgghRyVEphrEsVX+3KByWUW3u42gmRN875S3MLedxY=
-github.com/swaggest/jsonschema-go v0.3.31/go.mod h1:JAF1nm+uIaMOXktuQepmkiRcgQ5yJk4Ccwx9HVt2cXw=
-github.com/swaggest/openapi-go v0.2.15 h1:Cp3c0IacJlDEvYYCBzVm3M51bINyI2XCH5RAwulSj/E=
-github.com/swaggest/openapi-go v0.2.15/go.mod h1:3Xd0go1dJkxlSlBHpVV3h76TccououBojV98hhXn6eQ=
-github.com/swaggest/refl v1.0.0/go.mod h1:acYd5x8NNxivp+ZHdRZKJYz66n/qjo3Q9Sa/jAivljQ=
-github.com/swaggest/refl v1.0.1/go.mod h1:dnx+n9YaI0o+FH+OR2tJZWLABBVIPs9qc4VY9UdrhLE=
+github.com/swaggest/jsonschema-go v0.3.32 h1:C8XiNEoR1L0QwBAWTvRyY0xYdEmEeJYthImF9GzSST0=
+github.com/swaggest/jsonschema-go v0.3.32/go.mod h1:JAF1nm+uIaMOXktuQepmkiRcgQ5yJk4Ccwx9HVt2cXw=
+github.com/swaggest/openapi-go v0.2.16 h1:Yxa/XQXYVK3IdetQOWJwQaLdW9/UaFx0M+9GDEkV+WM=
+github.com/swaggest/openapi-go v0.2.16/go.mod h1:zTAA7z0yjAGXrUDfQkSTD9HjmlNauav4cHOPYNJSUOA=
 github.com/swaggest/refl v1.0.2 h1:VmP8smuDS1EzUPn31++TzMi13CAaVJdlWpIxzj0up88=
 github.com/swaggest/refl v1.0.2/go.mod h1:DoiPoBJPYHU6Z9fIA6zXQ9uI6VRL6M8BFX5YFT+ym9g=
 github.com/swaggest/usecase v1.1.2 h1:2LfuSyjYtPtpHnxqPwV87/eunbhGBC5HKdRp8/fINBk=

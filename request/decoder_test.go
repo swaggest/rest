@@ -443,3 +443,25 @@ func TestDecoder_Decode_manualLoader(t *testing.T) {
 	assert.True(t, loadTriggered)
 	assert.True(t, input.Time.IsZero())
 }
+
+func TestDecoder_Decode_unknownParams(t *testing.T) {
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet,
+		"/?foo=bar&baz=1", nil)
+	assert.NoError(t, err)
+
+	type input struct {
+		Foo string `query:"foo"`
+
+		_ struct{} `query:"_" additionalProperties:"false"`
+	}
+
+	in := new(input)
+
+	dec := request.NewDecoderFactory().MakeDecoder(http.MethodGet, in, nil)
+	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
+		MakeRequestValidator(http.MethodGet, in, nil)
+
+	err = dec.Decode(req, in, validator)
+	assert.Equal(t, rest.ValidationErrors{"query:baz": []string{"unknown parameter with value 1"}}, err,
+		fmt.Sprintf("%#v", err))
+}

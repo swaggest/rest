@@ -4,6 +4,7 @@ package jsonschema
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 
 	"github.com/santhosh-tekuri/jsonschema/v3"
 	"github.com/swaggest/rest"
@@ -18,6 +19,7 @@ type Validator struct {
 
 	inNamedSchemas map[rest.ParamIn]map[string]*jsonschema.Schema
 	inRequired     map[rest.ParamIn][]string
+	forbidUnknown  map[rest.ParamIn]bool
 }
 
 // NewFactory creates new validator factory.
@@ -85,6 +87,15 @@ func (f Factory) MakeResponseValidator(
 	return &v
 }
 
+// ForbidUnknownParams configures if unknown parameters should be forbidden.
+func (v *Validator) ForbidUnknownParams(in rest.ParamIn, forbidden bool) {
+	if v.forbidUnknown == nil {
+		v.forbidUnknown = make(map[rest.ParamIn]bool)
+	}
+
+	v.forbidUnknown[in] = forbidden
+}
+
 // AddSchema registers schema for validation.
 func (v *Validator) AddSchema(in rest.ParamIn, name string, jsonSchema []byte, required bool) error {
 	if v.JSONMarshal == nil {
@@ -106,6 +117,8 @@ func (v *Validator) AddSchema(in rest.ParamIn, name string, jsonSchema []byte, r
 	}
 
 	if len(jsonSchema) == 0 {
+		v.inNamedSchemas[in][name] = nil
+
 		return nil
 	}
 
@@ -191,6 +204,18 @@ func (v *Validator) ValidateData(in rest.ParamIn, namedData map[string]interface
 	for name, value := range namedData {
 		schema, found := v.inNamedSchemas[in][name]
 		if !found {
+			if v.forbidUnknown[in] {
+				if errs == nil {
+					errs = make(rest.ValidationErrors, 1)
+				}
+
+				errs[string(in)+":"+name] = []string{fmt.Sprintf("unknown parameter with value %v", value)}
+			}
+
+			continue
+		}
+
+		if schema == nil {
 			continue
 		}
 
