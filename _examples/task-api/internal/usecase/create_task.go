@@ -10,9 +10,11 @@ import (
 )
 
 // CreateTask creates usecase interactor.
-func CreateTask(deps interface {
-	TaskCreator() task.Creator
-}) usecase.IOInteractor {
+func CreateTask(
+	deps interface {
+		TaskCreator() task.Creator
+	},
+) usecase.IOInteractor {
 	u := usecase.NewIOI(new(task.Value), new(task.Entity), func(ctx context.Context, input, output interface{}) error {
 		var (
 			in  = input.(*task.Value)

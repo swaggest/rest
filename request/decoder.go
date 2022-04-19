@@ -30,6 +30,22 @@ func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamI
 		return err
 	}
 
+	if len(p) > len(goValues) {
+		for k := range p {
+			if _, exists := goValues[k]; !exists {
+				pk := p[k]
+				switch len(pk) {
+				case 0:
+					goValues[k] = nil
+				case 1:
+					goValues[k] = p[k][0]
+				default:
+					goValues[k] = p[k]
+				}
+			}
+		}
+	}
+
 	return val.ValidateData(in, goValues)
 }
 

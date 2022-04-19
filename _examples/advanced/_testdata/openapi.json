@@ -25,7 +25,8 @@
             "description":"Conflict",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/file-multi-upload":{
@@ -44,7 +45,8 @@
             "description":"OK",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInfoType2"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/file-upload":{
@@ -60,7 +62,8 @@
         "requestBody":{"content":{"multipart/form-data":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedUpload"}}}},
         "responses":{
           "200":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInfo"}}}}
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/gzip-pass-through":{
@@ -81,7 +84,8 @@
             "description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}},
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedGzipPassThroughStruct"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       },
       "head":{
         "summary":"Direct Gzip","description":"","operationId":"_examples/advanced.directGzip",
@@ -100,7 +104,8 @@
             "description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}},
             "content":{"application/json":{}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/json-body-validation/{in-path}":{
@@ -128,7 +133,8 @@
             "description":"OK",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType3"}}}
           }
-        }
+        },
+        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
       }
     },
     "/json-body/{in-path}":{
@@ -156,7 +162,8 @@
             "description":"Created",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType2"}}}
           }
-        }
+        },
+        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
       }
     },
     "/json-map-body":{
@@ -179,7 +186,8 @@
             "description":"OK",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonOutputType2"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/json-param/{in-path}":{
@@ -210,7 +218,8 @@
             "description":"OK",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSON"}}}
           }
-        }
+        },
+        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
       }
     },
     "/json-slice-body":{
@@ -232,7 +241,8 @@
             "description":"OK",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonOutput"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/no-validation":{
@@ -253,7 +263,8 @@
             },
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType3"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/output-csv-writer":{
@@ -324,7 +335,8 @@
             "description":"OK",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputQueryObject"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/req-resp-mapping":{
@@ -389,30 +401,26 @@
             },
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType2"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     }
   },
   "components":{
     "schemas":{
-      "AdvancedCustomErr":{
-        "type":"object","properties":{"details":{"type":"object","additionalProperties":{}},"msg":{"type":"string"}},
-        "additionalProperties":false
-      },
+      "AdvancedCustomErr":{"type":"object","properties":{"details":{"type":"object","additionalProperties":{}},"msg":{"type":"string"}}},
       "AdvancedGzipPassThroughStruct":{
         "type":"object",
-        "properties":{"id":{"type":"integer"},"text":{"type":"array","items":{"type":"string"},"nullable":true}},
-        "additionalProperties":false
+        "properties":{"id":{"type":"integer"},"text":{"type":"array","items":{"type":"string"},"nullable":true}}
       },
-      "AdvancedHeaderOutput":{"type":"object","properties":{"inBody":{"type":"string","deprecated":true}},"additionalProperties":false},
+      "AdvancedHeaderOutput":{"type":"object","properties":{"inBody":{"type":"string","deprecated":true}}},
       "AdvancedInfo":{
         "type":"object",
         "properties":{
           "filename":{"type":"string"},"header":{"$ref":"#/components/schemas/TextprotoMIMEHeader"},
           "inQuery":{"type":"integer"},"peek1":{"type":"string"},"peek2":{"type":"string"},"simple":{"type":"string"},
           "size":{"type":"integer"}
-        },
-        "additionalProperties":false
+        }
       },
       "AdvancedInfoType2":{
         "type":"object",
@@ -422,8 +430,7 @@
           "inQuery":{"type":"integer"},"peeks1":{"type":"array","items":{"type":"string"},"nullable":true},
           "peeks2":{"type":"array","items":{"type":"string"},"nullable":true},"simple":{"type":"string"},
           "sizes":{"type":"array","items":{"type":"integer"},"nullable":true}
-        },
-        "additionalProperties":false
+        }
       },
       "AdvancedInputPortType2":{
         "required":["data"],"type":"object",
@@ -463,49 +470,39 @@
         "properties":{
           "data":{"$ref":"#/components/schemas/AdvancedJSONSlicePayload"},"inHeader":{"type":"string"},
           "inQuery":{"type":"integer"}
-        },
-        "additionalProperties":false
+        }
       },
       "AdvancedJsonOutputType2":{
         "type":"object",
         "properties":{
           "data":{"$ref":"#/components/schemas/AdvancedJSONMapPayload"},"inHeader":{"type":"string"},
           "inQuery":{"type":"integer"}
-        },
-        "additionalProperties":false
+        }
       },
       "AdvancedJsonSliceReq":{"type":"array","items":{"type":"integer"},"nullable":true},
-      "AdvancedOkResp":{"type":"object","properties":{"status":{"type":"string"}},"additionalProperties":false},
+      "AdvancedOkResp":{"type":"object","properties":{"status":{"type":"string"}}},
       "AdvancedOutputPortType2":{
         "required":["data"],"type":"object",
-        "properties":{"data":{"type":"object","properties":{"value":{"maxLength":7,"type":"string"}},"additionalProperties":false}},
-        "additionalProperties":false
+        "properties":{"data":{"type":"object","properties":{"value":{"maxLength":7,"type":"string"}}}}
       },
-      "AdvancedOutputPortType3":{
-        "type":"object",
-        "properties":{"data":{"type":"object","properties":{"value":{"type":"string"}},"additionalProperties":false}},
-        "additionalProperties":false
-      },
+      "AdvancedOutputPortType3":{"type":"object","properties":{"data":{"type":"object","properties":{"value":{"type":"string"}}}}},
       "AdvancedOutputQueryObject":{
         "type":"object",
-        "properties":{"inQuery":{"type":"object","additionalProperties":{"type":"number"},"nullable":true}},
-        "additionalProperties":false
+        "properties":{"inQuery":{"type":"object","additionalProperties":{"type":"number"},"nullable":true}}
       },
       "AdvancedOutputWithJSON":{
         "type":"object",
         "properties":{
           "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},"inQuery":{"type":"integer"},
           "name":{"type":"string"}
-        },
-        "additionalProperties":false
+        }
       },
       "AdvancedOutputWithJSONType2":{
         "type":"object",
         "properties":{
           "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},
           "inQuery":{"type":"string","format":"date","deprecated":true},"name":{"type":"string"}
-        },
-        "additionalProperties":false
+        }
       },
       "AdvancedOutputWithJSONType3":{
         "type":"object",
@@ -513,8 +510,7 @@
           "id":{"minimum":100,"type":"integer"},"inHeader":{"minLength":3,"type":"string"},
           "inPath":{"minLength":3,"type":"string"},"inQuery":{"minimum":3,"type":"integer"},
           "name":{"minLength":3,"type":"string"}
-        },
-        "additionalProperties":false
+        }
       },
       "FormDataAdvancedInputPort":{
         "required":["val2"],"type":"object",

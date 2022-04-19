@@ -14,9 +14,11 @@ type updateTask struct {
 }
 
 // UpdateTask creates usecase interactor.
-func UpdateTask(deps interface {
-	TaskUpdater() task.Updater
-}) usecase.Interactor {
+func UpdateTask(
+	deps interface {
+		TaskUpdater() task.Updater
+	},
+) usecase.Interactor {
 	u := usecase.NewIOI(new(updateTask), nil, func(ctx context.Context, input, _ interface{}) error {
 		var (
 			in  = input.(*updateTask)

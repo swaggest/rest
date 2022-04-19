@@ -52,9 +52,15 @@ Request decoder populates field values from `http.Request` data before use case 
 ```go
 // Declare input port type.
 type helloInput struct {
-    Locale string `query:"locale" default:"en-US" pattern:"^[a-z]{2}-[A-Z]{2}$"`
+    Locale string `query:"locale" default:"en-US" pattern:"^[a-z]{2}-[A-Z]{2}$" enum:"ru-RU,en-US"`
     Name   string `path:"name" minLength:"3"` // Field tags define parameter location and JSON schema constraints.
-	_      string `additionalProperties:"false"` // Field tags of unnamed fields are applied to parent schema.
+
+    // Field tags of unnamed fields are applied to parent schema, 
+	// they are optional and can be used to disallow unknown parameters.
+    // For non-body params, name tag must be provided explicitly.
+    // E.g. here no unknown `query` and `cookie` parameters allowed,
+    // unknown `header` params are ok.
+    _ struct{} `query:"_" cookie:"_" additionalProperties:"false"`
 }
 ```
 

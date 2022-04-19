@@ -231,7 +231,19 @@ func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor,
 	return nil
 }
 
+type unknownFieldsValidator interface {
+	ForbidUnknownParams(in rest.ParamIn, forbidden bool)
+}
+
 func (c *Collector) provideParametersJSONSchemas(op openapi3.Operation, validator rest.JSONSchemaValidator) error {
+	if fv, ok := validator.(unknownFieldsValidator); ok {
+		for _, in := range []rest.ParamIn{rest.ParamInQuery, rest.ParamInCookie, rest.ParamInHeader} {
+			if op.UnknownParamIsForbidden(openapi3.ParameterIn(in)) {
+				fv.ForbidUnknownParams(in, true)
+			}
+		}
+	}
+
 	for _, p := range op.Parameters {
 		if p.Parameter.Schema == nil {
 			continue
