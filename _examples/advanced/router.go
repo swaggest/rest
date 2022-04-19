@@ -31,6 +31,12 @@ func NewRouter() http.Handler {
 				return stop, err
 			}
 
+			// Allow unknown request headers and skip response.
+			if oc, ok := openapi3.OperationCtx(rc); !ok ||
+				oc.ProcessingResponse || oc.ProcessingIn == string(rest.ParamInHeader) {
+				return stop, nil
+			}
+
 			if schema.HasType(jsonschema.Object) && len(schema.Properties) > 0 && schema.AdditionalProperties == nil {
 				schema.AdditionalProperties = (&jsonschema.SchemaOrBool{}).WithTypeBoolean(false)
 			}
