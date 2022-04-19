@@ -446,11 +446,13 @@ func TestDecoder_Decode_manualLoader(t *testing.T) {
 
 func TestDecoder_Decode_unknownParams(t *testing.T) {
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet,
-		"/?foo=bar&baz=1", nil)
+		"/?foo=1&bar=1&bar=2&baz&quux=123", nil)
 	assert.NoError(t, err)
 
 	type input struct {
-		Foo string `query:"foo"`
+		Foo string   `query:"foo"`
+		Bar []string `query:"bar"`
+		Baz *string  `query:"baz"`
 
 		_ struct{} `query:"_" additionalProperties:"false"`
 	}
@@ -462,6 +464,6 @@ func TestDecoder_Decode_unknownParams(t *testing.T) {
 		MakeRequestValidator(http.MethodGet, in, nil)
 
 	err = dec.Decode(req, in, validator)
-	assert.Equal(t, rest.ValidationErrors{"query:baz": []string{"unknown parameter with value 1"}}, err,
+	assert.Equal(t, rest.ValidationErrors{"query:quux": []string{"unknown parameter with value 123"}}, err,
 		fmt.Sprintf("%#v", err))
 }
