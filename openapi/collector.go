@@ -217,16 +217,15 @@ func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor,
 }
 
 func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Interactor, h rest.HandlerTrait) error {
-	var hasExpectedErrors usecase.HasExpectedErrors
+	var (
+		errsByCode        = map[int][]interface{}{}
+		statusCodes       []int
+		hasExpectedErrors usecase.HasExpectedErrors
+	)
 
 	if !usecase.As(u, &hasExpectedErrors) {
 		return nil
 	}
-
-	var (
-		errsByCode  = map[int][]interface{}{}
-		statusCodes []int
-	)
 
 	for _, e := range hasExpectedErrors.ExpectedErrors() {
 		var (

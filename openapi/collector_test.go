@@ -3,6 +3,7 @@ package openapi_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -208,7 +209,9 @@ func TestCollector_Collect_CombineErrors(t *testing.T) {
 	h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
 		code, er := rest.Err(err)
 
-		if ae, ok := err.(anotherErr); ok {
+		var ae anotherErr
+
+		if errors.As(err, &ae) {
 			return http.StatusBadRequest, ae
 		}
 
