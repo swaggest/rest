@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"reflect"
 	"strings"
@@ -68,7 +69,9 @@ func NewRouter() http.Handler {
 				h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
 					code, er := rest.Err(err)
 
-					if ae, ok := err.(anotherErr); ok {
+					var ae anotherErr
+
+					if errors.As(err, &ae) {
 						return http.StatusBadRequest, ae
 					}
 

@@ -186,12 +186,11 @@ func setRequestMapping(oc *openapi3.OperationContext, mapping rest.RequestMappin
 
 func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor, h rest.HandlerTrait) error {
 	var (
-		hasName           usecase.HasName
-		hasTitle          usecase.HasTitle
-		hasDescription    usecase.HasDescription
-		hasTags           usecase.HasTags
-		hasExpectedErrors usecase.HasExpectedErrors
-		hasDeprecated     usecase.HasIsDeprecated
+		hasName        usecase.HasName
+		hasTitle       usecase.HasTitle
+		hasDescription usecase.HasDescription
+		hasTags        usecase.HasTags
+		hasDeprecated  usecase.HasIsDeprecated
 	)
 
 	if usecase.As(u, &hasName) {
@@ -214,55 +213,67 @@ func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor,
 		op.WithDeprecated(true)
 	}
 
-	if usecase.As(u, &hasExpectedErrors) {
-		errsByCode := map[int][]interface{}{}
-		var statusCodes []int
+	return c.processExpectedErrors(op, u, h)
+}
 
-		for _, e := range hasExpectedErrors.ExpectedErrors() {
-			var (
-				errResp    interface{}
-				statusCode int
-			)
+func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Interactor, h rest.HandlerTrait) error {
+	var hasExpectedErrors usecase.HasExpectedErrors
 
-			if h.MakeErrResp != nil {
-				statusCode, errResp = h.MakeErrResp(context.Background(), e)
-			} else {
-				statusCode, errResp = rest.Err(e)
-			}
+	if !usecase.As(u, &hasExpectedErrors) {
+		return nil
+	}
 
-			if errsByCode[statusCode] == nil {
-				statusCodes = append(statusCodes, statusCode)
-			}
+	var (
+		errsByCode  = map[int][]interface{}{}
+		statusCodes []int
+	)
 
-			errsByCode[statusCode] = append(errsByCode[statusCode], errResp)
+	for _, e := range hasExpectedErrors.ExpectedErrors() {
+		var (
+			errResp    interface{}
+			statusCode int
+		)
 
-			err := c.Reflector().SetJSONResponse(op, errResp, statusCode)
-			if err != nil {
-				return err
+		if h.MakeErrResp != nil {
+			statusCode, errResp = h.MakeErrResp(context.Background(), e)
+		} else {
+			statusCode, errResp = rest.Err(e)
+		}
+
+		if errsByCode[statusCode] == nil {
+			statusCodes = append(statusCodes, statusCode)
+		}
+
+		errsByCode[statusCode] = append(errsByCode[statusCode], errResp)
+
+		err := c.Reflector().SetJSONResponse(op, errResp, statusCode)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, statusCode := range statusCodes {
+		var (
+			errResps = errsByCode[statusCode]
+			err      error
+		)
+
+		if len(errResps) == 1 || c.CombineErrors == "" {
+			err = c.Reflector().SetJSONResponse(op, errResps[0], statusCode)
+		} else {
+			switch c.CombineErrors {
+			case "oneOf":
+				err = c.Reflector().SetJSONResponse(op, jsonschema.OneOf(errResps...), statusCode)
+			case "anyOf":
+				err = c.Reflector().SetJSONResponse(op, jsonschema.AnyOf(errResps...), statusCode)
+			default:
+				return errors.New("oneOf/anyOf expected for openapi.Collector.CombineErrors, " +
+					c.CombineErrors + " received")
 			}
 		}
 
-		for _, statusCode := range statusCodes {
-			errResps := errsByCode[statusCode]
-			var err error
-
-			if len(errResps) == 1 || c.CombineErrors == "" {
-				err = c.Reflector().SetJSONResponse(op, errResps[0], statusCode)
-			} else {
-				switch c.CombineErrors {
-				case "oneOf":
-					err = c.Reflector().SetJSONResponse(op, jsonschema.OneOf(errResps...), statusCode)
-				case "anyOf":
-					err = c.Reflector().SetJSONResponse(op, jsonschema.AnyOf(errResps...), statusCode)
-				default:
-					panic("oneOf/anyOf expected for openapi.Collector.CombineErrors, " + c.CombineErrors + " received")
-				}
-			}
-
-			if err != nil {
-				return err
-			}
-
+		if err != nil {
+			return err
 		}
 	}
 
