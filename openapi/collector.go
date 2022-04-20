@@ -20,7 +20,13 @@ import (
 type Collector struct {
 	mu sync.Mutex
 
-	BasePath    string // URL path to docs, default "/docs/".
+	BasePath string // URL path to docs, default "/docs/".
+
+	// CombineErrors can take a value of "oneOf" or "anyOf",
+	// if not empty it enables logical schema grouping in case
+	// of multiple responses with same HTTP status code.
+	CombineErrors string
+
 	gen         *openapi3.Reflector
 	annotations map[string][]func(*openapi3.Operation) error
 }
@@ -209,6 +215,9 @@ func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor,
 	}
 
 	if usecase.As(u, &hasExpectedErrors) {
+		errsByCode := map[int][]interface{}{}
+		var statusCodes []int
+
 		for _, e := range hasExpectedErrors.ExpectedErrors() {
 			var (
 				errResp    interface{}
@@ -221,10 +230,39 @@ func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor,
 				statusCode, errResp = rest.Err(e)
 			}
 
+			if errsByCode[statusCode] == nil {
+				statusCodes = append(statusCodes, statusCode)
+			}
+
+			errsByCode[statusCode] = append(errsByCode[statusCode], errResp)
+
 			err := c.Reflector().SetJSONResponse(op, errResp, statusCode)
 			if err != nil {
 				return err
 			}
+		}
+
+		for _, statusCode := range statusCodes {
+			errResps := errsByCode[statusCode]
+			var err error
+
+			if len(errResps) == 1 || c.CombineErrors == "" {
+				err = c.Reflector().SetJSONResponse(op, errResps[0], statusCode)
+			} else {
+				switch c.CombineErrors {
+				case "oneOf":
+					err = c.Reflector().SetJSONResponse(op, jsonschema.OneOf(errResps...), statusCode)
+				case "anyOf":
+					err = c.Reflector().SetJSONResponse(op, jsonschema.AnyOf(errResps...), statusCode)
+				default:
+					panic("oneOf/anyOf expected for openapi.Collector.CombineErrors, " + c.CombineErrors + " received")
+				}
+			}
+
+			if err != nil {
+				return err
+			}
+
 		}
 	}
 
