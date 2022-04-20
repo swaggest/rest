@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"net/http"
 	"reflect"
 
@@ -45,6 +46,8 @@ func NewRouter() http.Handler {
 		}
 	})
 
+	s.OpenAPICollector.CombineErrors = "anyOf"
+
 	s.Use(
 		// Response validator setup.
 		//
@@ -59,6 +62,12 @@ func NewRouter() http.Handler {
 			if nethttp.HandlerAs(handler, &h) {
 				h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
 					code, er := rest.Err(err)
+
+					var ae anotherErr
+
+					if errors.As(err, &ae) {
+						return http.StatusBadRequest, ae
+					}
 
 					return code, customErr{
 						Message: er.ErrorText,

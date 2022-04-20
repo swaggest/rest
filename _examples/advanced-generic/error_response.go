@@ -41,7 +41,16 @@ func errorResponse() usecase.Interactor {
 
 	u.SetTitle("Declare Expected Errors")
 	u.SetDescription("This use case demonstrates documentation of expected errors.")
-	u.SetExpectedErrors(status.InvalidArgument, status.AlreadyExists)
+	u.SetExpectedErrors(status.InvalidArgument, anotherErr{}, status.FailedPrecondition, status.AlreadyExists)
 
 	return u
+}
+
+// anotherErr is another custom error.
+type anotherErr struct {
+	Foo int `json:"foo"`
+}
+
+func (anotherErr) Error() string {
+	return "foo happened"
 }

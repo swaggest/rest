@@ -19,7 +19,17 @@
           },
           "400":{
             "description":"Bad Request",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+            "content":{
+              "application/json":{
+                "schema":{
+                  "anyOf":[
+                    {"$ref":"#/components/schemas/AdvancedCustomErr"},
+                    {"$ref":"#/components/schemas/AdvancedAnotherErr"},
+                    {"$ref":"#/components/schemas/AdvancedCustomErr"}
+                  ]
+                }
+              }
+            }
           },
           "409":{
             "description":"Conflict",
@@ -412,6 +422,7 @@
   },
   "components":{
     "schemas":{
+      "AdvancedAnotherErr":{"type":"object","properties":{"foo":{"type":"integer"}}},
       "AdvancedCustomErr":{"type":"object","properties":{"details":{"type":"object","additionalProperties":{}},"msg":{"type":"string"}}},
       "AdvancedGzipPassThroughStruct":{
         "type":"object",
