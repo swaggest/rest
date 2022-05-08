@@ -12,7 +12,7 @@ require (
 	github.com/stretchr/testify v1.7.1
 	github.com/swaggest/assertjson v1.6.8
 	github.com/swaggest/form/v5 v5.0.1
-	github.com/swaggest/jsonschema-go v0.3.34
+	github.com/swaggest/jsonschema-go v0.3.35
 	github.com/swaggest/openapi-go v0.2.18
 	github.com/swaggest/refl v1.0.2
 	github.com/swaggest/usecase v1.1.2

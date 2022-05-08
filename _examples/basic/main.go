@@ -24,7 +24,7 @@ func main() {
 	s.OpenAPI.Info.Version = "v1.2.3"
 
 	// Setup middlewares.
-	s.Use(
+	s.Wrap(
 		gzip.Middleware, // Response compression with support for direct gzip pass through.
 	)
 

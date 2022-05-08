@@ -54,7 +54,7 @@ func NewRouter() http.Handler {
 
 	s.OpenAPICollector.CombineErrors = "anyOf"
 
-	s.Use(
+	s.Wrap(
 		// Response validator setup.
 		//
 		// It might be a good idea to disable this middleware in production to save performance,

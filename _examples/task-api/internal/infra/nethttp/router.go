@@ -29,7 +29,7 @@ func NewRouter(locator *service.Locator) http.Handler {
 
 	r := chirouter.NewWrapper(chi.NewRouter())
 
-	r.Use(
+	r.Wrap(
 		middleware.Recoverer, // Panic recovery.
 		nethttp.UseCaseMiddlewares(log.UseCaseMiddleware()), // Sample use case middleware.
 		nethttp.OpenAPIMiddleware(apiSchema),                // Documentation collector.
@@ -41,7 +41,7 @@ func NewRouter(locator *service.Locator) http.Handler {
 	adminAuth := middleware.BasicAuth("Admin Access", map[string]string{"admin": "admin"})
 	userAuth := middleware.BasicAuth("User Access", map[string]string{"user": "user"})
 
-	r.Use(
+	r.Wrap(
 		middleware.NoCache,
 		middleware.Timeout(time.Second),
 	)
