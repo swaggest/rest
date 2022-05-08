@@ -24,6 +24,7 @@ type Wrapper struct {
 	basePattern string
 
 	middlewares []func(http.Handler) http.Handler
+	wraps       []func(http.Handler) http.Handler
 }
 
 var _ chi.Router = &Wrapper{}
@@ -34,7 +35,18 @@ func (r *Wrapper) copy(router chi.Router, pattern string) *Wrapper {
 		name:        r.name,
 		basePattern: r.basePattern + pattern,
 		middlewares: r.middlewares,
+		wraps:       r.wraps,
 	}
+}
+
+// Wrap appends one or more wrappers that will be applied to handler before adding to Router.
+// It is different from middleware in the sense that it is handler-centric, rather than request-centric.
+// Wraps are invoked once for each added handler, they are not invoked for http requests.
+// Wraps can leverage nethttp.HandlerAs to inspect and access deeper layers.
+// For most cases Wrap can be safely used instead of Use, Use is mandatory for middlewares
+// that affect routing (such as middleware.StripSlashes for example).
+func (r *Wrapper) Wrap(wraps ...func(handler http.Handler) http.Handler) {
+	r.wraps = append(r.wraps, wraps...)
 }
 
 // Use appends one of more middlewares onto the Router stack.
@@ -77,19 +89,22 @@ func (r *Wrapper) Route(pattern string, fn func(r chi.Router)) chi.Router {
 
 // Mount attaches another http.Handler along "./basePattern/*".
 func (r *Wrapper) Mount(pattern string, h http.Handler) {
-	r.captureHandler("", pattern, h)
+	h = r.prepareHandler("", pattern, h)
+	r.captureHandler(h)
 	r.Router.Mount(pattern, h)
 }
 
 // Handle adds routes for `basePattern` that matches all HTTP methods.
 func (r *Wrapper) Handle(pattern string, h http.Handler) {
-	r.captureHandler("", pattern, h)
+	h = r.prepareHandler("", pattern, h)
+	r.captureHandler(h)
 	r.Router.Handle(pattern, h)
 }
 
 // Method adds routes for `basePattern` that matches the `method` HTTP method.
 func (r *Wrapper) Method(method, pattern string, h http.Handler) {
-	r.captureHandler(method, pattern, h)
+	h = r.prepareHandler(method, pattern, h)
+	r.captureHandler(h)
 	r.Router.Method(method, pattern, h)
 }
 
@@ -147,8 +162,14 @@ func (r *Wrapper) resolvePattern(pattern string) string {
 	return r.basePattern + strings.ReplaceAll(pattern, "/*/", "/")
 }
 
-func (r *Wrapper) captureHandler(method, pattern string, h http.Handler) {
-	mw := r.middlewares
+func (r *Wrapper) captureHandler(h http.Handler) {
+	nethttp.WrapHandler(h, r.middlewares...)
+}
+
+func (r *Wrapper) prepareHandler(method, pattern string, h http.Handler) http.Handler {
+	mw := r.wraps
 	mw = append(mw, nethttp.HandlerWithRouteMiddleware(method, r.resolvePattern(pattern)))
-	nethttp.WrapHandler(h, mw...)
+	h = nethttp.WrapHandler(h, mw...)
+
+	return h
 }

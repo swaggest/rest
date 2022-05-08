@@ -2,6 +2,7 @@ package web_test
 
 import (
 	"context"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -30,7 +31,16 @@ func albumByID() usecase.Interactor {
 }
 
 func TestDefaultService(t *testing.T) {
-	service := web.DefaultService()
+	var l []string
+
+	service := web.DefaultService(
+		func(s *web.Service, initialized bool) {
+			l = append(l, fmt.Sprintf("one:%v", initialized))
+		},
+		func(s *web.Service, initialized bool) {
+			l = append(l, fmt.Sprintf("two:%v", initialized))
+		},
+	)
 
 	service.OpenAPI.Info.Title = "Albums API"
 	service.OpenAPI.Info.WithDescription("This service provides API to manage albums.")
@@ -60,4 +70,6 @@ func TestDefaultService(t *testing.T) {
 	expected, err := ioutil.ReadFile("_testdata/openapi.json")
 	require.NoError(t, err)
 	assertjson.EqualMarshal(t, expected, service.OpenAPI)
+
+	assert.Equal(t, []string{"one:false", "two:false", "one:true", "two:true"}, l)
 }

@@ -40,7 +40,7 @@ func TestMapper_Decode_fileUploadTag(t *testing.T) {
 
 	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
-	r.Use(
+	r.Wrap(
 		nethttp.OpenAPIMiddleware(&apiSchema),
 		request.DecoderMiddleware(decoderFactory),
 		request.ValidatorMiddleware(validatorFactory),

@@ -117,7 +117,7 @@ func TestNewWrapper(t *testing.T) {
 		assert.Equal(t, "foobar", rw.Body.String(), u)
 	}
 
-	assert.Equal(t, 13, handlersCnt)
+	assert.Equal(t, 14, handlersCnt)
 	assert.Equal(t, 20, totalCnt)
 }
 
@@ -183,8 +183,33 @@ func TestWrapper_Use_precedence(t *testing.T) {
 	}, log)
 }
 
+// This test covers original behavior discrepancy between wrapper and router
+// in how middlewares are applied.
+// Router runs middlewares for every request that comes in before route matching,
+// and so middlewares like StripSlashes can affect route matching in a useful way.
+// Wrapper in contrast was creating a new handler by running middlewares during handler
+// registration, and then adding prepared handler to router.
+// In this case middlewares were "baked-in" the handler and so, were running only
+// after route match.
+// For the use case of StripSlashes that would result in not found, because middleware was
+// invoked AFTER route matching, not BEFORE.
+
+// Solution to this problem was passing middlewares to Router as is, the problem however is
+// that Router does not allow unwrapping handlers (that is the purpose of Wrapper) to introspect
+// or augment handlers.
 func TestWrapper_Use_StripSlashes(t *testing.T) {
 	var log []string
+
+	r := chi.NewRouter()
+	r.Use(
+		middleware.StripSlashes,
+
+		func(handler http.Handler) http.Handler {
+			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+				handler.ServeHTTP(writer, request)
+			})
+		},
+	)
 
 	// Wrapped chi router.
 	wr := chirouter.NewWrapper(chi.NewRouter())
@@ -211,6 +236,14 @@ func TestWrapper_Use_StripSlashes(t *testing.T) {
 		log = append(log, "h")
 	})
 
+	r.Method(http.MethodGet, "/foo", h)
+	r.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusOK, rw.Code)
+	assert.Equal(t, "OK", rw.Body.String())
+
+	rw = httptest.NewRecorder()
+
 	wr.Method(http.MethodGet, "/foo", h)
 	wr.ServeHTTP(rw, req)
 
@@ -218,6 +251,6 @@ func TestWrapper_Use_StripSlashes(t *testing.T) {
 	assert.Equal(t, "OK", rw.Body.String())
 
 	assert.Equal(t, []string{
-		"h",
+		"h", "h",
 	}, log)
 }
