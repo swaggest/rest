@@ -183,22 +183,21 @@ func TestWrapper_Use_precedence(t *testing.T) {
 	}, log)
 }
 
+// This test covers original behavior discrepancy between wrapper and router
+// in how middlewares are applied.
+// Router runs middlewares for every request that comes in before route matching,
+// and so middlewares like StripSlashes can affect route matching in a useful way.
+// Wrapper in contrast was creating a new handler by running middlewares during handler
+// registration, and then adding prepared handler to router.
+// In this case middlewares were "baked-in" the handler and so, were running only
+// after route match.
+// For the use case of StripSlashes that would result in not found, because middleware was
+// invoked AFTER route matching, not BEFORE.
+
+// Solution to this problem was passing middlewares to Router as is, the problem however is
+// that Router does not allow unwrapping handlers (that is the purpose of Wrapper) to introspect
+// or augment handlers.
 func TestWrapper_Use_StripSlashes(t *testing.T) {
-	// This test covers original behavior discrepancy between wrapper and router
-	// in how middlewares are applied.
-	// Router runs middlewares for every request that comes in before route matching,
-	// and so middlewares like StripSlashes can affect route matching in a useful way.
-	// Wrapper in contrast was creating a new handler by running middlewares during handler
-	// registration, and then adding prepared handler to router.
-	// In this case middlewares were "baked-in" the handler and so, were running only
-	// after route match.
-	// For the use case of StripSlashes that would result in not found, because middleware was
-	// invoked AFTER route matching, not BEFORE.
-
-	// Solution to this problem was passing middlewares to Router as is, the problem however is
-	// that Router does not allow unwrapping handlers (that is the purpose of Wrapper) to introspect
-	// or augment handlers.
-
 	var log []string
 
 	r := chi.NewRouter()
