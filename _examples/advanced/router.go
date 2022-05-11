@@ -3,9 +3,11 @@ package main
 import (
 	"context"
 	"errors"
+	"net"
 	"net/http"
 	"reflect"
 
+	"github.com/google/uuid"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
@@ -45,6 +47,21 @@ func NewRouter() http.Handler {
 			return stop, nil
 		}
 	})
+
+	// Foreign types can be documented with type mapping to schema (uuid.UUID would be {"type":"string", "format":"uuid"}).
+	uuidSchema := jsonschema.String.ToSchemaOrBool()
+	uuidSchema.TypeObjectEns().WithFormat("uuid")
+
+	s.OpenAPICollector.Reflector().AddTypeMapping(
+		uuid.UUID{},
+		uuidSchema,
+	)
+
+	// Or with type mapping to type (net.IP would be string).
+	s.OpenAPICollector.Reflector().AddTypeMapping(
+		net.IP{},
+		"",
+	)
 
 	s.OpenAPICollector.CombineErrors = "anyOf"
 
