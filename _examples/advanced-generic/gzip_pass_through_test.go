@@ -1,5 +1,4 @@
 //go:build go1.18
-// +build go1.18
 
 package main
 
@@ -60,7 +59,7 @@ func Test_directGzip_perf(t *testing.T) {
 		assert.Less(t, res.Extra["B:rcvd/op"], 640.0)
 		assert.Less(t, res.Extra["B:sent/op"], 104.0)
 		assert.Less(t, res.AllocsPerOp(), int64(45))
-		assert.Less(t, res.AllocedBytesPerOp(), int64(4000))
+		assert.Less(t, res.AllocedBytesPerOp(), int64(4100))
 	}
 }
 

@@ -13,7 +13,7 @@ import (
 
 	"github.com/swaggest/rest/response/gzip"
 	"github.com/swaggest/rest/web"
-	swgui "github.com/swaggest/swgui/v4"
+	swgui "github.com/swaggest/swgui/v4emb"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 )
@@ -27,7 +27,7 @@ func main() {
 	s.OpenAPI.Info.Version = "v1.2.3"
 
 	// Setup middlewares.
-	s.Use(
+	s.Wrap(
 		gzip.Middleware, // Response compression with support for direct gzip pass through.
 	)
 
@@ -35,6 +35,13 @@ func main() {
 	type helloInput struct {
 		Locale string `query:"locale" default:"en-US" pattern:"^[a-z]{2}-[A-Z]{2}$" enum:"ru-RU,en-US"`
 		Name   string `path:"name" minLength:"3"` // Field tags define parameter location and JSON schema constraints.
+
+		// Field tags of unnamed fields are applied to parent schema.
+		// they are optional and can be used to disallow unknown parameters.
+		// For non-body params, name tag must be provided explicitly.
+		// E.g. here no unknown `query` and `cookie` parameters allowed,
+		// unknown `header` params are ok.
+		_ struct{} `query:"_" cookie:"_" additionalProperties:"false"`
 	}
 
 	// Declare output port type.

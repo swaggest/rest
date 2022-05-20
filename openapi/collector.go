@@ -22,7 +22,13 @@ import (
 type Collector struct {
 	mu sync.Mutex
 
-	BasePath    string // URL path to docs, default "/docs/".
+	BasePath string // URL path to docs, default "/docs/".
+
+	// CombineErrors can take a value of "oneOf" or "anyOf",
+	// if not empty it enables logical schema grouping in case
+	// of multiple responses with same HTTP status code.
+	CombineErrors string
+
 	gen         *openapi3.Reflector
 	annotations map[string][]func(*openapi3.Operation) error
 }
@@ -182,12 +188,11 @@ func setRequestMapping(oc *openapi3.OperationContext, mapping rest.RequestMappin
 
 func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor, h rest.HandlerTrait) error {
 	var (
-		hasName           usecase.HasName
-		hasTitle          usecase.HasTitle
-		hasDescription    usecase.HasDescription
-		hasTags           usecase.HasTags
-		hasExpectedErrors usecase.HasExpectedErrors
-		hasDeprecated     usecase.HasIsDeprecated
+		hasName        usecase.HasName
+		hasTitle       usecase.HasTitle
+		hasDescription usecase.HasDescription
+		hasTags        usecase.HasTags
+		hasDeprecated  usecase.HasIsDeprecated
 	)
 
 	if usecase.As(u, &hasName) {
@@ -210,30 +215,85 @@ func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor,
 		op.WithDeprecated(true)
 	}
 
-	if usecase.As(u, &hasExpectedErrors) {
-		for _, e := range hasExpectedErrors.ExpectedErrors() {
-			var (
-				errResp    interface{}
-				statusCode int
-			)
+	return c.processExpectedErrors(op, u, h)
+}
 
-			if h.MakeErrResp != nil {
-				statusCode, errResp = h.MakeErrResp(context.Background(), e)
-			} else {
-				statusCode, errResp = rest.Err(e)
-			}
+func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Interactor, h rest.HandlerTrait) error {
+	var (
+		errsByCode        = map[int][]interface{}{}
+		statusCodes       []int
+		hasExpectedErrors usecase.HasExpectedErrors
+	)
 
-			err := c.Reflector().SetJSONResponse(op, errResp, statusCode)
-			if err != nil {
-				return err
+	if !usecase.As(u, &hasExpectedErrors) {
+		return nil
+	}
+
+	for _, e := range hasExpectedErrors.ExpectedErrors() {
+		var (
+			errResp    interface{}
+			statusCode int
+		)
+
+		if h.MakeErrResp != nil {
+			statusCode, errResp = h.MakeErrResp(context.Background(), e)
+		} else {
+			statusCode, errResp = rest.Err(e)
+		}
+
+		if errsByCode[statusCode] == nil {
+			statusCodes = append(statusCodes, statusCode)
+		}
+
+		errsByCode[statusCode] = append(errsByCode[statusCode], errResp)
+
+		err := c.Reflector().SetJSONResponse(op, errResp, statusCode)
+		if err != nil {
+			return err
+		}
+	}
+
+	for _, statusCode := range statusCodes {
+		var (
+			errResps = errsByCode[statusCode]
+			err      error
+		)
+
+		if len(errResps) == 1 || c.CombineErrors == "" {
+			err = c.Reflector().SetJSONResponse(op, errResps[0], statusCode)
+		} else {
+			switch c.CombineErrors {
+			case "oneOf":
+				err = c.Reflector().SetJSONResponse(op, jsonschema.OneOf(errResps...), statusCode)
+			case "anyOf":
+				err = c.Reflector().SetJSONResponse(op, jsonschema.AnyOf(errResps...), statusCode)
+			default:
+				return errors.New("oneOf/anyOf expected for openapi.Collector.CombineErrors, " +
+					c.CombineErrors + " received")
 			}
+		}
+
+		if err != nil {
+			return err
 		}
 	}
 
 	return nil
 }
 
+type unknownFieldsValidator interface {
+	ForbidUnknownParams(in rest.ParamIn, forbidden bool)
+}
+
 func (c *Collector) provideParametersJSONSchemas(op openapi3.Operation, validator rest.JSONSchemaValidator) error {
+	if fv, ok := validator.(unknownFieldsValidator); ok {
+		for _, in := range []rest.ParamIn{rest.ParamInQuery, rest.ParamInCookie, rest.ParamInHeader} {
+			if op.UnknownParamIsForbidden(openapi3.ParameterIn(in)) {
+				fv.ForbidUnknownParams(in, true)
+			}
+		}
+	}
+
 	for _, p := range op.Parameters {
 		if p.Parameter.Schema == nil {
 			continue
@@ -330,6 +390,12 @@ func (c *Collector) ProvideRequestJSONSchemas(
 
 func provideFormDataSchemas(schema jsonschema.SchemaOrBool, validator rest.JSONSchemaValidator) error {
 	for name, sch := range schema.TypeObject.Properties {
+		if sch.TypeObject != nil && len(schema.TypeObject.ExtraProperties) > 0 {
+			cp := *sch.TypeObject
+			sch.TypeObject = &cp
+			sch.TypeObject.ExtraProperties = schema.TypeObject.ExtraProperties
+		}
+
 		sb, err := sch.JSONSchemaBytes()
 		if err != nil {
 			return fmt.Errorf("failed to build JSON Schema for form data parameter %q: %w", name, err)

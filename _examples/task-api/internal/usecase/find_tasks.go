@@ -10,9 +10,11 @@ import (
 )
 
 // FindTasks creates usecase interactor.
-func FindTasks(deps interface {
-	TaskFinder() task.Finder
-}) usecase.IOInteractor {
+func FindTasks(
+	deps interface {
+		TaskFinder() task.Finder
+	},
+) usecase.IOInteractor {
 	u := usecase.NewIOI(nil, new([]task.Entity), func(ctx context.Context, input, output interface{}) error {
 		out, ok := output.(*[]task.Entity)
 		if !ok {

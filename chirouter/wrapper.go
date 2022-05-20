@@ -24,6 +24,7 @@ type Wrapper struct {
 	basePattern string
 
 	middlewares []func(fchi.Handler) fchi.Handler
+	wraps       []func(fchi.Handler) fchi.Handler
 }
 
 var _ fchi.Router = &Wrapper{}
@@ -34,18 +35,30 @@ func (r *Wrapper) copy(router fchi.Router, pattern string) *Wrapper {
 		name:        r.name,
 		basePattern: r.basePattern + pattern,
 		middlewares: r.middlewares,
+		wraps:       r.wraps,
 	}
+}
+
+// Wrap appends one or more wrappers that will be applied to handler before adding to Router.
+// It is different from middleware in the sense that it is handler-centric, rather than request-centric.
+// Wraps are invoked once for each added handler, they are not invoked for http requests.
+// Wraps can leverage nethttp.HandlerAs to inspect and access deeper layers.
+// For most cases Wrap can be safely used instead of Use, Use is mandatory for middlewares
+// that affect routing (such as middleware.StripSlashes for example).
+func (r *Wrapper) Wrap(wraps ...func(handler fchi.Handler) fchi.Handler) {
+	r.wraps = append(r.wraps, wraps...)
 }
 
 // Use appends one of more middlewares onto the Router stack.
 func (r *Wrapper) Use(middlewares ...func(fchi.Handler) fchi.Handler) {
+	r.Router.Use(middlewares...)
 	r.middlewares = append(r.middlewares, middlewares...)
 }
 
 // With adds inline middlewares for an endpoint handler.
 func (r Wrapper) With(middlewares ...func(fchi.Handler) fchi.Handler) fchi.Router {
-	c := r.copy(r.Router, "")
-	c.Use(middlewares...)
+	c := r.copy(r.Router.With(middlewares...), "")
+	c.middlewares = append(c.middlewares, middlewares...)
 
 	return c
 }
@@ -76,18 +89,23 @@ func (r *Wrapper) Route(pattern string, fn func(r fchi.Router)) fchi.Router {
 
 // Mount attaches another Handler along "./basePattern/*".
 func (r *Wrapper) Mount(pattern string, h fchi.Handler) {
-	p := r.prepareHandler("", pattern, h)
-	r.Router.Mount(pattern, p)
+	h = r.prepareHandler("", pattern, h)
+	r.captureHandler(h)
+	r.Router.Mount(pattern, h)
 }
 
 // Handle adds routes for `basePattern` that matches all HTTP methods.
 func (r *Wrapper) Handle(pattern string, h fchi.Handler) {
-	r.Router.Handle(pattern, r.prepareHandler("", pattern, h))
+	h = r.prepareHandler("", pattern, h)
+	r.captureHandler(h)
+	r.Router.Handle(pattern, h)
 }
 
 // Method adds routes for `basePattern` that matches the `method` HTTP method.
 func (r *Wrapper) Method(method, pattern string, h fchi.Handler) {
-	r.Router.Method(method, pattern, r.prepareHandler(method, pattern, h))
+	h = r.prepareHandler(method, pattern, h)
+	r.captureHandler(h)
+	r.Router.Method(method, pattern, h)
 }
 
 // Connect adds the route `pattern` that matches a CONNECT http method to execute the `h` HandlerFunc.
@@ -139,8 +157,12 @@ func (r *Wrapper) resolvePattern(pattern string) string {
 	return r.basePattern + strings.ReplaceAll(pattern, "/*/", "/")
 }
 
+func (r *Wrapper) captureHandler(h http.Handler) {
+	nethttp.WrapHandler(h, r.middlewares...)
+}
+
 func (r *Wrapper) prepareHandler(method, pattern string, h fchi.Handler) fchi.Handler {
-	mw := r.middlewares
+	mw := r.wraps
 	mw = append(mw, nethttp.HandlerWithRouteMiddleware(method, r.resolvePattern(pattern)))
 	h = nethttp.WrapHandler(h, mw...)
 

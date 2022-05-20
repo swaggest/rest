@@ -19,32 +19,55 @@ import (
 )
 
 // DefaultService initializes router and other basic components of web service.
-func DefaultService() *Service {
+//
+// Provided functional options are invoked twice, before and after initialization.
+func DefaultService(options ...func(s *Service, initialized bool)) *Service {
+	s := Service{}
+
+	for _, option := range options {
+		option(&s, false)
+	}
+
+	if s.OpenAPI == nil {
+		s.OpenAPI = &openapi3.Spec{Openapi: "3.0.3"}
+	}
+
 	// Init API documentation schema.
-	apiSchema := &openapi.Collector{}
+	if s.OpenAPICollector == nil {
+		s.OpenAPICollector = &openapi.Collector{}
+		s.OpenAPICollector.Reflector().Spec = s.OpenAPI
+	}
 
-	// Setup request decoder and validator.
-	validatorFactory := jsonschema.NewFactory(apiSchema, apiSchema)
-	decoderFactory := request.NewDecoderFactory()
-	decoderFactory.ApplyDefaults = true
-	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
+	if s.Wrapper == nil {
+		s.Wrapper =  chirouter.NewWrapper(fchi.NewRouter())
+	}
 
-	router := chirouter.NewWrapper(fchi.NewRouter())
+	if s.DecoderFactory == nil {
+		decoderFactory := request.NewDecoderFactory()
+		decoderFactory.ApplyDefaults = true
+		decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
+
+		s.DecoderFactory = decoderFactory
+	}
+
+	validatorFactory := jsonschema.NewFactory(s.OpenAPICollector, s.OpenAPICollector)
+	s.ResponseValidatorFactory = validatorFactory
+
+	if s.PanicRecoveryMiddleware == nil {
+		s.PanicRecoveryMiddleware = middleware.Recoverer
+	}
 
 	// Setup middlewares.
-	router.Use(
-		middleware.Recoverer,                          // Panic recovery.
-		nethttp.OpenAPIMiddleware(apiSchema),          // Documentation collector.
-		request.DecoderMiddleware(decoderFactory),     // Request decoder setup.
+	s.Wrapper.Wrap(
+		s.PanicRecoveryMiddleware,                     // Panic recovery.
+		nethttp.OpenAPIMiddleware(s.OpenAPICollector), // Documentation collector.
+		request.DecoderMiddleware(s.DecoderFactory),   // Request decoder setup.
 		request.ValidatorMiddleware(validatorFactory), // Request validator setup.
 		response.EncoderMiddleware,                    // Response encoder setup.
 	)
 
-	s := Service{
-		OpenAPI:          apiSchema.Reflector().SpecEns(),
-		OpenAPICollector: apiSchema,
-		Wrapper:          router,
-		DecoderFactory:   decoderFactory,
+	for _, option := range options {
+		option(&s, true)
 	}
 
 	return &s
@@ -54,9 +77,15 @@ func DefaultService() *Service {
 type Service struct {
 	*chirouter.Wrapper
 
-	OpenAPI          *openapi3.Spec
-	OpenAPICollector *openapi.Collector
-	DecoderFactory   *request.DecoderFactory
+	PanicRecoveryMiddleware func(handler http.Handler) http.Handler // Default is middleware.Recoverer.
+	OpenAPI                 *openapi3.Spec
+	OpenAPICollector        *openapi.Collector
+	DecoderFactory          *request.DecoderFactory
+
+	// Response validation is not enabled by default for its less justifiable performance impact.
+	// This field is populated so that response.ValidatorMiddleware(s.ResponseValidatorFactory) can be
+	// added to service via Wrap.
+	ResponseValidatorFactory rest.ResponseValidatorFactory
 }
 
 // Delete adds the route `pattern` that matches a DELETE http method to invoke use case interactor.
@@ -71,7 +100,7 @@ func (s *Service) Get(pattern string, uc usecase.Interactor, options ...func(h *
 
 // Head adds the route `pattern` that matches a HEAD http method to invoke use case interactor.
 func (s *Service) Head(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
-	s.Method(http.MethodGet, pattern, nethttp.NewHandler(uc, options...))
+	s.Method(http.MethodHead, pattern, nethttp.NewHandler(uc, options...))
 }
 
 // Options adds the route `pattern` that matches a OPTIONS http method to invoke use case interactor.

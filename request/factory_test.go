@@ -117,8 +117,9 @@ func BenchmarkDecoderFactory_SetDecoderFunc(b *testing.B) {
 
 func TestDecoderFactory_MakeDecoder_default(t *testing.T) {
 	type MyInput struct {
-		ID   int    `query:"id" default:"123"`
-		Name string `header:"X-Name" default:"foo"`
+		ID         int    `query:"id" default:"123"`
+		Name       string `header:"X-Name" default:"foo"`
+		unexported bool   `query:"unexported"` // This field is skipped because it is unexported.
 	}
 
 	df := request.NewDecoderFactory()

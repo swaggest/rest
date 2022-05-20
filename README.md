@@ -38,8 +38,11 @@ to build REST services.
 * Optimized performance.
 * Embedded [Swagger UI](https://swagger.io/tools/swagger-ui/).
 * Integration test helpers.
+* Generic interface for [use case interactors](https://pkg.go.dev/github.com/swaggest/usecase#NewInteractor). 
 
 ## Usage
+
+Please check this [tutorial](https://dev.to/vearutop/tutorial-developing-a-restful-api-with-go-json-schema-validation-and-openapi-docs-2490) for end-to-end usage example.
 
 ### Request Decoder
 
@@ -49,8 +52,15 @@ Request decoder populates field values from `http.Request` data before use case 
 ```go
 // Declare input port type.
 type helloInput struct {
-    Locale string `query:"locale" default:"en-US" pattern:"^[a-z]{2}-[A-Z]{2}$"`
+    Locale string `query:"locale" default:"en-US" pattern:"^[a-z]{2}-[A-Z]{2}$" enum:"ru-RU,en-US"`
     Name   string `path:"name" minLength:"3"` // Field tags define parameter location and JSON schema constraints.
+
+    // Field tags of unnamed fields are applied to parent schema, 
+	// they are optional and can be used to disallow unknown parameters.
+    // For non-body params, name tag must be provided explicitly.
+    // E.g. here no unknown `query` and `cookie` parameters allowed,
+    // unknown `header` params are ok.
+    _ struct{} `query:"_" cookie:"_" additionalProperties:"false"`
 }
 ```
 
@@ -63,7 +73,7 @@ Input data can be located in:
 * `header` parameter in request header.
 
 For more explicit separation of concerns between use case and transport it is possible to provide request mapping 
-separately when initializing handler.
+separately when initializing handler (please note, such mapping is [not applied](https://github.com/swaggest/rest/issues/61#issuecomment-1059851553) to `json` body).
 
 ```go
 // Declare input port type.
@@ -86,11 +96,16 @@ r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u,
 Additional field tags describe JSON schema constraints, please check 
 [documentation](https://pkg.go.dev/github.com/swaggest/jsonschema-go#Reflector.Reflect).
 
+More schema customizations are possible with [`github.com/swaggest/jsonschema-go interfaces`](https://github.com/swaggest/jsonschema-go#implementing-interfaces-on-a-type).
+
 By default `default` tags are only contributing to documentation, 
 if [`request.DecoderFactory.ApplyDefaults`](https://pkg.go.dev/github.com/swaggest/rest/request#DecoderFactory) is 
 set to `true`, fields of request structure that don't have explicit value but have `default` will be populated with 
 default value.
 
+If input structure implements [`request.Loader`](https://pkg.go.dev/github.com/swaggest/rest/request#Loader),  
+then `LoadFromHTTPRequest(r *http.Request) error` method will be invoked to populate input structure instead 
+of automatic decoding. This allows low level control for cases that need it.
 
 ### Response Encoder
 
@@ -299,7 +314,7 @@ import (
 
 	"github.com/swaggest/rest/response/gzip"
 	"github.com/swaggest/rest/web"
-	swgui "github.com/swaggest/swgui/v4"
+	swgui "github.com/swaggest/swgui/v4emb"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 )
@@ -313,7 +328,7 @@ func main() {
 	s.OpenAPI.Info.Version = "v1.2.3"
 
 	// Setup middlewares.
-	s.Use(
+	s.Wrap(
 		gzip.Middleware, // Response compression with support for direct gzip pass through.
 	)
 
@@ -321,6 +336,13 @@ func main() {
 	type helloInput struct {
 		Locale string `query:"locale" default:"en-US" pattern:"^[a-z]{2}-[A-Z]{2}$" enum:"ru-RU,en-US"`
 		Name   string `path:"name" minLength:"3"` // Field tags define parameter location and JSON schema constraints.
+
+		// Field tags of unnamed fields are applied to parent schema.
+		// they are optional and can be used to disallow unknown parameters.
+		// For non-body params, name tag must be provided explicitly.
+		// E.g. here no unknown `query` and `cookie` parameters allowed,
+		// unknown `header` params are ok.
+		_ struct{} `query:"_" cookie:"_" additionalProperties:"false"`
 	}
 
 	// Declare output port type.

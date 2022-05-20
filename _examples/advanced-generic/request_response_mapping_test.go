@@ -1,5 +1,4 @@
 //go:build go1.18
-// +build go1.18
 
 package main
 
@@ -36,7 +35,7 @@ func Test_requestResponseMapping(t *testing.T) {
 	body, err := ioutil.ReadAll(resp.Body)
 	assert.NoError(t, err)
 	assert.NoError(t, resp.Body.Close())
-	assert.Empty(t, body)
+	assert.Equal(t, "", string(body))
 
 	assert.Equal(t, "abc", resp.Header.Get("X-Value-1"))
 	assert.Equal(t, "3", resp.Header.Get("X-Value-2"))

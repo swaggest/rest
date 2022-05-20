@@ -9,7 +9,7 @@ import (
 
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/rest/web"
-	swgui "github.com/swaggest/swgui/v4"
+	swgui "github.com/swaggest/swgui/v4emb"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 	"github.com/valyala/fasthttp"
@@ -24,7 +24,7 @@ func main() {
 	s.OpenAPI.Info.Version = "v1.2.3"
 
 	// Setup middlewares.
-	s.Use(
+	s.Wrap(
 	// gzip.Middleware, // Response compression with support for direct gzip pass through.
 	)
 

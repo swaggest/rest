@@ -12,18 +12,23 @@ on:
         description: 'New Ref'
         required: true
 
+# Cancel the workflow in progress in newer build is about to start.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
 env:
   GO111MODULE: "on"
   CACHE_BENCHMARK: "off"    # Enables benchmark result reuse between runs, may skew latency results.
   RUN_BASE_BENCHMARK: "on"  # Runs benchmark for PR base in case benchmark result is missing.
-  GO_VERSION: tip
+  GO_VERSION: 1.18.x
 jobs:
   bench:
     runs-on: ubuntu-latest
     steps:
       - name: Install Go stable
         if: env.GO_VERSION != 'tip'
-        uses: actions/setup-go@v2
+        uses: actions/setup-go@v3
         with:
           go-version: ${{ env.GO_VERSION }}
       - name: Install Go tip

@@ -17,7 +17,7 @@ import (
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/request"
 	"github.com/swaggest/rest/response"
-	"github.com/swaggest/swgui/v3cdn"
+	swgui "github.com/swaggest/swgui/v4emb"
 )
 
 // NewRouter creates HTTP router.
@@ -29,7 +29,7 @@ func NewRouter(locator *service.Locator) http.Handler {
 
 	r := chirouter.NewWrapper(chi.NewRouter())
 
-	r.Use(
+	r.Wrap(
 		middleware.Recoverer, // Panic recovery.
 		nethttp.UseCaseMiddlewares(log.UseCaseMiddleware()), // Sample use case middleware.
 		nethttp.OpenAPIMiddleware(apiSchema),                // Documentation collector.
@@ -41,7 +41,7 @@ func NewRouter(locator *service.Locator) http.Handler {
 	adminAuth := middleware.BasicAuth("Admin Access", map[string]string{"admin": "admin"})
 	userAuth := middleware.BasicAuth("User Access", map[string]string{"user": "user"})
 
-	r.Use(
+	r.Wrap(
 		middleware.NoCache,
 		middleware.Timeout(time.Second),
 	)
@@ -91,7 +91,7 @@ func NewRouter(locator *service.Locator) http.Handler {
 
 	// Swagger UI endpoint at /docs.
 	r.Method(http.MethodGet, "/docs/openapi.json", apiSchema)
-	r.Mount("/docs", v3cdn.NewHandler(apiSchema.Reflector().Spec.Info.Title,
+	r.Mount("/docs", swgui.NewHandler(apiSchema.Reflector().Spec.Info.Title,
 		"/docs/openapi.json", "/docs"))
 
 	r.Mount("/debug", middleware.Profiler())

@@ -2,6 +2,43 @@
   "openapi":"3.0.3",
   "info":{"title":"Advanced Example","description":"This app showcases a variety of features.","version":"v1.2.3"},
   "paths":{
+    "/error-response":{
+      "get":{
+        "summary":"Declare Expected Errors",
+        "description":"This use case demonstrates documentation of expected errors.",
+        "operationId":"_examples/advanced.errorResponse",
+        "parameters":[
+          {
+            "name":"type","in":"query","required":true,
+            "schema":{"enum":["ok","invalid_argument","conflict"],"type":"string"}
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOkResp"}}}
+          },
+          "400":{
+            "description":"Bad Request",
+            "content":{
+              "application/json":{
+                "schema":{
+                  "anyOf":[
+                    {"$ref":"#/components/schemas/AdvancedCustomErr"},
+                    {"$ref":"#/components/schemas/AdvancedAnotherErr"},
+                    {"$ref":"#/components/schemas/AdvancedCustomErr"}
+                  ]
+                }
+              }
+            }
+          },
+          "409":{
+            "description":"Conflict",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+          }
+        },
+        "x-forbid-unknown-query":true
+      }
+    },
     "/file-multi-upload":{
       "post":{
         "summary":"Files Uploads With 'multipart/form-data'","description":"",
@@ -18,7 +55,8 @@
             "description":"OK",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInfoType2"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/file-upload":{
@@ -34,7 +72,8 @@
         "requestBody":{"content":{"multipart/form-data":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedUpload"}}}},
         "responses":{
           "200":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInfo"}}}}
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/gzip-pass-through":{
@@ -55,7 +94,8 @@
             "description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}},
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedGzipPassThroughStruct"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       },
       "head":{
         "summary":"Direct Gzip","description":"","operationId":"_examples/advanced.directGzip",
@@ -74,7 +114,8 @@
             "description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}},
             "content":{"application/json":{}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/json-body-validation/{in-path}":{
@@ -102,7 +143,8 @@
             "description":"OK",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType3"}}}
           }
-        }
+        },
+        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
       }
     },
     "/json-body/{in-path}":{
@@ -130,7 +172,8 @@
             "description":"Created",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType2"}}}
           }
-        }
+        },
+        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
       }
     },
     "/json-map-body":{
@@ -153,7 +196,8 @@
             "description":"OK",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonOutputType2"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/json-param/{in-path}":{
@@ -184,7 +228,8 @@
             "description":"OK",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSON"}}}
           }
-        }
+        },
+        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
       }
     },
     "/json-slice-body":{
@@ -206,7 +251,8 @@
             "description":"OK",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonOutput"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/no-validation":{
@@ -227,7 +273,8 @@
             },
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType3"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/output-csv-writer":{
@@ -246,7 +293,7 @@
           },
           "500":{
             "description":"Internal Server Error",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
           }
         }
       }
@@ -298,7 +345,8 @@
             "description":"OK",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputQueryObject"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/req-resp-mapping":{
@@ -363,12 +411,15 @@
             },
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType2"}}}
           }
-        }
+        },
+        "x-forbid-unknown-query":true
       }
     }
   },
   "components":{
     "schemas":{
+      "AdvancedAnotherErr":{"type":"object","properties":{"foo":{"type":"integer"}}},
+      "AdvancedCustomErr":{"type":"object","properties":{"details":{"type":"object","additionalProperties":{}},"msg":{"type":"string"}}},
       "AdvancedGzipPassThroughStruct":{
         "type":"object",
         "properties":{"id":{"type":"integer"},"text":{"type":"array","items":{"type":"string"},"nullable":true}}
@@ -397,22 +448,32 @@
         "properties":{
           "data":{
             "type":"object",
-            "properties":{"value":{"minLength":3,"type":"string","description":"Request minLength: 3, response maxLength: 7"}}
+            "properties":{"value":{"minLength":3,"type":"string","description":"Request minLength: 3, response maxLength: 7"}},
+            "additionalProperties":false
           }
-        }
+        },
+        "additionalProperties":false
       },
-      "AdvancedInputPortType3":{"type":"object","properties":{"data":{"type":"object","properties":{"value":{"type":"string"}}}}},
+      "AdvancedInputPortType3":{
+        "type":"object",
+        "properties":{"data":{"type":"object","properties":{"value":{"type":"string"}},"additionalProperties":false}},
+        "additionalProperties":false
+      },
       "AdvancedInputWithJSONType2":{
         "type":"object",
         "properties":{
           "id":{"type":"integer"},"name":{"type":"string"},
           "namedStruct":{"allOf":[{"deprecated":true},{"$ref":"#/components/schemas/AdvancedJSONPayloadType2"}]}
-        }
+        },
+        "additionalProperties":false
       },
-      "AdvancedInputWithJSONType3":{"type":"object","properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}}},
+      "AdvancedInputWithJSONType3":{
+        "type":"object","properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}},
+        "additionalProperties":false
+      },
       "AdvancedJSONMapPayload":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
-      "AdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}}},
-      "AdvancedJSONPayloadType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}}},
+      "AdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
+      "AdvancedJSONPayloadType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONSlicePayload":{"type":"array","items":{"type":"integer"},"nullable":true},
       "AdvancedJsonMapReq":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
       "AdvancedJsonOutput":{
@@ -430,6 +491,7 @@
         }
       },
       "AdvancedJsonSliceReq":{"type":"array","items":{"type":"integer"},"nullable":true},
+      "AdvancedOkResp":{"type":"object","properties":{"status":{"type":"string"}}},
       "AdvancedOutputPortType2":{
         "required":["data"],"type":"object",
         "properties":{"data":{"type":"object","properties":{"value":{"maxLength":7,"type":"string"}}}}
@@ -463,7 +525,8 @@
       },
       "FormDataAdvancedInputPort":{
         "required":["val2"],"type":"object",
-        "properties":{"val2":{"minimum":3,"type":"integer","description":"Simple scalar value with sample validation."}}
+        "properties":{"val2":{"minimum":3,"type":"integer","description":"Simple scalar value with sample validation."}},
+        "additionalProperties":false
       },
       "FormDataAdvancedUpload":{
         "type":"object",
@@ -471,7 +534,8 @@
           "simple":{"type":"string","description":"Simple scalar value in body."},
           "upload1":{"$ref":"#/components/schemas/FormDataMultipartFileHeader"},
           "upload2":{"$ref":"#/components/schemas/FormDataMultipartFile"}
-        }
+        },
+        "additionalProperties":false
       },
       "FormDataAdvancedUploadType2":{
         "type":"object",
@@ -485,19 +549,11 @@
             "type":"array","items":{"$ref":"#/components/schemas/FormDataMultipartFile"},
             "description":"Uploads with multipart.File.","nullable":true
           }
-        }
+        },
+        "additionalProperties":false
       },
       "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
       "FormDataMultipartFileHeader":{"type":"string","format":"binary","nullable":true},
-      "RestErrResponse":{
-        "type":"object",
-        "properties":{
-          "code":{"type":"integer","description":"Application-specific error code."},
-          "context":{"type":"object","additionalProperties":{},"description":"Application context."},
-          "error":{"type":"string","description":"Error message."},
-          "status":{"type":"string","description":"Status text."}
-        }
-      },
       "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}},"nullable":true}
     }
   }

@@ -10,6 +10,13 @@ import (
 )
 
 type (
+	// Loader loads data from http.Request.
+	//
+	// Implement this interface on a pointer to your input structure to disable automatic request mapping.
+	Loader interface {
+		LoadFromFastHTTPRequest(rc *fasthttp.RequestCtx) error
+	}
+
 	decoderFunc      func(rc *fasthttp.RequestCtx) (url.Values, error)
 	valueDecoderFunc func(rc *fasthttp.RequestCtx, v interface{}, validator rest.Validator) error
 )
@@ -20,6 +27,22 @@ func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamI
 	err := d.Decode(v, p, goValues)
 	if err != nil {
 		return err
+	}
+
+	if len(p) > len(goValues) {
+		for k := range p {
+			if _, exists := goValues[k]; !exists {
+				pk := p[k]
+				switch len(pk) {
+				case 0:
+					goValues[k] = nil
+				case 1:
+					goValues[k] = p[k][0]
+				default:
+					goValues[k] = p[k]
+				}
+			}
+		}
 	}
 
 	return val.ValidateData(in, goValues)
@@ -50,6 +73,9 @@ var _ nethttp.RequestDecoder = &decoder{}
 
 // Decode populates and validates input with data from http request.
 func (d *decoder) Decode(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
+	if i, ok := input.(Loader); ok {
+		return i.LoadFromFastHTTPRequest(rc)
+	}
 	for i, decode := range d.decoders {
 		err := decode(rc, input, validator)
 		if err != nil {

@@ -1,7 +1,9 @@
 package openapi_test
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -185,4 +187,90 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 		},
 	}
 	assert.NoError(t, collector.ProvideRequestJSONSchemas(http.MethodPost, new(input), mapping, val))
+}
+
+// anotherErr is another custom error.
+type anotherErr struct {
+	Foo int `json:"foo"`
+}
+
+func (anotherErr) Error() string {
+	return "foo happened"
+}
+
+func TestCollector_Collect_CombineErrors(t *testing.T) {
+	u := usecase.IOInteractor{}
+
+	u.SetTitle("Title")
+	u.SetName("name")
+	u.SetExpectedErrors(status.InvalidArgument, anotherErr{}, status.FailedPrecondition, status.AlreadyExists)
+
+	h := rest.HandlerTrait{}
+	h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
+		code, er := rest.Err(err)
+
+		var ae anotherErr
+
+		if errors.As(err, &ae) {
+			return http.StatusBadRequest, ae
+		}
+
+		return code, er
+	}
+
+	collector := openapi.Collector{}
+	collector.CombineErrors = "oneOf"
+
+	require.NoError(t, collector.Collect(http.MethodPost, "/test", u, h))
+
+	assertjson.EqualMarshal(t, []byte(`{
+	  "openapi":"3.0.3","info":{"title":"","version":""},
+	  "paths":{
+		"/test":{
+		  "post":{
+			"summary":"Title","description":"","operationId":"name",
+			"responses":{
+			  "204":{"description":"No Content"},
+			  "400":{
+				"description":"Bad Request",
+				"content":{
+				  "application/json":{
+					"schema":{
+					  "oneOf":[
+						{"$ref":"#/components/schemas/RestErrResponse"},
+						{"$ref":"#/components/schemas/OpenapiTestAnotherErr"},
+						{"$ref":"#/components/schemas/RestErrResponse"}
+					  ]
+					}
+				  }
+				}
+			  },
+			  "409":{
+				"description":"Conflict",
+				"content":{
+				  "application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}
+				}
+			  }
+			}
+		  }
+		}
+	  },
+	  "components":{
+		"schemas":{
+		  "OpenapiTestAnotherErr":{"type":"object","properties":{"foo":{"type":"integer"}}},
+		  "RestErrResponse":{
+			"type":"object",
+			"properties":{
+			  "code":{"type":"integer","description":"Application-specific error code."},
+			  "context":{
+				"type":"object","additionalProperties":{},
+				"description":"Application context."
+			  },
+			  "error":{"type":"string","description":"Error message."},
+			  "status":{"type":"string","description":"Status text."}
+			}
+		  }
+		}
+	  }
+	}`), collector.Reflector().SpecEns())
 }

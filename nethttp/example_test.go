@@ -22,7 +22,7 @@ func ExampleSecurityMiddleware() {
 	apiSchema := &openapi.Collector{}
 
 	// Setup middlewares (non-documentary middlewares omitted for brevity).
-	r.Use(
+	r.Wrap(
 		nethttp.OpenAPIMiddleware(apiSchema), // Documentation collector.
 	)
 
