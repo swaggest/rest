@@ -100,7 +100,6 @@ type gzipResponseWriter struct {
 	http.ResponseWriter
 	gzipWriter *gzip.Writer
 	bufWriter  *bufio.Writer
-	statusCode int
 
 	expectCompressedBytes bool
 	headersWritten        bool
@@ -155,7 +154,6 @@ func (rw *gzipResponseWriter) writeHeader(statusCode int) {
 
 	rw.ResponseWriter.WriteHeader(statusCode)
 	rw.headersWritten = true
-	rw.statusCode = statusCode
 }
 
 func (rw *gzipResponseWriter) Write(p []byte) (int, error) {
