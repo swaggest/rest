@@ -4,17 +4,17 @@ import (
 	"context"
 	"errors"
 	"net/http"
-	"net/http/httptest"
-	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/request"
 	"github.com/swaggest/rest/response"
 	"github.com/swaggest/usecase"
+	"github.com/valyala/fasthttp"
 )
 
 type Input struct {
@@ -50,8 +50,8 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		return nil
 	})
 
-	req, err := http.NewRequest(http.MethodGet, "/test", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/test")
 
 	validatorCalled := false
 	h := nethttp.NewHandler(u,
@@ -69,8 +69,8 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	h.SetResponseEncoder(&response.Encoder{})
 
 	h.SetRequestDecoder(request.DecoderFunc(
-		func(r *http.Request, input interface{}, validator rest.Validator) error {
-			assert.Equal(t, req, r)
+		func(r *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
+			assert.Equal(t, rc, r)
 			in, ok := input.(*Input)
 			require.True(t, ok)
 			require.NotNil(t, in)
@@ -94,11 +94,10 @@ func TestHandler_ServeHTTP(t *testing.T) {
 		})
 	}))(h)
 
-	rw := httptest.NewRecorder()
-	hh.ServeHTTP(rw, req)
+	hh.ServeHTTP(rc, rc)
 
-	assert.Equal(t, http.StatusAccepted, rw.Code)
-	assert.Equal(t, `{"value":"abc"}`+"\n", rw.Body.String())
+	assert.Equal(t, http.StatusAccepted, rc.Response.StatusCode())
+	assert.Equal(t, `{"value":"abc"}`+"\n", string(rc.Response.Body()))
 	assert.True(t, validatorCalled)
 	assert.True(t, umwCalled)
 }
@@ -119,12 +118,12 @@ func TestHandler_ServeHTTP_decodeErr(t *testing.T) {
 		return nil
 	})
 
-	req, err := http.NewRequest(http.MethodGet, "/test", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/test")
 
 	uh := nethttp.NewHandler(u)
 	uh.SetRequestDecoder(request.DecoderFunc(
-		func(r *http.Request, input interface{}, validator rest.Validator) error {
+		func(r *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
 			return errors.New("failed to decode request")
 		},
 	))
@@ -139,12 +138,11 @@ func TestHandler_ServeHTTP_decodeErr(t *testing.T) {
 		})
 	}))(uh)
 
-	rw := httptest.NewRecorder()
-	h.ServeHTTP(rw, req)
+	h.ServeHTTP(rc, rc)
 
-	assert.Equal(t, http.StatusBadRequest, rw.Code)
+	assert.Equal(t, http.StatusBadRequest, rc.Response.StatusCode())
 	assert.Equal(t, `{"status":"INVALID_ARGUMENT","error":"invalid argument: failed to decode request"}`+"\n",
-		rw.Body.String())
+		string(rc.Response.Body()))
 	assert.True(t, umwCalled)
 }
 
@@ -163,14 +161,13 @@ func TestHandler_ServeHTTP_emptyPorts(t *testing.T) {
 	h := nethttp.NewHandler(u)
 	h.SetResponseEncoder(&response.Encoder{})
 
-	req, err := http.NewRequest(http.MethodGet, "/test", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/test")
 
-	rw := httptest.NewRecorder()
-	h.ServeHTTP(rw, req)
+	h.ServeHTTP(rc, rc)
 
-	assert.Equal(t, http.StatusNoContent, rw.Code)
-	assert.Equal(t, "", rw.Body.String())
+	assert.Equal(t, http.StatusNoContent, rc.Response.StatusCode())
+	assert.Equal(t, "", string(rc.Response.Body()))
 }
 
 func TestHandler_ServeHTTP_customErrResp(t *testing.T) {
@@ -196,21 +193,20 @@ func TestHandler_ServeHTTP_customErrResp(t *testing.T) {
 	}
 	h.SetResponseEncoder(&response.Encoder{})
 
-	req, err := http.NewRequest(http.MethodGet, "/test", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/test")
 
-	rw := httptest.NewRecorder()
-	h.ServeHTTP(rw, req)
+	h.ServeHTTP(rc, rc)
 
-	assert.Equal(t, http.StatusExpectationFailed, rw.Code)
-	assert.Equal(t, `{"custom":"use case failed"}`+"\n", rw.Body.String())
+	assert.Equal(t, http.StatusExpectationFailed, rc.Response.StatusCode())
+	assert.Equal(t, `{"custom":"use case failed"}`+"\n", string(rc.Response.Body()))
 }
 
 func TestHandlerWithRouteMiddleware(t *testing.T) {
 	called := false
 
-	var h http.Handler
-	h = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+	var h fchi.Handler
+	h = fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
 		called = true
 	})
 
@@ -252,14 +248,14 @@ func TestHandler_ServeHTTP_getWithBody(t *testing.T) {
 	h.SetRequestDecoder(request.NewDecoderFactory().MakeDecoder(http.MethodGet, new(reqWithBody), nil))
 	h.SetResponseEncoder(&response.Encoder{})
 
-	req, err := http.NewRequest(http.MethodGet, "/test", strings.NewReader(`{"id":123}`))
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/test")
+	rc.Request.SetBody([]byte(`{"id":123}`))
 
-	rw := httptest.NewRecorder()
-	h.ServeHTTP(rw, req)
+	h.ServeHTTP(rc, rc)
 
-	assert.Equal(t, http.StatusNoContent, rw.Code)
-	assert.Equal(t, ``, rw.Body.String())
+	assert.Equal(t, http.StatusNoContent, rc.Response.StatusCode())
+	assert.Equal(t, ``, string(rc.Response.Body()))
 }
 
 func TestHandler_ServeHTTP_customMapping(t *testing.T) {
@@ -289,14 +285,13 @@ func TestHandler_ServeHTTP_customMapping(t *testing.T) {
 		response.EncoderMiddleware,
 	)
 
-	req, err := http.NewRequest(http.MethodGet, "/test?ident=123", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/test?ident=123")
 
-	rw := httptest.NewRecorder()
-	h.ServeHTTP(rw, req)
+	h.ServeHTTP(rc, rc)
 
-	assert.Equal(t, http.StatusNoContent, rw.Code)
-	assert.Equal(t, "", rw.Body.String())
+	assert.Equal(t, http.StatusNoContent, rc.Response.StatusCode())
+	assert.Equal(t, "", string(rc.Response.Body()))
 }
 
 func TestOptionsMiddleware(t *testing.T) {
@@ -314,21 +309,20 @@ func TestOptionsMiddleware(t *testing.T) {
 
 	var loggedErr error
 
-	rw := httptest.NewRecorder()
-	req, err := http.NewRequest(http.MethodGet, "/", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
 
 	oh := nethttp.OptionsMiddleware(func(h *nethttp.Handler) {
 		handleErrResponse := h.HandleErrResponse
-		h.HandleErrResponse = func(w http.ResponseWriter, r *http.Request, err error) {
-			assert.Equal(t, req, r)
+		h.HandleErrResponse = func(ctx context.Context, r *fasthttp.RequestCtx, err error) {
+			assert.Equal(t, rc, r)
 			loggedErr = err
-			handleErrResponse(w, r, err)
+			handleErrResponse(ctx, r, err)
 		}
 	})(h)
 
-	oh.ServeHTTP(rw, req)
+	oh.ServeHTTP(rc, rc)
 
 	assert.EqualError(t, loggedErr, "failed")
-	assert.Equal(t, `{"foo":"failed"}`+"\n", rw.Body.String())
+	assert.Equal(t, `{"foo":"failed"}`+"\n", string(rc.Response.Body()))
 }

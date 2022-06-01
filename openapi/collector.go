@@ -508,7 +508,7 @@ func (c *Collector) ProvideResponseJSONSchemas(
 	return nil
 }
 
-func (c *Collector) ServeHTTP(ctx context.Context, rc *fasthttp.RequestCtx) {
+func (c *Collector) ServeHTTP(_ context.Context, rc *fasthttp.RequestCtx) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
@@ -519,7 +519,7 @@ func (c *Collector) ServeHTTP(ctx context.Context, rc *fasthttp.RequestCtx) {
 
 	rc.Response.Header.Set("Content-Type", "application/json; charset=utf8")
 
-	_, err = rc.Response.BodyWriter().Write(document)
+	_, err = rc.Write(document)
 	if err != nil {
 		fchi.Error(rc, err.Error(), http.StatusInternalServerError)
 	}

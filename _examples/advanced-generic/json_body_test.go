@@ -4,10 +4,10 @@ package main
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/bool64/httptestbench"
+	"github.com/swaggest/fchi"
 	"github.com/valyala/fasthttp"
 )
 
@@ -16,7 +16,7 @@ import (
 func Benchmark_jsonBody(b *testing.B) {
 	r := NewRouter()
 
-	srv := httptest.NewServer(r)
+	srv := fchi.NewTestServer(r)
 	defer srv.Close()
 
 	httptestbench.RoundTrip(b, 50, func(i int, req *fasthttp.Request) {

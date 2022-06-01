@@ -1,12 +1,14 @@
 package graceful
 
 import (
-	"context"
-	"net/http"
+	"fmt"
+	"time"
+
+	"github.com/valyala/fasthttp"
 )
 
-// WaitToShutdownHTTP synchronously waits for shutdown signal and shutdowns http server.
-func (s *Shutdown) WaitToShutdownHTTP(server *http.Server, subscriber string) error {
+// WaitToShutdownFastHTTP synchronously waits for shutdown signal and shutdowns fasthttp server.
+func (s *Shutdown) WaitToShutdownFastHTTP(server *fasthttp.Server, subscriber string) error {
 	shutdown, done := s.ShutdownSignal(subscriber)
 
 	<-shutdown
@@ -19,12 +21,18 @@ func (s *Shutdown) WaitToShutdownHTTP(server *http.Server, subscriber string) er
 		timeout = DefaultTimeout
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
-	defer cancel()
+	fs := make(chan error)
 
-	err := server.Shutdown(ctx)
+	go func() {
+		fs <- server.Shutdown()
+	}()
 
-	close(done)
-
-	return err
+	select {
+	case <-time.After(timeout):
+		close(done)
+		return fmt.Errorf("failed to gracefully shutdown fasthttp server in %s", timeout.String())
+	case err := <-fs:
+		close(done)
+		return err
+	}
 }

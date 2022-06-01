@@ -2,7 +2,6 @@ package response_test
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -11,6 +10,7 @@ import (
 	"github.com/swaggest/rest/jsonschema"
 	"github.com/swaggest/rest/response"
 	"github.com/swaggest/usecase"
+	"github.com/valyala/fasthttp"
 )
 
 func TestEncoder_SetupOutput(t *testing.T) {
@@ -37,11 +37,10 @@ func TestEncoder_SetupOutput(t *testing.T) {
 
 	e.SetupOutput(new(outputPort), &ht)
 
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
 
-	w := httptest.NewRecorder()
-	output := e.MakeOutput(w, ht)
+	output := e.MakeOutput(rc, ht)
 
 	out, ok := output.(*outputPort)
 	assert.True(t, ok)
@@ -49,31 +48,31 @@ func TestEncoder_SetupOutput(t *testing.T) {
 	out.Name = "Jane"
 	out.Items = []string{"one", "two", "three"}
 
-	e.WriteSuccessfulResponse(w, r, output, ht)
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, "Jane", w.Header().Get("X-Name"))
-	assert.Equal(t, "application/x-vnd-json", w.Header().Get("Content-Type"))
-	assert.Equal(t, "32", w.Header().Get("Content-Length"))
-	assert.Equal(t, `{"items":["one","two","three"]}`+"\n", w.Body.String())
+	e.WriteSuccessfulResponse(rc, output, ht)
+	assert.Equal(t, http.StatusOK, rc.Response.StatusCode())
+	assert.Equal(t, "Jane", string(rc.Response.Header.Peek("X-Name")))
+	assert.Equal(t, "application/x-vnd-json", string(rc.Response.Header.Peek("Content-Type")))
+	assert.Equal(t, "32", string(rc.Response.Header.Peek("Content-Length")))
+	assert.Equal(t, `{"items":["one","two","three"]}`+"\n", string(rc.Response.Body()))
 
-	w = httptest.NewRecorder()
-	e.WriteErrResponse(w, r, http.StatusExpectationFailed, rest.ErrResponse{
+	rc.Response = fasthttp.Response{}
+	e.WriteErrResponse(rc, http.StatusExpectationFailed, rest.ErrResponse{
 		ErrorText: "failed",
 	})
-	assert.Equal(t, http.StatusExpectationFailed, w.Code)
-	assert.Equal(t, "application/json; charset=utf-8", w.Header().Get("Content-Type"))
-	assert.Equal(t, "19", w.Header().Get("Content-Length"))
-	assert.Equal(t, `{"error":"failed"}`+"\n", w.Body.String())
+	assert.Equal(t, http.StatusExpectationFailed, rc.Response.StatusCode())
+	assert.Equal(t, "application/json; charset=utf-8", string(rc.Response.Header.Peek("Content-Type")))
+	assert.Equal(t, "19", string(rc.Response.Header.Peek("Content-Length")))
+	assert.Equal(t, `{"error":"failed"}`+"\n", string(rc.Response.Body()))
 
 	out.Name = "Ja"
-	w = httptest.NewRecorder()
-	e.WriteSuccessfulResponse(w, r, output, ht)
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
-	assert.Equal(t, "", w.Header().Get("X-Name"))
-	assert.Equal(t, "application/json; charset=utf-8", w.Header().Get("Content-Type"))
-	assert.Equal(t, "140", w.Header().Get("Content-Length"))
+	rc.Response = fasthttp.Response{}
+	e.WriteSuccessfulResponse(rc, output, ht)
+	assert.Equal(t, http.StatusInternalServerError, rc.Response.StatusCode())
+	assert.Equal(t, "", string(rc.Response.Header.Peek("X-Name")))
+	assert.Equal(t, "application/json; charset=utf-8", string(rc.Response.Header.Peek("Content-Type")))
+	assert.Equal(t, "140", string(rc.Response.Header.Peek("Content-Length")))
 	assert.Equal(t, `{"status":"INTERNAL","error":"internal: bad response: validation failed",`+
-		`"context":{"header:X-Name":["#: length must be >= 3, but got 2"]}}`+"\n", w.Body.String())
+		`"context":{"header:X-Name":["#: length must be >= 3, but got 2"]}}`+"\n", string(rc.Response.Body()))
 }
 
 func TestEncoder_SetupOutput_withWriter(t *testing.T) {
@@ -90,25 +89,24 @@ func TestEncoder_SetupOutput_withWriter(t *testing.T) {
 
 	e.SetupOutput(new(outputPort), &ht)
 
-	w := httptest.NewRecorder()
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
 
-	output := e.MakeOutput(w, ht)
+	output := e.MakeOutput(rc, ht)
 
 	out, ok := output.(*outputPort)
 	assert.True(t, ok)
 
 	out.Name = "Jane"
 
-	_, err = out.Write([]byte("1,2,3"))
+	_, err := out.Write([]byte("1,2,3"))
 	require.NoError(t, err)
 
-	e.WriteSuccessfulResponse(w, r, output, ht)
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, "application/x-vnd-foo", w.Header().Get("Content-Type"))
-	assert.Equal(t, "1,2,3", w.Body.String())
-	assert.Equal(t, "Jane", w.Header().Get("X-Name"))
+	e.WriteSuccessfulResponse(rc, output, ht)
+	assert.Equal(t, http.StatusOK, rc.Response.StatusCode())
+	assert.Equal(t, "application/x-vnd-foo", string(rc.Response.Header.Peek("Content-Type")))
+	assert.Equal(t, "1,2,3", string(rc.Response.Body()))
+	assert.Equal(t, "Jane", string(rc.Response.Header.Peek("X-Name")))
 }
 
 func TestEncoder_SetupOutput_withWriterContentType(t *testing.T) {
@@ -124,22 +122,21 @@ func TestEncoder_SetupOutput_withWriterContentType(t *testing.T) {
 
 	e.SetupOutput(new(outputPort), &ht)
 
-	w := httptest.NewRecorder()
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
 
-	output := e.MakeOutput(w, ht)
+	output := e.MakeOutput(rc, ht)
 
 	out, ok := output.(*outputPort)
 	assert.True(t, ok)
 
-	_, err = out.Write([]byte("1,2,3"))
+	_, err := out.Write([]byte("1,2,3"))
 	require.NoError(t, err)
 
-	e.WriteSuccessfulResponse(w, r, output, ht)
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, "application/x-vnd-foo", w.Header().Get("Content-Type"))
-	assert.Equal(t, "1,2,3", w.Body.String())
+	e.WriteSuccessfulResponse(rc, output, ht)
+	assert.Equal(t, http.StatusOK, rc.Response.StatusCode())
+	assert.Equal(t, "application/x-vnd-foo", string(rc.Response.Header.Peek("Content-Type")))
+	assert.Equal(t, "1,2,3", string(rc.Response.Body()))
 }
 
 func TestEncoder_SetupOutput_nonPtr(t *testing.T) {
@@ -166,11 +163,10 @@ func TestEncoder_SetupOutput_nonPtr(t *testing.T) {
 
 	e.SetupOutput(outputPort{}, &ht)
 
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
 
-	w := httptest.NewRecorder()
-	output := e.MakeOutput(w, ht)
+	output := e.MakeOutput(rc, ht)
 
 	out, ok := output.(*outputPort)
 	assert.True(t, ok)
@@ -178,10 +174,10 @@ func TestEncoder_SetupOutput_nonPtr(t *testing.T) {
 	out.Name = "Jane"
 	out.Items = []string{"one", "two", "three"}
 
-	e.WriteSuccessfulResponse(w, r, output, ht)
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, "Jane", w.Header().Get("X-Name"))
-	assert.Equal(t, "application/x-vnd-json", w.Header().Get("Content-Type"))
-	assert.Equal(t, "32", w.Header().Get("Content-Length"))
-	assert.Equal(t, `{"items":["one","two","three"]}`+"\n", w.Body.String())
+	e.WriteSuccessfulResponse(rc, output, ht)
+	assert.Equal(t, http.StatusOK, rc.Response.StatusCode())
+	assert.Equal(t, "Jane", string(rc.Response.Header.Peek("X-Name")))
+	assert.Equal(t, "application/x-vnd-json", string(rc.Response.Header.Peek("Content-Type")))
+	assert.Equal(t, "32", string(rc.Response.Header.Peek("Content-Length")))
+	assert.Equal(t, `{"items":["one","two","three"]}`+"\n", string(rc.Response.Body()))
 }

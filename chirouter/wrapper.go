@@ -108,47 +108,47 @@ func (r *Wrapper) Method(method, pattern string, h fchi.Handler) {
 	r.Router.Method(method, pattern, h)
 }
 
-// Connect adds the route `pattern` that matches a CONNECT http method to execute the `h` HandlerFunc.
+// Connect adds the route `pattern` that matches a CONNECT http method to execute the `h` fchi.Handler.
 func (r *Wrapper) Connect(pattern string, h fchi.Handler) {
 	r.Method(http.MethodConnect, pattern, h)
 }
 
-// Delete adds the route `pattern` that matches a DELETE http method to execute the `h` http.HandlerFunc.
+// Delete adds the route `pattern` that matches a DELETE http method to execute the `h` fchi.Handler.
 func (r *Wrapper) Delete(pattern string, h fchi.Handler) {
 	r.Method(http.MethodDelete, pattern, h)
 }
 
-// Get adds the route `pattern` that matches a GET http method to execute the `h` HandlerFunc.
+// Get adds the route `pattern` that matches a GET http method to execute the `h` fchi.Handler.
 func (r *Wrapper) Get(pattern string, h fchi.Handler) {
 	r.Method(http.MethodGet, pattern, h)
 }
 
-// Head adds the route `pattern` that matches a HEAD http method to execute the `h` HandlerFunc.
+// Head adds the route `pattern` that matches a HEAD http method to execute the `h` fchi.Handler.
 func (r *Wrapper) Head(pattern string, h fchi.Handler) {
 	r.Method(http.MethodHead, pattern, h)
 }
 
-// Options adds the route `pattern` that matches a OPTIONS http method to execute the `h` http.HandlerFunc.
+// Options adds the route `pattern` that matches a OPTIONS http method to execute the `h` fchi.Handler.
 func (r *Wrapper) Options(pattern string, h fchi.Handler) {
 	r.Method(http.MethodOptions, pattern, h)
 }
 
-// Patch adds the route `pattern` that matches a PATCH http method to execute the `h` HandlerFunc.
+// Patch adds the route `pattern` that matches a PATCH http method to execute the `h` fchi.Handler.
 func (r *Wrapper) Patch(pattern string, h fchi.Handler) {
 	r.Method(http.MethodPatch, pattern, h)
 }
 
-// Post adds the route `pattern` that matches a POST http method to execute the `h` HandlerFunc.
+// Post adds the route `pattern` that matches a POST http method to execute the `h` fchi.Handler.
 func (r *Wrapper) Post(pattern string, h fchi.Handler) {
 	r.Method(http.MethodPost, pattern, h)
 }
 
-// Put adds the route `pattern` that matches a PUT http method to execute the `h` HandlerFunc.
+// Put adds the route `pattern` that matches a PUT http method to execute the `h` fchi.Handler.
 func (r *Wrapper) Put(pattern string, h fchi.Handler) {
 	r.Method(http.MethodPut, pattern, h)
 }
 
-// Trace adds the route `pattern` that matches a TRACE http method to execute the `h` HandlerFunc.
+// Trace adds the route `pattern` that matches a TRACE http method to execute the `h` fchi.Handler.
 func (r *Wrapper) Trace(pattern string, h fchi.Handler) {
 	r.Method(http.MethodTrace, pattern, h)
 }
@@ -157,7 +157,7 @@ func (r *Wrapper) resolvePattern(pattern string) string {
 	return r.basePattern + strings.ReplaceAll(pattern, "/*/", "/")
 }
 
-func (r *Wrapper) captureHandler(h http.Handler) {
+func (r *Wrapper) captureHandler(h fchi.Handler) {
 	nethttp.WrapHandler(h, r.middlewares...)
 }
 

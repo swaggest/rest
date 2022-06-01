@@ -1,7 +1,6 @@
 package jsonschema_test
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"testing"
@@ -12,6 +11,7 @@ import (
 	"github.com/swaggest/rest/jsonschema"
 	"github.com/swaggest/rest/openapi"
 	"github.com/swaggest/rest/request"
+	"github.com/valyala/fasthttp"
 )
 
 // BenchmarkRequestValidator_ValidateRequestData-4   	  634356	      1761 ns/op	    2496 B/op	       8 allocs/op.
@@ -103,9 +103,8 @@ func TestNullableTime(t *testing.T) {
 }
 
 func TestValidator_ForbidUnknownParams(t *testing.T) {
-	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet,
-		"/?foo=bar&baz=1", nil)
-	assert.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/?foo=bar&baz=1")
 
 	type input struct {
 		Foo string `query:"foo"`
@@ -119,7 +118,7 @@ func TestValidator_ForbidUnknownParams(t *testing.T) {
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodGet, in, nil)
 
-	err = dec.Decode(req, in, validator)
+	err := dec.Decode(rc, in, validator)
 	assert.Equal(t, rest.ValidationErrors{"query:baz": []string{"unknown parameter with value 1"}}, err,
 		fmt.Sprintf("%#v", err))
 }

@@ -1,44 +1,46 @@
 package nethttp_test
 
 import (
-	"net/http"
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/rest/nethttp"
+	"github.com/valyala/fasthttp"
 )
 
 func TestWrapHandler(t *testing.T) {
 	var flow []string
 
 	h := nethttp.WrapHandler(
-		http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
 			flow = append(flow, "handler")
 		}),
-		func(handler http.Handler) http.Handler {
+		func(handler fchi.Handler) fchi.Handler {
 			flow = append(flow, "mw1 registered")
 
-			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			return fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
 				flow = append(flow, "mw1 before")
-				handler.ServeHTTP(writer, request)
+				handler.ServeHTTP(ctx, rc)
 				flow = append(flow, "mw1 after")
 			})
 		},
-		func(handler http.Handler) http.Handler {
+		func(handler fchi.Handler) fchi.Handler {
 			flow = append(flow, "mw2 registered")
 
-			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			return fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
 				flow = append(flow, "mw2 before")
-				handler.ServeHTTP(writer, request)
+				handler.ServeHTTP(ctx, rc)
 				flow = append(flow, "mw2 after")
 			})
 		},
-		func(handler http.Handler) http.Handler {
+		func(handler fchi.Handler) fchi.Handler {
 			flow = append(flow, "mw3 registered")
 
-			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			return fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
 				flow = append(flow, "mw3 before")
-				handler.ServeHTTP(writer, request)
+				handler.ServeHTTP(ctx, rc)
 				flow = append(flow, "mw3 after")
 			})
 		},

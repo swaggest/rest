@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/swaggest/fchi"
+	"github.com/swaggest/rest/response/gzip"
 	"github.com/swaggest/rest/web"
 	swgui "github.com/swaggest/swgui/v4emb"
 	"github.com/swaggest/usecase"
@@ -25,7 +26,7 @@ func main() {
 
 	// Setup middlewares.
 	s.Wrap(
-	// gzip.Middleware, // Response compression with support for direct gzip pass through.
+		gzip.Middleware, // Response compression with support for direct gzip pass through.
 	)
 
 	// Declare input port type.

@@ -39,7 +39,7 @@ func DefaultService(options ...func(s *Service, initialized bool)) *Service {
 	}
 
 	if s.Wrapper == nil {
-		s.Wrapper =  chirouter.NewWrapper(fchi.NewRouter())
+		s.Wrapper = chirouter.NewWrapper(fchi.NewRouter())
 	}
 
 	if s.DecoderFactory == nil {
@@ -77,7 +77,7 @@ func DefaultService(options ...func(s *Service, initialized bool)) *Service {
 type Service struct {
 	*chirouter.Wrapper
 
-	PanicRecoveryMiddleware func(handler http.Handler) http.Handler // Default is middleware.Recoverer.
+	PanicRecoveryMiddleware func(handler fchi.Handler) fchi.Handler // Default is middleware.Recoverer.
 	OpenAPI                 *openapi3.Spec
 	OpenAPICollector        *openapi.Collector
 	DecoderFactory          *request.DecoderFactory

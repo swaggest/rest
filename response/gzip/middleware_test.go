@@ -3,62 +3,64 @@ package gzip_test
 import (
 	"bytes"
 	gz "compress/gzip"
+	"context"
 	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
 	"strings"
 	"sync"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/swaggest/fchi"
 	gzip2 "github.com/swaggest/rest/gzip"
 	"github.com/swaggest/rest/response/gzip"
+	"github.com/valyala/fasthttp"
 )
 
 func TestMiddleware(t *testing.T) {
 	resp := []byte(strings.Repeat("A", 10000) + "!!!")
-	h := gzip.Middleware(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		_, err := rw.Write(resp)
+	h := gzip.Middleware(fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
+		_, err := rc.Write(resp)
 		assert.NoError(t, err)
 	}))
 
-	rw := httptest.NewRecorder()
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
+	rc.Request.Header.Set("Accept-Encoding", "gzip, deflate, br")
 
-	require.NoError(t, err)
-	r.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	h.ServeHTTP(rc, rc)
 
-	h.ServeHTTP(rw, r)
+	assert.Equal(t, "gzip", string(rc.Response.Header.Peek("Content-Encoding")))
+	assert.Less(t, len(rc.Response.Body()), len(resp)) // Response is compressed.
+	assert.Equal(t, resp, gzipDecode(t, rc.Response.Body()))
 
-	assert.Equal(t, "gzip", rw.Header().Get("Content-Encoding"))
-	assert.Less(t, rw.Body.Len(), len(resp)) // Response is compressed.
-	assert.Equal(t, resp, gzipDecode(t, rw.Body.Bytes()))
+	rc = &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
+	rc.Request.Header.Set("Accept-Encoding", "gzip, deflate, br")
 
-	rw = httptest.NewRecorder()
-	h.ServeHTTP(rw, r)
+	h.ServeHTTP(rc, rc)
 
-	assert.Equal(t, "gzip", rw.Header().Get("Content-Encoding"))
-	assert.Less(t, rw.Body.Len(), len(resp)) // Response is compressed.
-	assert.Equal(t, resp, gzipDecode(t, rw.Body.Bytes()))
+	assert.Equal(t, "gzip", string(rc.Response.Header.Peek("Content-Encoding")))
+	assert.Less(t, len(rc.Response.Body()), len(resp)) // Response is compressed.
+	assert.Equal(t, resp, gzipDecode(t, rc.Response.Body()))
 
-	rw = httptest.NewRecorder()
+	rc = &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
+	rc.Request.Header.Set("Accept-Encoding", "br")
+	h.ServeHTTP(rc, rc)
 
-	r.Header.Set("Accept-Encoding", "deflate, br")
-	h.ServeHTTP(rw, r)
+	assert.Equal(t, "", string(rc.Response.Header.Peek("Content-Encoding")))
+	require.Equal(t, len(rc.Response.Body()), len(resp)) // Response is not compressed.
+	assert.Equal(t, resp, rc.Response.Body())
 
-	assert.Equal(t, "", rw.Header().Get("Content-Encoding"))
-	assert.Equal(t, rw.Body.Len(), len(resp)) // Response is not compressed.
-	assert.Equal(t, resp, rw.Body.Bytes())
+	rc = &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
+	h.ServeHTTP(rc, rc)
 
-	rw = httptest.NewRecorder()
-
-	r.Header.Del("Accept-Encoding")
-	h.ServeHTTP(rw, r)
-
-	assert.Equal(t, "", rw.Header().Get("Content-Encoding"))
-	assert.Equal(t, rw.Body.Len(), len(resp)) // Response is not compressed.
-	assert.Equal(t, resp, rw.Body.Bytes())
+	assert.Equal(t, "", string(rc.Response.Header.Peek("Content-Encoding")))
+	require.Equal(t, len(rc.Response.Body()), len(resp)) // Response is not compressed.
+	assert.Equal(t, resp, rc.Response.Body())
 }
 
 // BenchmarkMiddleware measures performance of handler with compression.
@@ -67,22 +69,22 @@ func TestMiddleware(t *testing.T) {
 // BenchmarkMiddleware-4   	   92494	     12883 ns/op	    1901 B/op	      14 allocs/op.
 func BenchmarkMiddleware(b *testing.B) {
 	resp := []byte(strings.Repeat("A", 10000) + "!!!")
-	h := gzip.Middleware(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		_, err := rw.Write(resp)
+	h := gzip.Middleware(fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
+		_, err := rc.Write(resp)
 		assert.NoError(b, err)
 	}))
 
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
-
-	require.NoError(b, err)
-	r.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
+	rc.Request.Header.Set("Accept-Encoding", "gzip, deflate, br")
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		rw := httptest.NewRecorder()
-		h.ServeHTTP(rw, r)
+		rc.Response = fasthttp.Response{}
+
+		h.ServeHTTP(rc, rc)
 	}
 }
 
@@ -92,35 +94,34 @@ func BenchmarkMiddleware(b *testing.B) {
 // BenchmarkMiddleware_control-4   	  214824	      5945 ns/op	   11184 B/op	       9 allocs/op.
 func BenchmarkMiddleware_control(b *testing.B) {
 	resp := []byte(strings.Repeat("A", 10000) + "!!!")
-	h := http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		_, err := rw.Write(resp)
+	h := fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
+		_, err := rc.Write(resp)
 		assert.NoError(b, err)
 	})
 
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
-
-	require.NoError(b, err)
-	r.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
+	rc.Request.Header.Set("Accept-Encoding", "gzip, deflate, br")
 
 	b.ReportAllocs()
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		rw := httptest.NewRecorder()
-		h.ServeHTTP(rw, r)
+		rc.Response = fasthttp.Response{}
+		h.ServeHTTP(rc, rc)
 	}
 }
 
 func TestMiddleware_concurrency(t *testing.T) {
 	resp := []byte(strings.Repeat("A", 10000) + "!!!")
 	respGz := gzipEncode(t, resp)
-	h := gzip.Middleware(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		_, err := rw.Write(resp)
+	h := gzip.Middleware(fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
+		_, err := rc.Write(resp)
 		assert.NoError(t, err)
 	}))
 
-	hg := gzip.Middleware(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		_, err := gzip2.WriteCompressedBytes(respGz, rw)
+	hg := gzip.Middleware(fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
+		_, err := gzip2.WriteCompressedBytes(respGz, rc)
 		assert.NoError(t, err)
 	}))
 
@@ -132,25 +133,23 @@ func TestMiddleware_concurrency(t *testing.T) {
 		go func() {
 			defer wg.Done()
 
-			rw := httptest.NewRecorder()
-			r, err := http.NewRequest(http.MethodGet, "/", nil)
+			rc := &fasthttp.RequestCtx{}
+			rc.Request.SetRequestURI("/")
+			rc.Request.Header.Set("Accept-Encoding", "gzip, deflate, br")
 
-			require.NoError(t, err)
-			r.Header.Set("Accept-Encoding", "gzip, deflate, br")
+			h.ServeHTTP(rc, rc)
 
-			h.ServeHTTP(rw, r)
+			assert.Equal(t, "gzip", string(rc.Response.Header.Peek("Content-Encoding")))
+			assert.Less(t, len(rc.Response.Body()), len(resp)) // Response is compressed.
+			assert.Equal(t, resp, gzipDecode(t, rc.Response.Body()))
 
-			assert.Equal(t, "gzip", rw.Header().Get("Content-Encoding"))
-			assert.Less(t, rw.Body.Len(), len(resp)) // Response is compressed.
-			assert.Equal(t, resp, gzipDecode(t, rw.Body.Bytes()))
+			rc.Response = fasthttp.Response{}
 
-			rw = httptest.NewRecorder()
+			hg.ServeHTTP(rc, rc)
 
-			hg.ServeHTTP(rw, r)
-
-			assert.Equal(t, "gzip", rw.Header().Get("Content-Encoding"))
-			assert.Less(t, rw.Body.Len(), len(resp)) // Response is compressed.
-			assert.Equal(t, respGz, rw.Body.Bytes())
+			assert.Equal(t, "gzip", string(rc.Response.Header.Peek("Content-Encoding")))
+			assert.Less(t, len(rc.Response.Body()), len(resp)) // Response is compressed.
+			assert.True(t, bytes.Equal(resp, gzipDecode(t, rc.Response.Body())))
 		}()
 	}
 
@@ -161,63 +160,57 @@ func TestGzipResponseWriter_ExpectCompressedBytes(t *testing.T) {
 	resp := []byte(strings.Repeat("A", 10000) + "!!!")
 	respGz := gzipEncode(t, resp)
 
-	h := gzip.Middleware(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		_, err := gzip2.WriteCompressedBytes(respGz, rw)
+	h := gzip.Middleware(fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
+		_, err := gzip2.WriteCompressedBytes(respGz, rc)
 		assert.NoError(t, err)
 	}))
 
-	rw := httptest.NewRecorder()
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
+	rc.Request.Header.Set("Accept-Encoding", "gzip, deflate, br")
 
-	require.NoError(t, err)
-	r.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	h.ServeHTTP(rc, rc)
 
-	h.ServeHTTP(rw, r)
-
-	assert.Equal(t, "gzip", rw.Header().Get("Content-Encoding"))
-	assert.Less(t, rw.Body.Len(), len(resp)) // Response is compressed.
-	assert.Equal(t, respGz, rw.Body.Bytes())
+	assert.Equal(t, "gzip", string(rc.Response.Header.Peek("Content-Encoding")))
+	assert.Less(t, len(rc.Response.Body()), len(resp)) // Response is compressed.
+	assert.Equal(t, respGz, rc.Response.Body())
 }
 
 func TestMiddleware_skipContentEncoding(t *testing.T) {
 	resp := []byte(strings.Repeat("A", 10000) + "!!!")
-	h := gzip.Middleware(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		rw.Header().Set("Content-Encoding", "br")
-		_, err := rw.Write(resp)
+	h := gzip.Middleware(fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
+		rc.Response.Header.Set("Content-Encoding", "br")
+		_, err := rc.Write(resp)
 		assert.NoError(t, err)
 	}))
 
-	rw := httptest.NewRecorder()
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
+	rc.Request.Header.Set("Accept-Encoding", "gzip, deflate, br")
 
-	require.NoError(t, err)
-	r.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	h.ServeHTTP(rc, rc)
 
-	h.ServeHTTP(rw, r)
-
-	assert.Equal(t, "br", rw.Header().Get("Content-Encoding"))
-	assert.Equal(t, rw.Body.Len(), len(resp)) // Response is not compressed.
-	assert.Equal(t, resp, rw.Body.Bytes())
+	assert.Equal(t, "br", string(rc.Response.Header.Peek("Content-Encoding")))
+	assert.Equal(t, len(rc.Response.Body()), len(resp)) // Response is not compressed.
+	assert.Equal(t, resp, rc.Response.Body())
 }
 
 func TestMiddleware_noContent(t *testing.T) {
-	h := gzip.Middleware(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
-		rw.WriteHeader(http.StatusNoContent)
+	h := gzip.Middleware(fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
+		rc.Response.SetStatusCode(http.StatusNoContent)
 
 		// Second call does not hurt.
-		rw.WriteHeader(http.StatusNoContent)
+		rc.Response.SetStatusCode(http.StatusNoContent)
 	}))
 
-	rw := httptest.NewRecorder()
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
+	rc.Request.Header.Set("Accept-Encoding", "gzip, deflate, br")
 
-	require.NoError(t, err)
-	r.Header.Set("Accept-Encoding", "gzip, deflate, br")
+	h.ServeHTTP(rc, rc)
 
-	h.ServeHTTP(rw, r)
-
-	assert.Equal(t, "", rw.Header().Get("Content-Encoding"))
-	assert.Equal(t, rw.Body.Len(), 0)
+	assert.Equal(t, "", string(rc.Response.Header.Peek("Content-Encoding")))
+	assert.Equal(t, len(rc.Response.Body()), 0)
 }
 
 func gzipEncode(t *testing.T, data []byte) []byte {

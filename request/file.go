@@ -1,6 +1,7 @@
 package request
 
 import (
+	"errors"
 	"fmt"
 	"mime/multipart"
 	"net/http"
@@ -36,8 +37,9 @@ func decodeFilesInStruct(rc *fasthttp.RequestCtx, v reflect.Value) error {
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
 
-		if field.Type == multipartFileType || field.Type == multipartFileHeaderType {
-			err := reflectFile(rc, field, v.Field(i))
+		if field.Type == multipartFileType || field.Type == multipartFileHeaderType ||
+			field.Type == multipartFilesType || field.Type == multipartFileHeadersType {
+			err := setFile(rc, field, v.Field(i))
 			if err != nil {
 				return err
 			}
@@ -55,38 +57,69 @@ func decodeFilesInStruct(rc *fasthttp.RequestCtx, v reflect.Value) error {
 	return nil
 }
 
-func reflectFile(rc *fasthttp.RequestCtx, field reflect.StructField, v reflect.Value) error {
+func setFile(rc *fasthttp.RequestCtx, field reflect.StructField, v reflect.Value) error {
 	name := ""
-	if tag := field.Tag.Get("file"); tag != "" && tag != "-" {
+	if tag := field.Tag.Get(fileTag); tag != "" && tag != "-" {
 		name = tag
-	} else if tag := field.Tag.Get("formData"); tag != "" && tag != "-" {
+	} else if tag := field.Tag.Get(formDataTag); tag != "" && tag != "-" {
 		name = tag
 	}
 
-	if name != "" {
-		header, err := rc.FormFile(name)
+	if name == "" {
+		return nil
+	}
+
+	header, err := rc.FormFile(name)
+	if err != nil {
+		if errors.Is(err, http.ErrMissingFile) {
+			if field.Tag.Get("required") == "true" {
+				return fmt.Errorf("%w: %q", ErrMissingRequiredFile, name)
+			}
+		}
+
+		return fmt.Errorf("failed to get file %q from request: %w", name, err)
+	}
+
+	if field.Type == multipartFileType {
+		file, err := header.Open()
 		if err != nil {
-			if err == http.ErrMissingFile {
-				if field.Tag.Get("required") == "true" {
-					return fmt.Errorf("required file is missing: %q", name)
-				}
-			}
-
-			return fmt.Errorf("failed to get file %q from request: %w", name, err)
+			return fmt.Errorf("failed to open file %q from request: %w", name, err)
 		}
 
-		if field.Type == multipartFileType {
-			file, err := header.Open()
+		v.Set(reflect.ValueOf(file))
+	}
+
+	if field.Type == multipartFileHeaderType {
+		v.Set(reflect.ValueOf(header))
+	}
+
+	if field.Type == multipartFilesType {
+		mf, err := rc.MultipartForm()
+		if err != nil {
+			return fmt.Errorf("failed to get multipart form from request: %w", err)
+		}
+
+		res := make([]multipart.File, 0, len(mf.File[name]))
+
+		for _, h := range mf.File[name] {
+			f, err := h.Open()
 			if err != nil {
-				return fmt.Errorf("failed to open file %q from request: %w", name, err)
+				return fmt.Errorf("failed to open uploaded file %s (%s): %w", name, h.Filename, err)
 			}
 
-			v.Set(reflect.ValueOf(file))
+			res = append(res, f)
 		}
 
-		if field.Type == multipartFileHeaderType {
-			v.Set(reflect.ValueOf(header))
+		v.Set(reflect.ValueOf(res))
+	}
+
+	if field.Type == multipartFileHeadersType {
+		mf, err := rc.MultipartForm()
+		if err != nil {
+			return fmt.Errorf("failed to get multipart form from request: %w", err)
 		}
+
+		v.Set(reflect.ValueOf(mf.File[name]))
 	}
 
 	return nil

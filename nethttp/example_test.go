@@ -30,7 +30,7 @@ func ExampleSecurityMiddleware() {
 	serviceTokenAuth := func(h fchi.Handler) fchi.Handler {
 		return fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
 			if !bytes.Equal(rc.Request.Header.Peek("Authorization"), []byte("<secret>")) {
-				fchi.Error(rc, http.StatusUnauthorized, "Authentication failed.")
+				fchi.Error(rc, "Authentication failed.", http.StatusUnauthorized)
 
 				return
 			}

@@ -6,17 +6,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sync"
 
 	"github.com/swaggest/rest"
 	"github.com/valyala/fasthttp"
 )
-
-var bufPool = sync.Pool{
-	New: func() interface{} {
-		return bytes.NewBuffer(nil)
-	},
-}
 
 func readJSON(rd io.Reader, v interface{}) error {
 	d := json.NewDecoder(rd)
@@ -26,7 +19,7 @@ func readJSON(rd io.Reader, v interface{}) error {
 
 func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error) valueDecoderFunc {
 	return func(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
-		if rc.Request.Header.ContentLength() == 0 {
+		if len(rc.Request.Body()) == 0 {
 			return errors.New("missing request body to decode json")
 		}
 

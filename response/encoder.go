@@ -142,7 +142,7 @@ func (h *Encoder) writeJSONResponse(
 	if jw, ok := v.(rest.JSONWriterTo); ok {
 		hd.Set("Content-Type", ht.SuccessContentType)
 
-		_, err := jw.JSONWriteTo(rc.Response.BodyWriter())
+		_, err := jw.JSONWriteTo(rc)
 		if err != nil {
 			fchi.Error(rc, err.Error(), http.StatusInternalServerError)
 
@@ -182,7 +182,7 @@ func (h *Encoder) writeJSONResponse(
 		return
 	}
 
-	_, err = rc.Response.BodyWriter().Write(e.buf.Bytes())
+	_, err = rc.Write(e.buf.Bytes())
 	if err != nil {
 		fchi.Error(rc, err.Error(), http.StatusInternalServerError)
 
@@ -215,7 +215,7 @@ func (h *Encoder) WriteErrResponse(rc *fasthttp.RequestCtx, statusCode int, resp
 		return
 	}
 
-	_, err = rc.Response.BodyWriter().Write(e.buf.Bytes())
+	_, err = rc.Write(e.buf.Bytes())
 	if err != nil {
 		fchi.Error(rc, err.Error(), fasthttp.StatusInternalServerError)
 
@@ -373,5 +373,5 @@ func (w *writerWithHeaders) Write(data []byte) (int, error) {
 		w.headersSet = true
 	}
 
-	return w.Write(data)
+	return w.rc.Write(data)
 }

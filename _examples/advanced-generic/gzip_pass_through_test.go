@@ -4,62 +4,57 @@ package main
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/bool64/httptestbench"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/swaggest/fchi"
 	"github.com/valyala/fasthttp"
 )
 
 func Test_directGzip(t *testing.T) {
 	r := NewRouter()
 
-	req, err := http.NewRequest(http.MethodGet, "/gzip-pass-through", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/gzip-pass-through")
+	rc.Request.Header.Set("Accept-Encoding", "gzip")
 
-	req.Header.Set("Accept-Encoding", "gzip")
-	rw := httptest.NewRecorder()
-
-	r.ServeHTTP(rw, req)
-	assert.Equal(t, http.StatusOK, rw.Code)
-	assert.Equal(t, "330epditz19z", rw.Header().Get("Etag"))
-	assert.Equal(t, "gzip", rw.Header().Get("Content-Encoding"))
-	assert.Equal(t, "abc", rw.Header().Get("X-Header"))
-	assert.Less(t, len(rw.Body.Bytes()), 500)
+	r.ServeHTTP(rc, rc)
+	assert.Equal(t, http.StatusOK, rc.Response.StatusCode())
+	assert.Equal(t, "330epditz19z", string(rc.Response.Header.Peek("Etag")))
+	assert.Equal(t, "gzip", string(rc.Response.Header.Peek("Content-Encoding")))
+	assert.Equal(t, "abc", string(rc.Response.Header.Peek("X-Header")))
+	assert.Less(t, len(rc.Response.Body()), 500)
 }
 
 func Test_noDirectGzip(t *testing.T) {
 	r := NewRouter()
 
-	req, err := http.NewRequest(http.MethodGet, "/gzip-pass-through?plainStruct=1", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/gzip-pass-through?plainStruct=1")
+	rc.Request.Header.Set("Accept-Encoding", "gzip")
 
-	req.Header.Set("Accept-Encoding", "gzip")
-	rw := httptest.NewRecorder()
-
-	r.ServeHTTP(rw, req)
-	assert.Equal(t, http.StatusOK, rw.Code)
-	assert.Equal(t, "", rw.Header().Get("Etag")) // No ETag for dynamic compression.
-	assert.Equal(t, "gzip", rw.Header().Get("Content-Encoding"))
-	assert.Equal(t, "cba", rw.Header().Get("X-Header"))
-	assert.Less(t, len(rw.Body.Bytes()), 1000) // Worse compression for better speed.
+	r.ServeHTTP(rc, rc)
+	assert.Equal(t, http.StatusOK, rc.Response.StatusCode())
+	assert.Equal(t, "", string(rc.Response.Header.Peek("Etag"))) // No ETag for dynamic compression.
+	assert.Equal(t, "gzip", string(rc.Response.Header.Peek("Content-Encoding")))
+	assert.Equal(t, "cba", string(rc.Response.Header.Peek("X-Header")))
+	assert.Less(t, len(rc.Response.Body()), 1000) // Worse compression for better speed.
 }
 
 func Test_directGzip_perf(t *testing.T) {
 	res := testing.Benchmark(Benchmark_directGzip)
 
 	if httptestbench.RaceDetectorEnabled {
-		assert.Less(t, res.Extra["B:rcvd/op"], 640.0)
-		assert.Less(t, res.Extra["B:sent/op"], 104.0)
-		assert.Less(t, res.AllocsPerOp(), int64(60))
-		assert.Less(t, res.AllocedBytesPerOp(), int64(8500))
+		assert.Less(t, res.Extra["B:rcvd/op"], 660.0)
+		assert.Less(t, res.Extra["B:sent/op"], 105.0)
+		assert.Less(t, res.AllocsPerOp(), int64(30))
+		assert.Less(t, res.AllocedBytesPerOp(), int64(4500))
 	} else {
-		assert.Less(t, res.Extra["B:rcvd/op"], 640.0)
-		assert.Less(t, res.Extra["B:sent/op"], 104.0)
-		assert.Less(t, res.AllocsPerOp(), int64(45))
-		assert.Less(t, res.AllocedBytesPerOp(), int64(4100))
+		assert.Less(t, res.Extra["B:rcvd/op"], 660.0)
+		assert.Less(t, res.Extra["B:sent/op"], 105.0)
+		assert.Less(t, res.AllocsPerOp(), int64(17))
+		assert.Less(t, res.AllocedBytesPerOp(), int64(1100))
 	}
 }
 
@@ -69,7 +64,7 @@ func Test_directGzip_perf(t *testing.T) {
 func Benchmark_directGzip(b *testing.B) {
 	r := NewRouter()
 
-	srv := httptest.NewServer(r)
+	srv := fchi.NewTestServer(r)
 	defer srv.Close()
 
 	httptestbench.RoundTrip(b, 50, func(i int, req *fasthttp.Request) {
@@ -86,7 +81,7 @@ func Benchmark_directGzip(b *testing.B) {
 func Benchmark_directGzipHead(b *testing.B) {
 	r := NewRouter()
 
-	srv := httptest.NewServer(r)
+	srv := fchi.NewTestServer(r)
 	defer srv.Close()
 
 	httptestbench.RoundTrip(b, 50, func(i int, req *fasthttp.Request) {
@@ -105,7 +100,7 @@ func Benchmark_directGzipHead(b *testing.B) {
 func Benchmark_noDirectGzip(b *testing.B) {
 	r := NewRouter()
 
-	srv := httptest.NewServer(r)
+	srv := fchi.NewTestServer(r)
 	defer srv.Close()
 
 	httptestbench.RoundTrip(b, 50, func(i int, req *fasthttp.Request) {
@@ -123,7 +118,7 @@ func Benchmark_noDirectGzip(b *testing.B) {
 func Benchmark_directGzip_decode(b *testing.B) {
 	r := NewRouter()
 
-	srv := httptest.NewServer(r)
+	srv := fchi.NewTestServer(r)
 	defer srv.Close()
 
 	httptestbench.RoundTrip(b, 50, func(i int, req *fasthttp.Request) {
@@ -140,7 +135,7 @@ func Benchmark_directGzip_decode(b *testing.B) {
 func Benchmark_noDirectGzip_decode(b *testing.B) {
 	r := NewRouter()
 
-	srv := httptest.NewServer(r)
+	srv := fchi.NewTestServer(r)
 	defer srv.Close()
 
 	httptestbench.RoundTrip(b, 50, func(i int, req *fasthttp.Request) {

@@ -5,13 +5,13 @@ package main
 import (
 	"io/ioutil"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/bool64/httptestbench"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/assertjson"
+	"github.com/swaggest/fchi"
 	"github.com/valyala/fasthttp"
 )
 
@@ -19,7 +19,7 @@ import (
 func Benchmark_outputHeaders(b *testing.B) {
 	r := NewRouter()
 
-	srv := httptest.NewServer(r)
+	srv := fchi.NewTestServer(r)
 	defer srv.Close()
 
 	httptestbench.RoundTrip(b, 50, func(i int, req *fasthttp.Request) {
@@ -33,7 +33,7 @@ func Benchmark_outputHeaders(b *testing.B) {
 func Test_outputHeaders(t *testing.T) {
 	r := NewRouter()
 
-	srv := httptest.NewServer(r)
+	srv := fchi.NewTestServer(r)
 	defer srv.Close()
 
 	resp, err := http.Get(srv.URL + "/output-headers")

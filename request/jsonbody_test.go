@@ -1,22 +1,21 @@
 package request // nolint:testpackage
 
 import (
-	"bytes"
 	"errors"
-	"io"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"github.com/swaggest/rest"
+	"github.com/valyala/fasthttp"
 )
 
 func Test_decodeJSONBody(t *testing.T) {
-	createBody := bytes.NewReader(
-		[]byte(`{"amount": 123,"customerId": "248df4b7-aa70-47b8-a036-33ac447e668d","type": "withdraw"}`))
-	createReq, err := http.NewRequest(http.MethodPost, "/US/order/348df4b7-aa70-47b8-a036-33ac447e668d", createBody)
-	assert.NoError(t, err)
+	createBody := []byte(`{"amount": 123,"customerId": "248df4b7-aa70-47b8-a036-33ac447e668d","type": "withdraw"}`)
+	rc := fasthttp.RequestCtx{}
+	rc.Request.Header.SetMethod(http.MethodPost)
+	rc.Request.SetRequestURI("/US/order/348df4b7-aa70-47b8-a036-33ac447e668d")
+	rc.Request.SetBody(createBody)
 
 	type Input struct {
 		Amount     int    `json:"amount"`
@@ -25,7 +24,7 @@ func Test_decodeJSONBody(t *testing.T) {
 	}
 
 	i := Input{}
-	assert.NoError(t, decodeJSONBody(readJSON)(createReq, &i, nil))
+	assert.NoError(t, decodeJSONBody(readJSON)(&rc, &i, nil))
 	assert.Equal(t, 123, i.Amount)
 	assert.Equal(t, "248df4b7-aa70-47b8-a036-33ac447e668d", i.CustomerID)
 	assert.Equal(t, "withdraw", i.Type)
@@ -35,58 +34,65 @@ func Test_decodeJSONBody(t *testing.T) {
 	})
 
 	i = Input{}
-	_, err = createBody.Seek(0, io.SeekStart)
-	assert.NoError(t, err)
-	assert.NoError(t, decodeJSONBody(readJSON)(createReq, &i, vl))
+	assert.NoError(t, decodeJSONBody(readJSON)(&rc, &i, vl))
 	assert.Equal(t, 123, i.Amount)
 	assert.Equal(t, "248df4b7-aa70-47b8-a036-33ac447e668d", i.CustomerID)
 	assert.Equal(t, "withdraw", i.Type)
 }
 
 func Test_decodeJSONBody_emptyBody(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPost, "any", nil)
-	require.NoError(t, err)
+	rc := fasthttp.RequestCtx{}
+	rc.Request.Header.SetMethod(http.MethodPost)
+	rc.Request.SetRequestURI("any")
 
 	var i []int
 
-	err = decodeJSONBody(readJSON)(req, &i, nil)
-	assert.EqualError(t, err, "missing request body")
+	err := decodeJSONBody(readJSON)(&rc, &i, nil)
+	assert.EqualError(t, err, "missing request body to decode json")
 }
 
 func Test_decodeJSONBody_badContentType(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPost, "any", bytes.NewBufferString("123"))
-	require.NoError(t, err)
-	req.Header.Set("Content-Type", "text/plain")
+	rc := fasthttp.RequestCtx{}
+	rc.Request.Header.SetMethod(http.MethodPost)
+	rc.Request.SetRequestURI("any")
+	rc.Request.SetBody([]byte("123"))
+	rc.Request.Header.Set("Content-Type", "text/plain")
 
 	var i []int
 
-	err = decodeJSONBody(readJSON)(req, &i, nil)
+	err := decodeJSONBody(readJSON)(&rc, &i, nil)
 	assert.EqualError(t, err, "request with application/json content type expected, received: text/plain")
 }
 
 func Test_decodeJSONBody_decodeFailed(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPost, "any", bytes.NewBufferString("abc"))
-	require.NoError(t, err)
+	rc := fasthttp.RequestCtx{}
+	rc.Request.Header.SetMethod(http.MethodPost)
+	rc.Request.SetRequestURI("any")
+	rc.Request.SetBody([]byte("abc"))
 
 	var i []int
 
-	err = decodeJSONBody(readJSON)(req, &i, nil)
+	err := decodeJSONBody(readJSON)(&rc, &i, nil)
 	assert.Error(t, err)
 }
 
 func Test_decodeJSONBody_unmarshalFailed(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPost, "any", bytes.NewBufferString("123"))
-	require.NoError(t, err)
+	rc := fasthttp.RequestCtx{}
+	rc.Request.Header.SetMethod(http.MethodPost)
+	rc.Request.SetRequestURI("any")
+	rc.Request.SetBody([]byte("123"))
 
 	var i []int
 
-	err = decodeJSONBody(readJSON)(req, &i, nil)
+	err := decodeJSONBody(readJSON)(&rc, &i, nil)
 	assert.EqualError(t, err, "failed to decode json: json: cannot unmarshal number into Go value of type []int")
 }
 
 func Test_decodeJSONBody_validateFailed(t *testing.T) {
-	req, err := http.NewRequest(http.MethodPost, "any", bytes.NewBufferString("[123]"))
-	require.NoError(t, err)
+	rc := fasthttp.RequestCtx{}
+	rc.Request.Header.SetMethod(http.MethodPost)
+	rc.Request.SetRequestURI("any")
+	rc.Request.SetBody([]byte("[123]"))
 
 	var i []int
 
@@ -94,6 +100,6 @@ func Test_decodeJSONBody_validateFailed(t *testing.T) {
 		return errors.New("failed")
 	})
 
-	err = decodeJSONBody(readJSON)(req, &i, vl)
+	err := decodeJSONBody(readJSON)(&rc, &i, vl)
 	assert.EqualError(t, err, "failed")
 }
