@@ -316,14 +316,14 @@ func (h *Encoder) MakeOutput(rc *fasthttp.RequestCtx, ht rest.HandlerTrait) inte
 		if withWriter, ok := output.(usecase.OutputWithWriter); ok {
 			if h.outputHeadersEncoder != nil || ht.SuccessContentType != "" {
 				withWriter.SetWriter(&writerWithHeaders{
-					Writer:         rc.Response.BodyWriter(),
+					Writer:         rc,
 					rc:             rc,
 					responseWriter: h,
 					trait:          ht,
 					output:         output,
 				})
 			} else {
-				withWriter.SetWriter(rc.Response.BodyWriter())
+				withWriter.SetWriter(rc)
 			}
 		}
 	}
