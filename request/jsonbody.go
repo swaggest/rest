@@ -35,6 +35,7 @@ func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error) valueDecod
 		validate := validator != nil && validator.HasConstraints(rest.ParamInBody)
 
 		rd := bytes.NewReader(b)
+
 		err := readJSON(rd, &input)
 		if err != nil {
 			return fmt.Errorf("failed to decode json: %w", err)

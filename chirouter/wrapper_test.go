@@ -241,6 +241,7 @@ func TestWrapper_Use_StripSlashes(t *testing.T) {
 	assert.Equal(t, "OK", string(rc.Response.Body()))
 
 	rc.Response = fasthttp.Response{}
+
 	wr.Method(http.MethodGet, "/foo", h)
 	wr.ServeHTTP(rc, rc)
 

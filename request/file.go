@@ -20,6 +20,7 @@ var (
 
 func decodeFiles(rc *fasthttp.RequestCtx, input interface{}, _ rest.Validator) error {
 	v := reflect.ValueOf(input)
+
 	return decodeFilesInStruct(rc, v)
 }
 
@@ -57,6 +58,7 @@ func decodeFilesInStruct(rc *fasthttp.RequestCtx, v reflect.Value) error {
 	return nil
 }
 
+// nolint:funlen // Maybe later.
 func setFile(rc *fasthttp.RequestCtx, field reflect.StructField, v reflect.Value) error {
 	name := ""
 	if tag := field.Tag.Get(fileTag); tag != "" && tag != "-" {

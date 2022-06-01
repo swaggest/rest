@@ -76,6 +76,7 @@ func (d *decoder) Decode(rc *fasthttp.RequestCtx, input interface{}, validator r
 	if i, ok := input.(Loader); ok {
 		return i.LoadFromFastHTTPRequest(rc)
 	}
+
 	for i, decode := range d.decoders {
 		err := decode(rc, input, validator)
 		if err != nil {
@@ -104,6 +105,7 @@ func formDataToURLValues(rc *fasthttp.RequestCtx) (url.Values, error) {
 	}
 
 	var params url.Values
+
 	args.VisitAll(func(key, value []byte) {
 		if params == nil {
 			params = make(url.Values, 1)
@@ -117,6 +119,7 @@ func formDataToURLValues(rc *fasthttp.RequestCtx) (url.Values, error) {
 
 func headerToURLValues(rc *fasthttp.RequestCtx) (url.Values, error) {
 	var params url.Values
+
 	rc.Request.Header.VisitAll(func(key, value []byte) {
 		if params == nil {
 			params = make(url.Values, 1)

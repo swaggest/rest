@@ -46,7 +46,7 @@ func TestWrapHandler(t *testing.T) {
 		},
 	)
 
-	h.ServeHTTP(nil, nil)
+	h.ServeHTTP(context.Background(), nil)
 
 	assert.Equal(t, []string{
 		"mw3 registered", "mw2 registered", "mw1 registered",

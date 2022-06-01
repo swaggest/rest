@@ -216,7 +216,7 @@ func TestHandlerWithRouteMiddleware(t *testing.T) {
 	assert.Equal(t, http.MethodPost, hr.RouteMethod())
 	assert.Equal(t, "/test/", hr.RoutePattern())
 
-	h.ServeHTTP(nil, nil)
+	h.ServeHTTP(context.Background(), nil)
 	assert.True(t, called)
 }
 

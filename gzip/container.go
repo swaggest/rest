@@ -31,6 +31,7 @@ func WriteCompressedBytes(compressed []byte, w io.Writer) (int, error) {
 		if rc.Request.Header.HasAcceptEncoding("gzip") {
 			rc.Request.Header.Del("Accept-Encoding")
 			rc.Response.Header.Set("Content-Encoding", "gzip")
+
 			return rc.Write(compressed)
 		}
 	}
