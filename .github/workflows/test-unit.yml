@@ -60,18 +60,18 @@ jobs:
           echo "::set-output name=total::$TOTAL"
       - name: Annotate missing test coverage
         id: annotate
-        if: ${{ github.event.pull_request.base.sha }} != '' && matrix.go-version == env.COV_GO_VERSION
+        if: github.event.pull_request.base.sha != '' && matrix.go-version == env.COV_GO_VERSION
         run: |
           git fetch origin master ${{ github.event.pull_request.base.sha }}
-          curl -sLO https://github.com/vearutop/gocovdiff/releases/download/v0.1.0/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz
-          REP=$(./gocovdiff -cov unit.coverprofile -gha-annotations gha-unit.txt)
+          curl -sLO https://github.com/vearutop/gocovdiff/releases/download/v0.1.1/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz
+          REP=$(./gocovdiff -cov unit.coverprofile -exclude _examples -gha-annotations gha-unit.txt)
           echo "${REP}"
           REP="${REP//$'\n'/%0A}"
           cat gha-unit.txt
           echo "::set-output name=rep::$REP"
       - name: Comment Test Coverage
         continue-on-error: true
-        if: ${{ github.event.pull_request.base.sha }} != '' && matrix.go-version == env.COV_GO_VERSION
+        if: github.event.pull_request.base.sha != '' && matrix.go-version == env.COV_GO_VERSION
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
