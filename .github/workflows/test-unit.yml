@@ -14,7 +14,6 @@ concurrency:
 
 env:
   GO111MODULE: "on"
-  RUN_BASE_COVERAGE: "on"  # Runs test for PR base in case base test coverage is missing.
   COV_GO_VERSION: 1.18.x   # Version of Go to collect coverage
 jobs:
   test:
@@ -51,44 +50,27 @@ jobs:
           key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-cache
-      - name: Restore base test coverage
-        id: base-coverage
-        if: matrix.go-version == env.COV_GO_VERSION
-        uses: actions/cache@v2
-        with:
-          path: |
-            unit-base.txt
-          # Use base sha for PR or new commit hash for master/main push in test result key.
-          key: ${{ runner.os }}-unit-test-coverage-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
-      - name: Checkout base code
-        if: matrix.go-version == env.COV_GO_VERSION && env.RUN_BASE_COVERAGE == 'on' && steps.base-coverage.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.base.sha }}
-          path: __base
-      - name: Run test for base code
-        if: matrix.go-version == env.COV_GO_VERSION && env.RUN_BASE_COVERAGE == 'on' && steps.base-coverage.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
-        run: |
-          cd __base
-          make | grep test-unit && (make test-unit && go tool cover -func=./unit.coverprofile | sed -e 's/.go:[0-9]*:\t/.go\t/g' | sed -e 's/\t\t*/\t/g'  > ../unit-base.txt) || echo "No test-unit in base"
       - name: Test
         id: test
         run: |
           make test-unit
-          go tool cover -func=./unit.coverprofile | sed -e 's/.go:[0-9]*:\t/.go\t/g' | sed -e 's/\t\t*/\t/g'  > unit.txt
-          OUTPUT=$(test -e unit-base.txt && (diff unit-base.txt unit.txt || exit 0) || cat unit.txt)
-          echo "${OUTPUT}"
-          OUTPUT="${OUTPUT//$'\n'/%0A}"
           TOTAL=$(grep 'total:' unit.txt)
           echo "${TOTAL}"
-          echo "::set-output name=diff::$OUTPUT"
           echo "::set-output name=total::$TOTAL"
-      - name: Store base coverage
-        if: ${{ github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main' }}
-        run: cp unit.txt unit-base.txt
+      - name: Annotate missing test coverage
+        id: annotate
+        if: matrix.go-version == env.COV_GO_VERSION && ${{ github.event.pull_request.base.sha }}
+        run: |
+          git fetch origin master ${{ github.event.pull_request.base.sha }}
+          curl -sLO https://github.com/vearutop/gocovdiff/releases/download/v0.1.0/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz
+          REP=$(./gocovdiff -cov unit.coverprofile -gha-annotations gha-unit.txt)
+          echo "${REP}"
+          REP="${REP//$'\n'/%0A}"
+          cat gha-unit.txt
+          echo "::set-output name=rep::$REP"
       - name: Comment Test Coverage
         continue-on-error: true
-        if: matrix.go-version == env.COV_GO_VERSION
+        if: matrix.go-version == env.COV_GO_VERSION && ${{ github.event.pull_request.base.sha }}
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -96,11 +78,10 @@ jobs:
           message: |
             ### Unit Test Coverage
             ${{ steps.test.outputs.total }}
-            <details><summary>Coverage diff with base branch</summary>
+            <details><summary>Coverage of changed lines</summary>
+            
+            ${{ steps.annotate.outputs.rep }}
 
-            ```diff
-            ${{ steps.test.outputs.diff }}
-            ```
             </details>
 
       - name: Upload code coverage
