@@ -2,6 +2,7 @@ package request
 
 import (
 	"net/url"
+	"sync"
 
 	"github.com/swaggest/form/v5"
 	"github.com/swaggest/rest"
@@ -17,7 +18,7 @@ type (
 		LoadFromFastHTTPRequest(rc *fasthttp.RequestCtx) error
 	}
 
-	decoderFunc      func(rc *fasthttp.RequestCtx) (url.Values, error)
+	decoderFunc      func(rc *fasthttp.RequestCtx, v url.Values) error
 	valueDecoderFunc func(rc *fasthttp.RequestCtx, v interface{}, validator rest.Validator) error
 )
 
@@ -48,9 +49,24 @@ func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamI
 	return val.ValidateData(in, goValues)
 }
 
+var valuesPool = &sync.Pool{
+	New: func() interface{} {
+		return make(url.Values)
+	},
+}
+
 func makeDecoder(in rest.ParamIn, formDecoder *form.Decoder, decoderFunc decoderFunc) valueDecoderFunc {
 	return func(rc *fasthttp.RequestCtx, v interface{}, validator rest.Validator) error {
-		values, err := decoderFunc(rc)
+		values := valuesPool.Get().(url.Values) // nolint:errcheck
+		for k := range values {
+			delete(values, k)
+		}
+
+		defer func() {
+			valuesPool.Put(values)
+		}()
+
+		err := decoderFunc(rc, values)
 		if err != nil {
 			return err
 		}
@@ -97,14 +113,12 @@ func (d *decoder) Decode(rc *fasthttp.RequestCtx, input interface{}, validator r
 	return nil
 }
 
-func formDataToURLValues(rc *fasthttp.RequestCtx) (url.Values, error) {
+func formDataToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 	args := rc.Request.PostArgs()
 
 	if args.Len() == 0 {
-		return nil, nil
+		return nil
 	}
-
-	var params url.Values
 
 	args.VisitAll(func(key, value []byte) {
 		if params == nil {
@@ -114,12 +128,10 @@ func formDataToURLValues(rc *fasthttp.RequestCtx) (url.Values, error) {
 		params[string(key)] = []string{string(value)}
 	})
 
-	return params, nil
+	return nil
 }
 
-func headerToURLValues(rc *fasthttp.RequestCtx) (url.Values, error) {
-	var params url.Values
-
+func headerToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 	rc.Request.Header.VisitAll(func(key, value []byte) {
 		if params == nil {
 			params = make(url.Values, 1)
@@ -128,12 +140,10 @@ func headerToURLValues(rc *fasthttp.RequestCtx) (url.Values, error) {
 		params[string(key)] = []string{string(value)}
 	})
 
-	return params, nil
+	return nil
 }
 
-func queryToURLValues(rc *fasthttp.RequestCtx) (url.Values, error) {
-	var params url.Values
-
+func queryToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 	rc.Request.URI().QueryArgs().VisitAll(func(key, value []byte) {
 		if params == nil {
 			params = make(url.Values, 1)
@@ -142,12 +152,10 @@ func queryToURLValues(rc *fasthttp.RequestCtx) (url.Values, error) {
 		params[string(key)] = []string{string(value)}
 	})
 
-	return params, nil
+	return nil
 }
 
-func cookiesToURLValues(rc *fasthttp.RequestCtx) (url.Values, error) {
-	var params url.Values
-
+func cookiesToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 	rc.Request.Header.VisitAllCookie(func(key, value []byte) {
 		if params == nil {
 			params = make(url.Values, 1)
@@ -156,5 +164,5 @@ func cookiesToURLValues(rc *fasthttp.RequestCtx) (url.Values, error) {
 		params[string(key)] = []string{string(value)}
 	})
 
-	return params, nil
+	return nil
 }

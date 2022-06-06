@@ -69,7 +69,7 @@ func NewDecoderFactory() *DecoderFactory {
 }
 
 // SetDecoderFunc adds custom decoder function for values of particular field tag name.
-func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(rc *fasthttp.RequestCtx) (url.Values, error)) {
+func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(rc *fasthttp.RequestCtx, v url.Values) error) {
 	if df.decoderFunctions == nil {
 		df.decoderFunctions = make(map[rest.ParamIn]decoderFunc)
 	}

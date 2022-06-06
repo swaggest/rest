@@ -76,7 +76,8 @@ func TestNewWrapper(t *testing.T) {
 		r.Method(http.MethodPost,
 			"/baz/{id}/",
 			HandlerWithFoo{Handler: fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
-				val, err := chirouter.PathToURLValues(rc)
+				val := make(url.Values)
+				err := chirouter.PathToURLValues(rc, val)
 				assert.NoError(t, err)
 				assert.Equal(t, url.Values{"id": []string{"123"}}, val)
 			})},

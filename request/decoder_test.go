@@ -17,6 +17,10 @@ import (
 	"github.com/valyala/fasthttp"
 )
 
+// BenchmarkDecoder_Decode-12    	 1410783	       797.9 ns/op	     866 B/op	      10 allocs/op.
+// BenchmarkDecoder_Decode-12    	 2104834	       599.5 ns/op	      65 B/op	       6 allocs/op
+// BenchmarkDecoder_Decode-12    	 1999123	       568.2 ns/op	      65 B/op	       6 allocs/op
+
 // BenchmarkDecoder_Decode-4   	 1314788	       857 ns/op	     448 B/op	       4 allocs/op.
 func BenchmarkDecoder_Decode(b *testing.B) {
 	df := request.NewDecoderFactory()
@@ -82,10 +86,11 @@ func TestDecoder_Decode(t *testing.T) {
 	rc.Request.Header.SetCookie("in_cookie", "jkl")
 
 	df := request.NewDecoderFactory()
-	df.SetDecoderFunc(rest.ParamInPath, func(r *fasthttp.RequestCtx) (url.Values, error) {
+	df.SetDecoderFunc(rest.ParamInPath, func(r *fasthttp.RequestCtx, params url.Values) error {
 		assert.Equal(t, rc, r)
+		params["in_path"] = []string{"mno"}
 
-		return url.Values{"in_path": []string{"mno"}}, nil
+		return nil
 	})
 
 	input := new(reqTest)
@@ -128,8 +133,10 @@ func BenchmarkDecoderFunc_Decode(b *testing.B) {
 	rc.Request.Header.SetCookie("in_cookie", "jkl")
 
 	df := request.NewDecoderFactory()
-	df.SetDecoderFunc(rest.ParamInPath, func(r *fasthttp.RequestCtx) (url.Values, error) {
-		return url.Values{"in_path": []string{"mno"}}, nil
+	df.SetDecoderFunc(rest.ParamInPath, func(r *fasthttp.RequestCtx, params url.Values) error {
+		params["in_path"] = []string{"mno"}
+
+		return nil
 	})
 
 	dec := df.MakeDecoder(http.MethodPost, new(reqTest), nil)

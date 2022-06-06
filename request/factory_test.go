@@ -16,27 +16,26 @@ import (
 
 func TestDecoderFactory_SetDecoderFunc(t *testing.T) {
 	df := request.NewDecoderFactory()
-	df.SetDecoderFunc("jwt", func(rc *fasthttp.RequestCtx) (url.Values, error) {
+	df.SetDecoderFunc("jwt", func(rc *fasthttp.RequestCtx, params url.Values) error {
 		ah := string(rc.Request.Header.Peek("Authorization"))
 		if ah == "" || len(ah) < 8 || strings.ToLower(ah[0:7]) != "bearer " {
-			return nil, nil
+			return nil
 		}
 
 		var m map[string]json.RawMessage
 		err := json.Unmarshal([]byte(ah[7:]), &m)
 		if err != nil {
-			return nil, err
+			return err
 		}
 
-		res := make(url.Values)
 		for k, v := range m {
 			if len(v) > 2 && v[0] == '"' && v[len(v)-1] == '"' {
 				v = v[1 : len(v)-1]
 			}
-			res[k] = []string{string(v)}
+			params[k] = []string{string(v)}
 		}
 
-		return res, err
+		return err
 	})
 
 	type reqs struct {
@@ -64,10 +63,10 @@ func TestDecoderFactory_SetDecoderFunc(t *testing.T) {
 // BenchmarkDecoderFactory_SetDecoderFunc-4   	  577378	      1994 ns/op	    1024 B/op	      16 allocs/op.
 func BenchmarkDecoderFactory_SetDecoderFunc(b *testing.B) {
 	df := request.NewDecoderFactory()
-	df.SetDecoderFunc("jwt", func(r *fasthttp.RequestCtx) (url.Values, error) {
+	df.SetDecoderFunc("jwt", func(r *fasthttp.RequestCtx, params url.Values) error {
 		ah := string(r.Request.Header.Peek("Authorization"))
 		if ah == "" || len(ah) < 8 || strings.ToLower(ah[0:7]) != "bearer " {
-			return nil, nil
+			return nil
 		}
 
 		// Pretending json.Unmarshal has passed to improve benchmark relevancy.
@@ -77,15 +76,14 @@ func BenchmarkDecoderFactory_SetDecoderFunc(b *testing.B) {
 			"iat":  []byte(`1516239022`),
 		}
 
-		res := make(url.Values)
 		for k, v := range m {
 			if len(v) > 2 && v[0] == '"' && v[len(v)-1] == '"' {
 				v = v[1 : len(v)-1]
 			}
-			res[k] = []string{string(v)}
+			params[k] = []string{string(v)}
 		}
 
-		return res, nil
+		return nil
 	})
 
 	type reqs struct {

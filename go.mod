@@ -3,7 +3,7 @@ module github.com/swaggest/rest
 go 1.17
 
 require (
-	github.com/bool64/dev v0.2.12
+	github.com/bool64/dev v0.2.13-0.20220606103201-f81b659483f1
 	github.com/cespare/xxhash/v2 v2.1.2
 	github.com/santhosh-tekuri/jsonschema/v3 v3.1.0
 	github.com/stretchr/testify v1.7.1
