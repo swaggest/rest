@@ -54,6 +54,7 @@ jobs:
         id: test
         run: |
           make test-unit
+          go tool cover -func=./unit.coverprofile | sed -e 's/.go:[0-9]*:\t/.go\t/g' | sed -e 's/\t\t*/\t/g' > unit.txt
           TOTAL=$(grep 'total:' unit.txt)
           echo "${TOTAL}"
           echo "::set-output name=total::$TOTAL"
