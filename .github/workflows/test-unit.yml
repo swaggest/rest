@@ -60,7 +60,7 @@ jobs:
           echo "::set-output name=total::$TOTAL"
       - name: Annotate missing test coverage
         id: annotate
-        if: matrix.go-version == env.COV_GO_VERSION && ${{ github.event.pull_request.base.sha }}
+        if: ${{ github.event.pull_request.base.sha }} != '' && matrix.go-version == env.COV_GO_VERSION
         run: |
           git fetch origin master ${{ github.event.pull_request.base.sha }}
           curl -sLO https://github.com/vearutop/gocovdiff/releases/download/v0.1.0/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz
@@ -71,7 +71,7 @@ jobs:
           echo "::set-output name=rep::$REP"
       - name: Comment Test Coverage
         continue-on-error: true
-        if: matrix.go-version == env.COV_GO_VERSION && ${{ github.event.pull_request.base.sha }}
+        if: ${{ github.event.pull_request.base.sha }} != '' && matrix.go-version == env.COV_GO_VERSION
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
