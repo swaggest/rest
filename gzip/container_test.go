@@ -63,7 +63,7 @@ func TestWriteJSON(t *testing.T) {
 
 	w := httptest.NewRecorder()
 
-	r.Header.Set("Accept-Encoding", "deflate,gzip")
+	r.Header.Set("Accept-Encoding", "deflate, gzip")
 	gzip2.Middleware(h).ServeHTTP(w, r)
 
 	assert.Equal(t, http.StatusOK, w.Code)
@@ -84,7 +84,7 @@ func TestWriteJSON(t *testing.T) {
 	w = httptest.NewRecorder()
 	ur = v
 
-	r.Header.Set("Accept-Encoding", "deflate,gzip")
+	r.Header.Set("Accept-Encoding", "deflate, gzip")
 	gzip2.Middleware(h).ServeHTTP(w, r)
 
 	assert.Equal(t, http.StatusOK, w.Code)

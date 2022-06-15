@@ -118,6 +118,35 @@
         "x-forbid-unknown-query":true
       }
     },
+    "/json-body-manual/{in-path}":{
+      "post":{
+        "summary":"Request With JSON Body and manual decoder",
+        "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
+        "operationId":"_examples/advanced-generic.jsonBodyManual",
+        "parameters":[
+          {
+            "name":"in_query","in":"query","description":"Simple scalar value in query.",
+            "schema":{"type":"string","description":"Simple scalar value in query.","format":"date"}
+          },
+          {
+            "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
+            "schema":{"type":"string","description":"Simple scalar value in path"}
+          },
+          {
+            "name":"X-Header","in":"header","description":"Simple scalar value in header.",
+            "schema":{"type":"string","description":"Simple scalar value in header."}
+          }
+        ],
+        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSONType3"}}}},
+        "responses":{
+          "201":{
+            "description":"Created",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType3"}}}
+          }
+        },
+        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+      }
+    },
     "/json-body-validation/{in-path}":{
       "post":{
         "summary":"Request With JSON Body and non-trivial validation",
@@ -137,11 +166,11 @@
             "schema":{"minLength":3,"type":"string","description":"Simple scalar value in header."}
           }
         ],
-        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSONType3"}}}},
+        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSONType4"}}}},
         "responses":{
           "200":{
             "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType3"}}}
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType4"}}}
           }
         },
         "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
@@ -472,12 +501,21 @@
         "additionalProperties":false
       },
       "AdvancedInputWithJSONType3":{
+        "type":"object",
+        "properties":{
+          "id":{"type":"integer"},"name":{"type":"string"},
+          "namedStruct":{"allOf":[{"deprecated":true},{"$ref":"#/components/schemas/AdvancedJSONPayloadType3"}]}
+        },
+        "additionalProperties":false
+      },
+      "AdvancedInputWithJSONType4":{
         "type":"object","properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}},
         "additionalProperties":false
       },
       "AdvancedJSONMapPayload":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
       "AdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONPayloadType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
+      "AdvancedJSONPayloadType3":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONSlicePayload":{"type":"array","items":{"type":"integer"},"nullable":true},
       "AdvancedJsonMapReq":{"type":"object","additionalProperties":{"type":"number"}},
       "AdvancedJsonOutput":{
@@ -520,6 +558,13 @@
         }
       },
       "AdvancedOutputWithJSONType3":{
+        "type":"object",
+        "properties":{
+          "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},
+          "inQuery":{"type":"string","format":"date","deprecated":true},"name":{"type":"string"}
+        }
+      },
+      "AdvancedOutputWithJSONType4":{
         "type":"object",
         "properties":{
           "id":{"minimum":100,"type":"integer"},"inHeader":{"minLength":3,"type":"string"},
