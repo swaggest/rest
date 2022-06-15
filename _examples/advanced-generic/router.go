@@ -75,7 +75,6 @@ func NewRouter() fchi.Handler {
 					}
 				}
 
-
 				var hr rest.HandlerWithRoute
 				if h.RespValidator != nil &&
 					nethttp.HandlerAs(handler, &hr) {

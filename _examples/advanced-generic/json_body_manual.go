@@ -7,14 +7,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"log"
-	"net/http"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/rest/request"
 	"github.com/swaggest/usecase"
+	"github.com/valyala/fasthttp"
 )
 
 func jsonBodyManual() usecase.Interactor {
@@ -55,28 +53,25 @@ type inputWithJSON struct {
 
 var _ request.Loader = &inputWithJSON{}
 
-func (i *inputWithJSON) LoadFromHTTPRequest(r *http.Request) (err error) {
-	defer func() {
-		if err := r.Body.Close(); err != nil {
-			log.Printf("failed to close request body: %s", err.Error())
+func (i *inputWithJSON) LoadFromFastHTTPRequest(rc *fasthttp.RequestCtx) (err error) {
+	if err = json.Unmarshal(rc.Request.Body(), i); err != nil {
+		return fmt.Errorf("failed to unmarshal request body: %w", err)
+	}
+
+	i.Header = string(rc.Request.Header.Peek("X-Header"))
+
+	rc.Request.URI().QueryArgs().VisitAll(func(key, value []byte) {
+		if string(key) == "in_query" {
+			if err = i.Query.UnmarshalText(value); err != nil {
+				err = fmt.Errorf("failed to decode in_query %q: %w", string(value), err)
+			}
 		}
-	}()
-
-	b, err := io.ReadAll(r.Body)
+	})
 	if err != nil {
-		return fmt.Errorf("failed to read request body: %w", err)
+		return err
 	}
 
-	if err = json.Unmarshal(b, i); err != nil {
-		return fmt.Errorf("failsed to unmarshal request body: %w", err)
-	}
-
-	i.Header = r.Header.Get("X-Header")
-	if err := i.Query.UnmarshalText([]byte(r.URL.Query().Get("in_query"))); err != nil {
-		return fmt.Errorf("failed to decode in_query %q: %w", r.URL.Query().Get("in_query"), err)
-	}
-
-	if routeCtx := chi.RouteContext(r.Context()); routeCtx != nil {
+	if routeCtx := fchi.RouteContext(rc); routeCtx != nil {
 		i.Path = routeCtx.URLParam("in-path")
 	} else {
 		return errors.New("missing path params in context")
