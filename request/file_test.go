@@ -11,6 +11,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/chirouter"
 	"github.com/swaggest/rest/jsonschema"
@@ -65,8 +66,8 @@ func TestMapper_Decode_fileUploadTag(t *testing.T) {
 		assert.NoError(t, in.Upload.Close())
 		assert.Equal(t, "Hello!", string(content))
 
-		assert.Len(t, in.Uploads, 2)
-		assert.Len(t, in.UploadsHeaders, 2)
+		require.Len(t, in.Uploads, 2)
+		require.Len(t, in.UploadsHeaders, 2)
 		assert.Equal(t, "my1.csv", in.UploadsHeaders[0].Filename)
 		assert.Equal(t, int64(7), in.UploadsHeaders[0].Size)
 		assert.Equal(t, "my2.csv", in.UploadsHeaders[1].Filename)
