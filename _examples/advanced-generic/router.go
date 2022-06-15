@@ -56,13 +56,6 @@ func NewRouter() fchi.Handler {
 	s.OpenAPICollector.CombineErrors = "anyOf"
 
 	s.Wrap(
-		// Response validator setup.
-		//
-		// It might be a good idea to disable this middleware in production to save performance,
-		// but keep it enabled in dev/test/staging environments to catch logical issues.
-		response.ValidatorMiddleware(s.ResponseValidatorFactory),
-		gzip.Middleware, // Response compression with support for direct gzip pass through.
-
 		// Example middleware to setup custom error responses.
 		func(handler fchi.Handler) fchi.Handler {
 			var h *nethttp.Handler
@@ -81,10 +74,26 @@ func NewRouter() fchi.Handler {
 						Details: er.Context,
 					}
 				}
+
+
+				var hr rest.HandlerWithRoute
+				if h.RespValidator != nil &&
+					nethttp.HandlerAs(handler, &hr) {
+					if hr.RoutePattern() == "/json-body-manual/{in-path}" || hr.RoutePattern() == "/json-body/{in-path}" {
+						h.RespValidator = nil
+					}
+				}
 			}
 
 			return handler
 		},
+
+		// Response validator setup.
+		//
+		// It might be a good idea to disable this middleware in production to save performance,
+		// but keep it enabled in dev/test/staging environments to catch logical issues.
+		response.ValidatorMiddleware(s.ResponseValidatorFactory),
+		gzip.Middleware, // Response compression with support for direct gzip pass through.
 	)
 
 	// Annotations can be used to alter documentation of operation identified by method and path.
@@ -102,6 +111,8 @@ func NewRouter() fchi.Handler {
 	s.Post("/file-multi-upload", fileMultiUploader())
 	s.Get("/json-param/{in-path}", jsonParam())
 	s.Post("/json-body/{in-path}", jsonBody(),
+		nethttp.SuccessStatus(http.StatusCreated))
+	s.Post("/json-body-manual/{in-path}", jsonBodyManual(),
 		nethttp.SuccessStatus(http.StatusCreated))
 	s.Post("/json-body-validation/{in-path}", jsonBodyValidation())
 	s.Post("/json-slice-body", jsonSliceBody())
