@@ -66,18 +66,13 @@ jobs:
           # Use base sha for PR or new commit hash for master/main push in test result key.
           key: ${{ runner.os }}-unit-test-base-coverage-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
 
-      - name: Checkout base code
-        if: matrix.go-version == env.COV_GO_VERSION && env.RUN_BASE_COVERAGE == 'on' && steps.base-coverage.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.base.sha }}
-          path: __base
-
       - name: Run test for base code
         if: matrix.go-version == env.COV_GO_VERSION && env.RUN_BASE_COVERAGE == 'on' && steps.base-coverage.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
         run: |
-          cd __base
+          git fetch origin master ${{ github.event.pull_request.base.sha }}
+          git checkout ${{ github.event.pull_request.base.sha }}
           make | grep test-unit && (make test-unit && go tool cover -func=./unit.coverprofile > ../unit-base.txt) || echo "No test-unit in base"
+          git checkout ${{ github.event.after }}
 
       - name: Test
         id: test
