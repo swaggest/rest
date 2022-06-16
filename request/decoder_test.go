@@ -22,6 +22,8 @@ import (
 // BenchmarkDecoder_Decode-12    	 1999123	       568.2 ns/op	      65 B/op	       6 allocs/op
 
 // BenchmarkDecoder_Decode-4   	 1314788	       857 ns/op	     448 B/op	       4 allocs/op.
+// BenchmarkDecoder_Decode-12    	 1633274	       638.5 ns/op	      65 B/op	       6 allocs/op. -- orig
+// BenchmarkDecoder_Decode-12    	 2053461	       537.4 ns/op	      56 B/op	       3 allocs/op. -- unsafe
 func BenchmarkDecoder_Decode(b *testing.B) {
 	df := request.NewDecoderFactory()
 

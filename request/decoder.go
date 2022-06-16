@@ -2,7 +2,9 @@ package request
 
 import (
 	"net/url"
+	"reflect"
 	"sync"
+	"unsafe"
 
 	"github.com/swaggest/form/v5"
 	"github.com/swaggest/rest"
@@ -21,6 +23,17 @@ type (
 	decoderFunc      func(rc *fasthttp.RequestCtx, v url.Values) error
 	valueDecoderFunc func(rc *fasthttp.RequestCtx, v interface{}, validator rest.Validator) error
 )
+
+func b2s(b []byte) string {
+	p := unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&b)).Data)
+
+	var s string
+	hdr := (*reflect.StringHeader)(unsafe.Pointer(&s))
+	hdr.Data = uintptr(p)
+	hdr.Len = len(b)
+
+	return s
+}
 
 func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamIn, val rest.Validator) error {
 	goValues := make(map[string]interface{}, len(p))
@@ -125,7 +138,7 @@ func formDataToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 			params = make(url.Values, 1)
 		}
 
-		params[string(key)] = []string{string(value)}
+		params[b2s(key)] = []string{b2s(value)}
 	})
 
 	return nil
@@ -133,11 +146,11 @@ func formDataToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 
 func headerToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 	rc.Request.Header.VisitAll(func(key, value []byte) {
-		if params == nil {
-			params = make(url.Values, 1)
-		}
+		//if params == nil {
+		//	params = make(url.Values, 1)
+		//}
 
-		params[string(key)] = []string{string(value)}
+		params[b2s(key)] = []string{b2s(value)}
 	})
 
 	return nil
@@ -145,11 +158,11 @@ func headerToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 
 func queryToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 	rc.Request.URI().QueryArgs().VisitAll(func(key, value []byte) {
-		if params == nil {
-			params = make(url.Values, 1)
-		}
+		//if params == nil {
+		//	params = make(url.Values, 1)
+		//}
 
-		params[string(key)] = []string{string(value)}
+		params[b2s(key)] = []string{b2s(value)}
 	})
 
 	return nil
@@ -161,7 +174,7 @@ func cookiesToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 			params = make(url.Values, 1)
 		}
 
-		params[string(key)] = []string{string(value)}
+		params[b2s(key)] = []string{b2s(value)}
 	})
 
 	return nil
