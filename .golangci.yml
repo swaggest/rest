@@ -55,4 +55,7 @@ issues:
         - structcheck
         - unused
       path: "_test.go"
-
+    - linters:
+        - staticcheck
+      path: ".go"
+      text: "package io/ioutil is deprecated"

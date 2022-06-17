@@ -51,12 +51,12 @@ func Test_directGzip_perf(t *testing.T) {
 	res := testing.Benchmark(Benchmark_directGzip)
 
 	if httptestbench.RaceDetectorEnabled {
-		assert.Less(t, res.Extra["B:rcvd/op"], 640.0)
+		assert.Less(t, res.Extra["B:rcvd/op"], 700.0)
 		assert.Less(t, res.Extra["B:sent/op"], 104.0)
 		assert.Less(t, res.AllocsPerOp(), int64(60))
 		assert.Less(t, res.AllocedBytesPerOp(), int64(8500))
 	} else {
-		assert.Less(t, res.Extra["B:rcvd/op"], 640.0)
+		assert.Less(t, res.Extra["B:rcvd/op"], 700.0)
 		assert.Less(t, res.Extra["B:sent/op"], 104.0)
 		assert.Less(t, res.AllocsPerOp(), int64(45))
 		assert.Less(t, res.AllocedBytesPerOp(), int64(4100))

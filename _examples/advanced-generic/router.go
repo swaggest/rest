@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/rs/cors"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
@@ -55,7 +56,7 @@ func NewRouter() http.Handler {
 	s.OpenAPICollector.CombineErrors = "anyOf"
 
 	s.Wrap(
-		// Example middleware to setup custom error responses and disable response validation for particular handlers.
+		// Example middleware to set up custom error responses and disable response validation for particular handlers.
 		func(handler http.Handler) http.Handler {
 			var h *nethttp.Handler
 			if nethttp.HandlerAs(handler, &h) {
@@ -85,6 +86,10 @@ func NewRouter() http.Handler {
 
 			return handler
 		},
+
+		// Example middleware to set up CORS headers.
+		// See https://pkg.go.dev/github.com/rs/cors for more details.
+		cors.AllowAll().Handler,
 
 		// Response validator setup.
 		//

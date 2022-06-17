@@ -6,11 +6,12 @@ replace github.com/swaggest/rest => ../
 
 require (
 	github.com/bool64/ctxd v1.1.2
-	github.com/bool64/dev v0.2.15
+	github.com/bool64/dev v0.2.16
 	github.com/bool64/httpmock v0.1.1
 	github.com/bool64/httptestbench v0.1.3
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/kelseyhightower/envconfig v1.4.0
+	github.com/rs/cors v1.8.2
 	github.com/stretchr/testify v1.7.2
 	github.com/swaggest/assertjson v1.7.0
 	github.com/swaggest/jsonschema-go v0.3.35
