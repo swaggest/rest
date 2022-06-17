@@ -64,7 +64,7 @@ func TestMiddleware(t *testing.T) {
 // BenchmarkMiddleware measures performance of handler with compression.
 //
 // Sample result:
-// BenchmarkMiddleware-4   	   92494	     12883 ns/op	    1901 B/op	      14 allocs/op.
+// BenchmarkMiddleware-12    	  108810	      9619 ns/op	    1223 B/op	      11 allocs/op.
 func BenchmarkMiddleware(b *testing.B) {
 	resp := []byte(strings.Repeat("A", 10000) + "!!!")
 	h := gzip.Middleware(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {

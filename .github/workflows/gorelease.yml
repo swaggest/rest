@@ -35,11 +35,11 @@ jobs:
         with:
           path: |
             ~/go/bin/gorelease
-          key: ${{ runner.os }}-gorelease-fork
+          key: ${{ runner.os }}-gorelease-generic
       - name: Gorelease
         id: gorelease
         run: |
-          test -e ~/go/bin/gorelease || (rm -rf /tmp/gorelease && mkdir -p /tmp/gorelease && cd /tmp/gorelease && go mod init foo && go mod edit -replace golang.org/x/exp=github.com/vearutop/golang-exp@gorelease-generic && go get golang.org/x/exp/cmd/gorelease && go install golang.org/x/exp/cmd/gorelease)
+          test -e ~/go/bin/gorelease || go install golang.org/x/exp/cmd/gorelease@latest
           OUTPUT=$(gorelease 2>&1 || exit 0)
           echo "${OUTPUT}"
           OUTPUT="${OUTPUT//$'\n'/%0A}"

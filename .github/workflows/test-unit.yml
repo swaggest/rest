@@ -58,26 +58,22 @@ jobs:
 
       - name: Restore base test coverage
         id: base-coverage
-        if: matrix.go-version == env.COV_GO_VERSION
+        if: matrix.go-version == env.COV_GO_VERSION && github.event.pull_request.base.sha != ''
         uses: actions/cache@v2
         with:
           path: |
             unit-base.txt
           # Use base sha for PR or new commit hash for master/main push in test result key.
-          key: ${{ runner.os }}-unit-test-base-coverage-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
-
-      - name: Checkout base code
-        if: matrix.go-version == env.COV_GO_VERSION && env.RUN_BASE_COVERAGE == 'on' && steps.base-coverage.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ github.event.pull_request.base.sha }}
-          path: __base
+          key: ${{ runner.os }}-unit-test-coverage-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
 
       - name: Run test for base code
         if: matrix.go-version == env.COV_GO_VERSION && env.RUN_BASE_COVERAGE == 'on' && steps.base-coverage.outputs.cache-hit != 'true' && github.event.pull_request.base.sha != ''
         run: |
-          cd __base
-          make | grep test-unit && (make test-unit && go tool cover -func=./unit.coverprofile > ../unit-base.txt) || echo "No test-unit in base"
+          git fetch origin master ${{ github.event.pull_request.base.sha }}
+          HEAD=$(git rev-parse HEAD)
+          git reset --hard ${{ github.event.pull_request.base.sha }}
+          (make test-unit && go tool cover -func=./unit.coverprofile > unit-base.txt) || echo "No test-unit in base"
+          git reset --hard $HEAD
 
       - name: Test
         id: test
@@ -93,12 +89,11 @@ jobs:
         if: matrix.go-version == env.COV_GO_VERSION && github.event.pull_request.base.sha != ''
         run: |
           git fetch origin master ${{ github.event.pull_request.base.sha }}
-          curl -sLO https://github.com/vearutop/gocovdiff/releases/download/v1.3.2/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz && echo "78146b31ec37ac8037a25d33b0f3c70c85adb0f8b682441b04b3daa518eaa489  gocovdiff" | shasum -c
+          curl -sLO https://github.com/vearutop/gocovdiff/releases/download/v1.3.4/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz && shasum -a 256 gocovdiff && echo "b351c67526eefeb0671c82e9271ae984875865eed19e911f40f78348cb98347c  gocovdiff" | shasum -c
           REP=$(./gocovdiff -cov unit.coverprofile -gha-annotations gha-unit.txt -delta-cov-file delta-cov-unit.txt -target-delta-cov ${TARGET_DELTA_COV})
           echo "${REP}"
           REP="${REP//$'\n'/%0A}"
           cat gha-unit.txt
-          test -e unit-base.txt && cat unit-base.txt
           DIFF=$(test -e unit-base.txt && ./gocovdiff -func-cov unit.txt -func-base-cov unit-base.txt || echo "Missing base coverage file")
           DIFF="${DIFF//$'\n'/%0A}"
           TOTAL=$(cat delta-cov-unit.txt)
