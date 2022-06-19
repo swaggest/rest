@@ -121,11 +121,9 @@ func formDataToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 	}
 
 	args.VisitAll(func(key, value []byte) {
-		if params == nil {
-			params = make(url.Values, 1)
-		}
-
-		params[b2s(key)] = []string{b2s(value)}
+		k := b2s(key)
+		v := params[k]
+		params[k] = append(v, b2s(value))
 	})
 
 	return nil
@@ -133,11 +131,9 @@ func formDataToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 
 func headerToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 	rc.Request.Header.VisitAll(func(key, value []byte) {
-		if params == nil {
-			params = make(url.Values, 1)
-		}
-
-		params[b2s(key)] = []string{b2s(value)}
+		k := b2s(key)
+		v := params[k]
+		params[k] = append(v, b2s(value))
 	})
 
 	return nil
@@ -145,11 +141,9 @@ func headerToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 
 func queryToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 	rc.Request.URI().QueryArgs().VisitAll(func(key, value []byte) {
-		if params == nil {
-			params = make(url.Values, 1)
-		}
-
-		params[b2s(key)] = []string{b2s(value)}
+		k := b2s(key)
+		v := params[k]
+		params[k] = append(v, b2s(value))
 	})
 
 	return nil
@@ -157,11 +151,9 @@ func queryToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 
 func cookiesToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 	rc.Request.Header.VisitAllCookie(func(key, value []byte) {
-		if params == nil {
-			params = make(url.Values, 1)
-		}
-
-		params[b2s(key)] = []string{b2s(value)}
+		k := b2s(key)
+		v := params[k]
+		params[k] = append(v, b2s(value))
 	})
 
 	return nil

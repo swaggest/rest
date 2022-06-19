@@ -55,10 +55,10 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 //
 // Copied from https://github.com/bcmills/unsafeslice/blob/v0.2.0/unsafeslice.go#L143.
 func b2s(b []byte) string {
-	p := unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&b)).Data)
+	p := unsafe.Pointer((*reflect.SliceHeader)(unsafe.Pointer(&b)).Data) //nolint:gosec
 
 	var s string
-	hdr := (*reflect.StringHeader)(unsafe.Pointer(&s))
+	hdr := (*reflect.StringHeader)(unsafe.Pointer(&s)) // nolint:gosec
 	hdr.Data = uintptr(p)
 	hdr.Len = len(b)
 

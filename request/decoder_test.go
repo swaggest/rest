@@ -26,6 +26,10 @@ import (
 // BenchmarkDecoder_Decode-16    	 2276893	       453.3 ns/op	     440 B/op	       4 allocs/op.
 // --- fasthttp
 // BenchmarkDecoder_Decode-16    	 2615832	       455.2 ns/op	      65 B/op	       6 allocs/op.
+// unsafe b2s
+// BenchmarkDecoder_Decode-16    	 2797910	       403.6 ns/op	      56 B/op	       3 allocs/op.
+// append v
+// BenchmarkDecoder_Decode-16    	 2776867	       429.0 ns/op	      56 B/op	       3 allocs/op.
 func BenchmarkDecoder_Decode(b *testing.B) {
 	df := request.NewDecoderFactory()
 
@@ -455,4 +459,22 @@ func req(url string) *fasthttp.RequestCtx {
 	rc.Request.SetRequestURI(url)
 
 	return rc
+}
+
+func TestDecoder_Decode_multi(t *testing.T) {
+	rc := req("/?foo=1&foo=2&foo=3")
+
+	type input struct {
+		Foo1 int   `query:"foo"`
+		Foo2 []int `query:"foo"`
+	}
+
+	in := new(input)
+	dec := request.NewDecoderFactory().MakeDecoder(http.MethodGet, in, nil)
+
+	err := dec.Decode(rc, in, nil)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 1, in.Foo1)
+	assert.Equal(t, []int{1, 2, 3}, in.Foo2)
 }
