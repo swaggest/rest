@@ -18,7 +18,7 @@ import (
 	"github.com/swaggest/rest/request"
 )
 
-// BenchmarkDecoder_Decode-4   	 1314788	       857 ns/op	     448 B/op	       4 allocs/op.
+// BenchmarkDecoder_Decode-16    	 2276893	       453.3 ns/op	     440 B/op	       4 allocs/op.
 func BenchmarkDecoder_Decode(b *testing.B) {
 	df := request.NewDecoderFactory()
 
@@ -466,4 +466,27 @@ func TestDecoder_Decode_unknownParams(t *testing.T) {
 	err = dec.Decode(req, in, validator)
 	assert.Equal(t, rest.ValidationErrors{"query:quux": []string{"unknown parameter with value 123"}}, err,
 		fmt.Sprintf("%#v", err))
+}
+
+func TestDecoder_Decode_multi(t *testing.T) {
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet,
+		"/?foo=1&foo=2&foo=3", nil)
+	require.NoError(t, err)
+
+	val := req.URL.Query()
+	assert.Equal(t, []string{"1", "2", "3"}, val["foo"])
+
+	type input struct {
+		Foo1 int   `query:"foo"`
+		Foo2 []int `query:"foo"`
+	}
+
+	in := new(input)
+	dec := request.NewDecoderFactory().MakeDecoder(http.MethodGet, in, nil)
+
+	err = dec.Decode(req, in, nil)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 1, in.Foo1)
+	assert.Equal(t, []int{1, 2, 3}, in.Foo2)
 }
