@@ -12,7 +12,7 @@ require (
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/stretchr/testify v1.7.2
 	github.com/swaggest/assertjson v1.7.0
-	github.com/swaggest/fchi v1.0.5-0.20220601230650-7b5c2cf05db2
+	github.com/swaggest/fchi v1.1.0
 	github.com/swaggest/jsonschema-go v0.3.35
 	github.com/swaggest/openapi-go v0.2.18
 	github.com/swaggest/rest v0.0.0-00010101000000-000000000000

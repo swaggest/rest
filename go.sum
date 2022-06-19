@@ -74,8 +74,8 @@ github.com/stretchr/testify v1.7.2/go.mod h1:R6va5+xMeoiuVRoj+gSkQ7d3FALtqAAGI1F
 github.com/swaggest/assertjson v1.6.8/go.mod h1:Euf0upn9Vlaf1/llYHTs+Kx5K3vVbpMbsZhth7zlN7M=
 github.com/swaggest/assertjson v1.7.0 h1:SKw5Rn0LQs6UvmGrIdaKQbMR1R3ncXm5KNon+QJ7jtw=
 github.com/swaggest/assertjson v1.7.0/go.mod h1:vxMJMehbSVJd+dDWFCKv3QRZKNTpy/ktZKTz9LOEDng=
-github.com/swaggest/fchi v1.0.5-0.20220601230650-7b5c2cf05db2 h1:C/t1sw1yVwP8ZbSM+eCic7D7dEHiMFCV3pnG/PzG2yk=
-github.com/swaggest/fchi v1.0.5-0.20220601230650-7b5c2cf05db2/go.mod h1:yJJHnXZRlOiKSTUPyLbmijfDAuiJjacrFMow17nwkTI=
+github.com/swaggest/fchi v1.1.0 h1:FbtaW8lJ2EhazxrP4zZZRSCdRn033jG2zlrCj7ERzEg=
+github.com/swaggest/fchi v1.1.0/go.mod h1:2lAwaNkyHw0OSUOZTRP51Fs2P27cAA4VFujyAPIhbOA=
 github.com/swaggest/form/v5 v5.0.1 h1:YQH0REX7iMKhtoVPWXREZgbt50VYXNCKK61psnD8Fgo=
 github.com/swaggest/form/v5 v5.0.1/go.mod h1:vdnaSTze7cxVKhWiCabrfm1YeLwWLpb9P941Gxv4FnA=
 github.com/swaggest/jsonschema-go v0.3.34/go.mod h1:JAF1nm+uIaMOXktuQepmkiRcgQ5yJk4Ccwx9HVt2cXw=

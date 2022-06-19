@@ -8,7 +8,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v3 v3.1.0
 	github.com/stretchr/testify v1.7.2
 	github.com/swaggest/assertjson v1.7.0
-	github.com/swaggest/fchi v1.0.5-0.20220601230650-7b5c2cf05db2
+	github.com/swaggest/fchi v1.1.0
 	github.com/swaggest/form/v5 v5.0.1
 	github.com/swaggest/jsonschema-go v0.3.35
 	github.com/swaggest/openapi-go v0.2.18
