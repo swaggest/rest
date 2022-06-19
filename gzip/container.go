@@ -9,6 +9,7 @@ import (
 	"strconv"
 
 	"github.com/cespare/xxhash/v2"
+	"github.com/valyala/fasthttp"
 )
 
 // Writer writes gzip data into suitable stream or returns 0, nil.
@@ -26,10 +27,12 @@ type JSONContainer struct {
 //
 // Bytes are unpacked if response writer does not support direct gzip writing.
 func WriteCompressedBytes(compressed []byte, w io.Writer) (int, error) {
-	if gw, ok := w.(Writer); ok {
-		n, err := gw.GzipWrite(compressed)
-		if n != 0 {
-			return n, err
+	if rc, ok := w.(*fasthttp.RequestCtx); ok {
+		if rc.Request.Header.HasAcceptEncoding("gzip") {
+			rc.Request.Header.Del("Accept-Encoding")
+			rc.Response.Header.Set("Content-Encoding", "gzip")
+
+			return rc.Write(compressed)
 		}
 	}
 

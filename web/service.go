@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/swaggest/fchi"
+	"github.com/swaggest/fchi/middleware"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/chirouter"
@@ -39,7 +39,7 @@ func DefaultService(options ...func(s *Service, initialized bool)) *Service {
 	}
 
 	if s.Wrapper == nil {
-		s.Wrapper = chirouter.NewWrapper(chi.NewRouter())
+		s.Wrapper = chirouter.NewWrapper(fchi.NewRouter())
 	}
 
 	if s.DecoderFactory == nil {
@@ -77,7 +77,7 @@ func DefaultService(options ...func(s *Service, initialized bool)) *Service {
 type Service struct {
 	*chirouter.Wrapper
 
-	PanicRecoveryMiddleware func(handler http.Handler) http.Handler // Default is middleware.Recoverer.
+	PanicRecoveryMiddleware func(handler fchi.Handler) fchi.Handler // Default is middleware.Recoverer.
 	OpenAPI                 *openapi3.Spec
 	OpenAPICollector        *openapi.Collector
 	DecoderFactory          *request.DecoderFactory
@@ -141,5 +141,5 @@ func (s *Service) Trace(pattern string, uc usecase.Interactor, options ...func(h
 func (s *Service) Docs(pattern string, swgui func(title, schemaURL, basePath string) http.Handler) {
 	pattern = strings.TrimRight(pattern, "/")
 	s.Method(http.MethodGet, pattern+"/openapi.json", s.OpenAPICollector)
-	s.Mount(pattern, swgui(s.OpenAPI.Info.Title, pattern+"/openapi.json", pattern))
+	s.Mount(pattern, fchi.Adapt(swgui(s.OpenAPI.Info.Title, pattern+"/openapi.json", pattern)))
 }

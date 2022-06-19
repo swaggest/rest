@@ -6,7 +6,6 @@ import (
 	"errors"
 	"mime/multipart"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -20,6 +19,7 @@ import (
 	"github.com/swaggest/rest/openapi"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
+	"github.com/valyala/fasthttp"
 )
 
 var _ rest.JSONSchemaValidator = validatorMock{}
@@ -100,10 +100,10 @@ func TestCollector_Collect(t *testing.T) {
 	j, err := json.MarshalIndent(c.Reflector().Spec, "", " ")
 	require.NoError(t, err)
 
-	rw := httptest.NewRecorder()
-	c.ServeHTTP(rw, nil)
+	rc := &fasthttp.RequestCtx{}
+	c.ServeHTTP(rc, rc)
 
-	assertjson.Equal(t, j, rw.Body.Bytes())
+	assertjson.Equal(t, j, rc.Response.Body())
 
 	val := validatorMock{
 		AddSchemaFunc: func(in rest.ParamIn, name string, schemaData []byte, required bool) error {

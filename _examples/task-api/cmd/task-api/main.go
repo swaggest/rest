@@ -3,12 +3,14 @@ package main
 import (
 	"fmt"
 	"log"
-	"net/http"
+	"time"
 
 	"github.com/kelseyhightower/envconfig"
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/rest/_examples/task-api/internal/infra"
 	"github.com/swaggest/rest/_examples/task-api/internal/infra/nethttp"
 	"github.com/swaggest/rest/_examples/task-api/internal/infra/service"
+	"github.com/valyala/fasthttp"
 )
 
 func main() {
@@ -26,20 +28,24 @@ func main() {
 	l.EnableGracefulShutdown()
 
 	// Initialize HTTP server.
-	srv := http.Server{Addr: fmt.Sprintf(":%d", cfg.HTTPPort), Handler: nethttp.NewRouter(l)}
+	srv := fasthttp.Server{
+		ReadTimeout: 9 * time.Second,
+		IdleTimeout: 9 * time.Second,
+		Handler:     fchi.RequestHandler(nethttp.NewRouter(l)),
+	}
 
 	// Start HTTP server.
 	log.Printf("starting HTTP server at http://localhost:%d/docs\n", cfg.HTTPPort)
 
 	go func() {
-		err := srv.ListenAndServe()
+		err := srv.ListenAndServe(fmt.Sprintf(":%d", cfg.HTTPPort))
 		if err != nil {
 			log.Fatal(err)
 		}
 	}()
 
 	// Wait for termination signal and HTTP shutdown finished.
-	err := l.WaitToShutdownHTTP(&srv, "http")
+	err := l.WaitToShutdownFastHTTP(&srv, "http")
 	if err != nil {
 		log.Fatal(err)
 	}

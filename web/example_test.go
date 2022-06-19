@@ -5,9 +5,11 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/web"
 	"github.com/swaggest/usecase"
+	"github.com/valyala/fasthttp"
 )
 
 // album represents data about a record album.
@@ -41,7 +43,7 @@ func ExampleDefaultService() {
 
 	log.Println("Starting service at http://localhost:8080")
 
-	if err := http.ListenAndServe("localhost:8080", service); err != nil {
+	if err := fasthttp.ListenAndServe("localhost:8080", fchi.RequestHandler(service)); err != nil {
 		log.Fatal(err)
 	}
 }

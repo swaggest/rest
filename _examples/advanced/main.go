@@ -2,12 +2,14 @@ package main
 
 import (
 	"log"
-	"net/http"
+
+	"github.com/swaggest/fchi"
+	"github.com/valyala/fasthttp"
 )
 
 func main() {
 	log.Println("http://localhost:8011/docs")
-	if err := http.ListenAndServe(":8011", NewRouter()); err != nil {
+	if err := fasthttp.ListenAndServe(":8011", fchi.RequestHandler(NewRouter())); err != nil {
 		log.Fatal(err)
 	}
 }

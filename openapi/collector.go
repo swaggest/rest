@@ -10,10 +10,12 @@ import (
 	"strconv"
 	"sync"
 
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/usecase"
+	"github.com/valyala/fasthttp"
 )
 
 // Collector extracts OpenAPI documentation from HTTP handler and underlying use case interactor.
@@ -506,19 +508,19 @@ func (c *Collector) ProvideResponseJSONSchemas(
 	return nil
 }
 
-func (c *Collector) ServeHTTP(rw http.ResponseWriter, _ *http.Request) {
+func (c *Collector) ServeHTTP(_ context.Context, rc *fasthttp.RequestCtx) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
 	document, err := json.MarshalIndent(c.Reflector().Spec, "", " ")
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		fchi.Error(rc, err.Error(), http.StatusInternalServerError)
 	}
 
-	rw.Header().Set("Content-Type", "application/json; charset=utf8")
+	rc.Response.Header.Set("Content-Type", "application/json; charset=utf8")
 
-	_, err = rw.Write(document)
+	_, err = rc.Write(document)
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		fchi.Error(rc, err.Error(), http.StatusInternalServerError)
 	}
 }

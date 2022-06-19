@@ -1,11 +1,11 @@
 package request
 
 import (
-	"net/http"
-
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/usecase"
+	"github.com/valyala/fasthttp"
 )
 
 type requestDecoderSetter interface {
@@ -17,8 +17,8 @@ type requestMapping interface {
 }
 
 // DecoderMiddleware sets up request decoder in suitable handlers.
-func DecoderMiddleware(factory DecoderMaker) func(http.Handler) http.Handler {
-	return func(handler http.Handler) http.Handler {
+func DecoderMiddleware(factory DecoderMaker) func(fchi.Handler) fchi.Handler {
+	return func(handler fchi.Handler) fchi.Handler {
 		var (
 			withRoute          rest.HandlerWithRoute
 			withUseCase        rest.HandlerWithUseCase
@@ -55,8 +55,8 @@ type withRestHandler interface {
 }
 
 // ValidatorMiddleware sets up request validator in suitable handlers.
-func ValidatorMiddleware(factory rest.RequestValidatorFactory) func(http.Handler) http.Handler {
-	return func(handler http.Handler) http.Handler {
+func ValidatorMiddleware(factory rest.RequestValidatorFactory) func(fchi.Handler) fchi.Handler {
+	return func(handler fchi.Handler) fchi.Handler {
 		var (
 			withRoute        rest.HandlerWithRoute
 			withUseCase      rest.HandlerWithUseCase
@@ -83,11 +83,11 @@ func ValidatorMiddleware(factory rest.RequestValidatorFactory) func(http.Handler
 var _ nethttp.RequestDecoder = DecoderFunc(nil)
 
 // DecoderFunc implements RequestDecoder with a func.
-type DecoderFunc func(r *http.Request, input interface{}, validator rest.Validator) error
+type DecoderFunc func(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error
 
 // Decode implements RequestDecoder.
-func (df DecoderFunc) Decode(r *http.Request, input interface{}, validator rest.Validator) error {
-	return df(r, input, validator)
+func (df DecoderFunc) Decode(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
+	return df(rc, input, validator)
 }
 
 // DecoderMaker creates request decoder for particular structured Go input value.

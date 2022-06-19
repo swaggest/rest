@@ -3,6 +3,7 @@ package response
 import (
 	"net/http"
 
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/usecase"
@@ -13,8 +14,8 @@ type withRestHandler interface {
 }
 
 // ValidatorMiddleware sets up response validator in suitable handlers.
-func ValidatorMiddleware(factory rest.ResponseValidatorFactory) func(http.Handler) http.Handler {
-	return func(handler http.Handler) http.Handler {
+func ValidatorMiddleware(factory rest.ResponseValidatorFactory) func(fchi.Handler) fchi.Handler {
+	return func(handler fchi.Handler) fchi.Handler {
 		var (
 			withUseCase       rest.HandlerWithUseCase
 			handlerTrait      withRestHandler

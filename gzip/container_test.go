@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -15,6 +14,7 @@ import (
 	"github.com/swaggest/rest/response"
 	gzip2 "github.com/swaggest/rest/response/gzip"
 	"github.com/swaggest/usecase"
+	"github.com/valyala/fasthttp"
 )
 
 func TestWriteJSON(t *testing.T) {
@@ -58,36 +58,34 @@ func TestWriteJSON(t *testing.T) {
 	h := nethttp.NewHandler(u)
 	h.SetResponseEncoder(&response.Encoder{})
 
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
 
-	w := httptest.NewRecorder()
+	rc.Request.Header.Set("Accept-Encoding", "deflate, gzip")
+	gzip2.Middleware(h).ServeHTTP(rc, rc)
 
-	r.Header.Set("Accept-Encoding", "deflate, gzip")
-	gzip2.Middleware(h).ServeHTTP(w, r)
+	assert.Equal(t, http.StatusOK, rc.Response.StatusCode())
+	assert.Equal(t, "gzip", string(rc.Response.Header.Peek("Content-Encoding")))
+	assert.Equal(t, "1ofolk6sr5j4r", string(rc.Response.Header.Peek("Etag")))
+	assert.Equal(t, cont.GzipCompressedJSON(), rc.Response.Body())
 
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, "gzip", w.Header().Get("Content-Encoding"))
-	assert.Equal(t, "1ofolk6sr5j4r", w.Header().Get("Etag"))
-	assert.Equal(t, cont.GzipCompressedJSON(), w.Body.Bytes())
+	rc.Request.Header.Del("Accept-Encoding")
+	rc.Response = fasthttp.Response{}
+	gzip2.Middleware(h).ServeHTTP(rc, rc)
 
-	w = httptest.NewRecorder()
+	assert.Equal(t, http.StatusOK, rc.Response.StatusCode())
+	assert.Equal(t, "", string(rc.Response.Header.Peek("Content-Encoding")))
+	assert.Equal(t, "1ofolk6sr5j4r", string(rc.Response.Header.Peek("Etag")))
+	assert.Equal(t, append(vj, '\n'), rc.Response.Body())
 
-	r.Header.Del("Accept-Encoding")
-	gzip2.Middleware(h).ServeHTTP(w, r)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, "", w.Header().Get("Content-Encoding"))
-	assert.Equal(t, "1ofolk6sr5j4r", w.Header().Get("Etag"))
-	assert.Equal(t, append(vj, '\n'), w.Body.Bytes())
-
-	w = httptest.NewRecorder()
 	ur = v
 
-	r.Header.Set("Accept-Encoding", "deflate, gzip")
-	gzip2.Middleware(h).ServeHTTP(w, r)
+	rc.Request.Header.Set("Accept-Encoding", "deflate, gzip")
+	rc.Response = fasthttp.Response{}
 
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, "gzip", w.Header().Get("Content-Encoding"))
-	assert.Equal(t, "", w.Header().Get("Etag"))
+	gzip2.Middleware(h).ServeHTTP(rc, rc)
+
+	assert.Equal(t, http.StatusOK, rc.Response.StatusCode())
+	assert.Equal(t, "gzip", string(rc.Response.Header.Peek("Content-Encoding")))
+	assert.Equal(t, "", string(rc.Response.Header.Peek("Etag")))
 }

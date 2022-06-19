@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
@@ -16,7 +17,7 @@ import (
 	swgui "github.com/swaggest/swgui/v4emb"
 )
 
-func NewRouter() http.Handler {
+func NewRouter() fchi.Handler {
 	s := web.DefaultService()
 
 	s.OpenAPI.Info.Title = "Advanced Example"
@@ -57,7 +58,7 @@ func NewRouter() http.Handler {
 		gzip.Middleware, // Response compression with support for direct gzip pass through.
 
 		// Example middleware to setup custom error responses.
-		func(handler http.Handler) http.Handler {
+		func(handler fchi.Handler) fchi.Handler {
 			var h *nethttp.Handler
 			if nethttp.HandlerAs(handler, &h) {
 				h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
