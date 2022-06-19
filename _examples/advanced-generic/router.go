@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/swaggest/fchi"
+	"github.com/rs/cors"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
@@ -56,7 +57,7 @@ func NewRouter() fchi.Handler {
 	s.OpenAPICollector.CombineErrors = "anyOf"
 
 	s.Wrap(
-		// Example middleware to setup custom error responses.
+		// Example middleware to set up custom error responses.
 		func(handler fchi.Handler) fchi.Handler {
 			var h *nethttp.Handler
 			if nethttp.HandlerAs(handler, &h) {
@@ -86,6 +87,10 @@ func NewRouter() fchi.Handler {
 
 			return handler
 		},
+
+		// Example middleware to set up CORS headers.
+		// See https://pkg.go.dev/github.com/rs/cors for more details.
+		cors.AllowAll().Handler,
 
 		// Response validator setup.
 		//
