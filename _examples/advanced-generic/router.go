@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/swaggest/fchi"
-	"github.com/rs/cors"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
@@ -87,10 +86,6 @@ func NewRouter() fchi.Handler {
 
 			return handler
 		},
-
-		// Example middleware to set up CORS headers.
-		// See https://pkg.go.dev/github.com/rs/cors for more details.
-		cors.AllowAll().Handler,
 
 		// Response validator setup.
 		//

@@ -10,7 +10,6 @@ require (
 	github.com/bool64/httpmock v0.1.1
 	github.com/bool64/httptestbench v0.1.3
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/rs/cors v1.8.2
 	github.com/stretchr/testify v1.7.2
 	github.com/swaggest/assertjson v1.7.0
 	github.com/swaggest/fchi v1.0.5-0.20220601230650-7b5c2cf05db2
@@ -29,7 +28,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
-	github.com/klauspost/compress v1.15.5 // indirect
+	github.com/klauspost/compress v1.15.6 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v3 v3.1.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
