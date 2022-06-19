@@ -125,7 +125,7 @@ func formDataToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 			params = make(url.Values, 1)
 		}
 
-		params[string(key)] = []string{string(value)}
+		params[b2s(key)] = []string{b2s(value)}
 	})
 
 	return nil
@@ -137,7 +137,7 @@ func headerToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 			params = make(url.Values, 1)
 		}
 
-		params[string(key)] = []string{string(value)}
+		params[b2s(key)] = []string{b2s(value)}
 	})
 
 	return nil
@@ -149,7 +149,7 @@ func queryToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 			params = make(url.Values, 1)
 		}
 
-		params[string(key)] = []string{string(value)}
+		params[b2s(key)] = []string{b2s(value)}
 	})
 
 	return nil
@@ -161,7 +161,7 @@ func cookiesToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 			params = make(url.Values, 1)
 		}
 
-		params[string(key)] = []string{string(value)}
+		params[b2s(key)] = []string{b2s(value)}
 	})
 
 	return nil

@@ -22,6 +22,10 @@ import (
 // BenchmarkDecoder_Decode-12    	 1999123	       568.2 ns/op	      65 B/op	       6 allocs/op
 
 // BenchmarkDecoder_Decode-4   	 1314788	       857 ns/op	     448 B/op	       4 allocs/op.
+// --- net/http
+// BenchmarkDecoder_Decode-16    	 2276893	       453.3 ns/op	     440 B/op	       4 allocs/op.
+// --- fasthttp
+// BenchmarkDecoder_Decode-16    	 2615832	       455.2 ns/op	      65 B/op	       6 allocs/op.
 func BenchmarkDecoder_Decode(b *testing.B) {
 	df := request.NewDecoderFactory()
 
