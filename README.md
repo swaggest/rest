@@ -198,6 +198,41 @@ u.Interactor = usecase.Interact(func(ctx context.Context, input, output interfac
 })
 ```
 
+### Initializing Web Service
+
+[Web Service](https://pkg.go.dev/github.com/swaggest/rest/web#DefaultService) is an instrumented facade in front of 
+router, it simplifies configuration and provides more compact API to add use cases.
+
+```go
+// Service initializes router with required middlewares.
+service := web.DefaultService()
+
+// It allows OpenAPI configuration.
+service.OpenAPI.Info.Title = "Albums API"
+service.OpenAPI.Info.WithDescription("This service provides API to manage albums.")
+service.OpenAPI.Info.Version = "v1.0.0"
+
+// Additional middlewares can be added.
+service.Use(
+    middleware.StripSlashes,
+
+    // cors.AllowAll().Handler, // "github.com/rs/cors", 3rd-party CORS middleware can also be configured here.
+)
+
+// Use cases can be mounted using short syntax .<Method>(...).
+service.Post("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
+
+log.Println("Starting service at http://localhost:8080")
+
+if err := http.ListenAndServe("localhost:8080", service); err != nil {
+    log.Fatal(err)
+}
+
+```
+
+Usually, `web.Service` API is sufficient, but if it is not, router can be configured manually, please check 
+the documentation below.
+
 ### Adding use case to router
 
 ```go
@@ -280,7 +315,7 @@ adminSecuritySchema := nethttp.HTTPBasicSecurityMiddleware(apiSchema, "Admin", "
 // Endpoints with admin access.
 r.Route("/admin", func(r chi.Router) {
     r.Group(func(r chi.Router) {
-        r.Use(adminAuth, adminSecuritySchema) // Add both middlewares to routing group to enforce and document security.
+        r.Wrap(adminAuth, adminSecuritySchema) // Add both middlewares to routing group to enforce and document security.
         r.Method(http.MethodPut, "/hello/{name}", nethttp.NewHandler(u))
     })
 })
