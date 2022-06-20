@@ -145,41 +145,85 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 	collector := openapi.Collector{}
 
 	require.NoError(t, collector.Collect(http.MethodPost, "/test/{in-path}", u, h))
+	require.NoError(t, collector.Collect(http.MethodPut, "/test/{in-path}", u, h))
 
 	assertjson.EqualMarshal(t, []byte(`{
-  "openapi":"3.0.3","info":{"title":"","version":""},
-  "paths":{
-	"/test/{in-path}":{
-	  "post":{
-		"summary":"Title","description":"","operationId":"name",
-		"parameters":[
-		  {"name":"in_query","in":"query","schema":{"type":"string","format":"date"}},
-		  {"name":"in-path","in":"path","required":true,"schema":{"type":"boolean"}},
-		  {"name":"in_cookie","in":"cookie","schema":{"type":"string","format":"date-time"}},
-		  {"name":"X-In-Header","in":"header","schema":{"minLength":2,"type":"string"}}
-		],
-		"requestBody":{
-		  "content":{
-			"multipart/form-data":{"schema":{"$ref":"#/components/schemas/FormDataOpenapiTestInput"}}
+	  "openapi":"3.0.3","info":{"title":"","version":""},
+	  "paths":{
+		"/test/{in-path}":{
+		  "post":{
+			"summary":"Title","operationId":"name",
+			"parameters":[
+			  {
+				"name":"in_query","in":"query",
+				"schema":{"type":"string","format":"date"}
+			  },
+			  {
+				"name":"in-path","in":"path","required":true,
+				"schema":{"type":"boolean"}
+			  },
+			  {
+				"name":"in_cookie","in":"cookie",
+				"schema":{"type":"string","format":"date-time"}
+			  },
+			  {
+				"name":"X-In-Header","in":"header",
+				"schema":{"minLength":2,"type":"string"}
+			  }
+			],
+			"requestBody":{
+			  "content":{
+				"multipart/form-data":{
+				  "schema":{"$ref":"#/components/schemas/FormDataOpenapiTestInput"}
+				}
+			  }
+			},
+			"responses":{"204":{"description":"No Content"}},"deprecated":true
+		  },
+		  "put":{
+			"summary":"Title","operationId":"name2",
+			"parameters":[
+			  {
+				"name":"in_query","in":"query",
+				"schema":{"type":"string","format":"date"}
+			  },
+			  {
+				"name":"in-path","in":"path","required":true,
+				"schema":{"type":"boolean"}
+			  },
+			  {
+				"name":"in_cookie","in":"cookie",
+				"schema":{"type":"string","format":"date-time"}
+			  },
+			  {
+				"name":"X-In-Header","in":"header",
+				"schema":{"minLength":2,"type":"string"}
+			  }
+			],
+			"requestBody":{
+			  "content":{
+				"multipart/form-data":{
+				  "schema":{"$ref":"#/components/schemas/FormDataOpenapiTestInput"}
+				}
+			  }
+			},
+			"responses":{"204":{"description":"No Content"}},"deprecated":true
 		  }
-		},
-		"responses":{"204":{"description":"No Content"}},"deprecated":true
-	  }
-	}
-  },
-  "components":{
-	"schemas":{
-	  "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
-	  "FormDataOpenapiTestInput":{
-		"type":"object",
-		"properties":{
-		  "in_form_data":{"type":"string","format":"date-time"},
-		  "upload":{"$ref":"#/components/schemas/FormDataMultipartFile"}
+		}
+	  },
+	  "components":{
+		"schemas":{
+		  "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
+		  "FormDataOpenapiTestInput":{
+			"type":"object",
+			"properties":{
+			  "in_form_data":{"type":"string","format":"date-time"},
+			  "upload":{"$ref":"#/components/schemas/FormDataMultipartFile"}
+			}
+		  }
 		}
 	  }
-	}
-  }
-}`), collector.Reflector().SpecEns())
+	}`), collector.Reflector().SpecEns())
 
 	val := validatorMock{
 		AddSchemaFunc: func(in rest.ParamIn, name string, schemaData []byte, required bool) error {
@@ -228,7 +272,7 @@ func TestCollector_Collect_CombineErrors(t *testing.T) {
 	  "paths":{
 		"/test":{
 		  "post":{
-			"summary":"Title","description":"","operationId":"name",
+			"summary":"Title","operationId":"name",
 			"responses":{
 			  "204":{"description":"No Content"},
 			  "400":{
