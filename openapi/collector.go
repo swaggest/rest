@@ -27,8 +27,9 @@ type Collector struct {
 	// of multiple responses with same HTTP status code.
 	CombineErrors string
 
-	gen         *openapi3.Reflector
-	annotations map[string][]func(*openapi3.Operation) error
+	gen          *openapi3.Reflector
+	annotations  map[string][]func(*openapi3.Operation) error
+	operationIDs map[string]bool
 }
 
 // Reflector is an accessor to OpenAPI Reflector instance.
@@ -194,19 +195,49 @@ func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor,
 	)
 
 	if usecase.As(u, &hasName) {
-		op.WithID(hasName.Name())
+		id := hasName.Name()
+
+		if id != "" {
+			if c.operationIDs == nil {
+				c.operationIDs = make(map[string]bool)
+			}
+
+			idSuf := id
+			suf := 1
+
+			for c.operationIDs[idSuf] {
+				suf++
+				idSuf = id + strconv.Itoa(suf)
+			}
+
+			c.operationIDs[idSuf] = true
+
+			op.WithID(idSuf)
+		}
 	}
 
 	if usecase.As(u, &hasTitle) {
-		op.WithSummary(hasTitle.Title())
+		title := hasTitle.Title()
+
+		if title != "" {
+			op.WithSummary(hasTitle.Title())
+		}
 	}
 
 	if usecase.As(u, &hasTags) {
-		op.WithTags(hasTags.Tags()...)
+		tags := hasTags.Tags()
+
+		if len(tags) > 0 {
+			op.WithTags(hasTags.Tags()...)
+		}
 	}
 
 	if usecase.As(u, &hasDescription) {
-		op.WithDescription(hasDescription.Description())
+		desc := hasDescription.Description()
+
+		if desc != "" {
+			op.WithDescription(hasDescription.Description())
+		}
 	}
 
 	if usecase.As(u, &hasDeprecated) && hasDeprecated.IsDeprecated() {
