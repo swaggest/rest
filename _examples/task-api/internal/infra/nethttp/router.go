@@ -8,40 +8,24 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/_examples/task-api/internal/infra/log"
 	"github.com/swaggest/rest/_examples/task-api/internal/infra/schema"
 	"github.com/swaggest/rest/_examples/task-api/internal/infra/service"
 	"github.com/swaggest/rest/_examples/task-api/internal/usecase"
-	"github.com/swaggest/rest/chirouter"
-	"github.com/swaggest/rest/jsonschema"
 	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/request"
-	"github.com/swaggest/rest/response"
+	"github.com/swaggest/rest/web"
 	swgui "github.com/swaggest/swgui/v4emb"
 )
 
 // NewRouter creates HTTP router.
 func NewRouter(locator *service.Locator) http.Handler {
-	apiSchema := schema.NewOpenAPICollector()
-	validatorFactory := jsonschema.NewFactory(apiSchema, apiSchema)
-	decoderFactory := request.NewDecoderFactory()
-	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
+	s := web.DefaultService()
 
-	r := chirouter.NewWrapper(chi.NewRouter())
-
-	r.Wrap(
-		middleware.Recoverer, // Panic recovery.
-		nethttp.UseCaseMiddlewares(log.UseCaseMiddleware()), // Sample use case middleware.
-		nethttp.OpenAPIMiddleware(apiSchema),                // Documentation collector.
-		request.DecoderMiddleware(decoderFactory),           // Decoder setup.
-		request.ValidatorMiddleware(validatorFactory),       // Validator setup.
-		response.EncoderMiddleware,                          // Encoder setup.
-	)
+	schema.SetupOpenAPICollector(s.OpenAPICollector)
 
 	adminAuth := middleware.BasicAuth("Admin Access", map[string]string{"admin": "admin"})
 	userAuth := middleware.BasicAuth("User Access", map[string]string{"user": "user"})
 
-	r.Wrap(
+	s.Wrap(
 		middleware.NoCache,
 		middleware.Timeout(time.Second),
 	)
@@ -51,8 +35,8 @@ func NewRouter(locator *service.Locator) http.Handler {
 	}
 
 	// Unrestricted access.
-	r.Route("/dev", func(r chi.Router) {
-		r.Use(nethttp.AnnotateOpenAPI(apiSchema, func(op *openapi3.Operation) error {
+	s.Route("/dev", func(r chi.Router) {
+		r.Use(nethttp.AnnotateOpenAPI(s.OpenAPICollector, func(op *openapi3.Operation) error {
 			op.Tags = []string{"Dev Mode"}
 
 			return nil
@@ -68,33 +52,31 @@ func NewRouter(locator *service.Locator) http.Handler {
 	})
 
 	// Endpoints with admin access.
-	r.Route("/admin", func(r chi.Router) {
+	s.Route("/admin", func(r chi.Router) {
 		r.Group(func(r chi.Router) {
-			r.Use(nethttp.AnnotateOpenAPI(apiSchema, func(op *openapi3.Operation) error {
+			r.Use(nethttp.AnnotateOpenAPI(s.OpenAPICollector, func(op *openapi3.Operation) error {
 				op.Tags = []string{"Admin Mode"}
 
 				return nil
 			}))
-			r.Use(adminAuth, nethttp.HTTPBasicSecurityMiddleware(apiSchema, "Admin", "Admin access"))
+			r.Use(adminAuth, nethttp.HTTPBasicSecurityMiddleware(s.OpenAPICollector, "Admin", "Admin access"))
 			r.Method(http.MethodPut, "/tasks/{id}", nethttp.NewHandler(usecase.UpdateTask(locator), ff))
 		})
 	})
 
 	// Endpoints with user access.
-	r.Route("/user", func(r chi.Router) {
+	s.Route("/user", func(r chi.Router) {
 		r.Group(func(r chi.Router) {
-			r.Use(userAuth, nethttp.HTTPBasicSecurityMiddleware(apiSchema, "User", "User access"))
+			r.Use(userAuth, nethttp.HTTPBasicSecurityMiddleware(s.OpenAPICollector, "User", "User access"))
 			r.Method(http.MethodPost, "/tasks", nethttp.NewHandler(usecase.CreateTask(locator),
 				nethttp.SuccessStatus(http.StatusCreated)))
 		})
 	})
 
 	// Swagger UI endpoint at /docs.
-	r.Method(http.MethodGet, "/docs/openapi.json", apiSchema)
-	r.Mount("/docs", swgui.NewHandler(apiSchema.Reflector().Spec.Info.Title,
-		"/docs/openapi.json", "/docs"))
+	s.Docs("/docs", swgui.New)
 
-	r.Mount("/debug", middleware.Profiler())
+	s.Mount("/debug", middleware.Profiler())
 
-	return r
+	return s
 }
