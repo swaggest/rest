@@ -35,7 +35,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v3 v3.1.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
 	github.com/swaggest/form/v5 v5.0.1 // indirect
-	github.com/swaggest/refl v1.0.2 // indirect
+	github.com/swaggest/refl v1.1.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vearutop/statigz v1.1.5 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.2-0.20201207051438-cf7bb3f354ff // indirect

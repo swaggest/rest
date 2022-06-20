@@ -61,14 +61,30 @@ func OutputHasNoContent(output interface{}) bool {
 
 	rv := reflect.ValueOf(output)
 
-	if !withWriter && !noContent &&
-		!refl.HasTaggedFields(output, "json") &&
-		!refl.IsSliceOrMap(output) &&
-		refl.FindEmbeddedSliceOrMap(output) == nil &&
-		!refl.As(output, new(json.Marshaler)) &&
-		(rv.Kind() != reflect.Ptr || rv.Elem().Kind() != reflect.Interface) {
-		return true
+	kind := rv.Kind()
+	elemKind := reflect.Invalid
+
+	if kind == reflect.Ptr {
+		elemKind = rv.Elem().Kind()
 	}
 
-	return false
+	hasTaggedFields := refl.HasTaggedFields(output, "json")
+	isSliceOrMap := refl.IsSliceOrMap(output)
+	hasEmbeddedSliceOrMap := refl.FindEmbeddedSliceOrMap(output) != nil
+	isJSONMarshaler := refl.As(output, new(json.Marshaler))
+	isPtrToInterface := elemKind == reflect.Interface
+	isScalar := refl.IsScalar(output)
+
+	if withWriter ||
+		noContent ||
+		hasTaggedFields ||
+		isSliceOrMap ||
+		hasEmbeddedSliceOrMap ||
+		isJSONMarshaler ||
+		isPtrToInterface ||
+		isScalar {
+		return false
+	}
+
+	return true
 }

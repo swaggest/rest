@@ -14,7 +14,7 @@ require (
 	github.com/swaggest/form/v5 v5.0.1
 	github.com/swaggest/jsonschema-go v0.3.35
 	github.com/swaggest/openapi-go v0.2.18
-	github.com/swaggest/refl v1.0.2
+	github.com/swaggest/refl v1.1.0
 	github.com/swaggest/usecase v1.1.3
 )
 
