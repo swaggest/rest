@@ -95,4 +95,15 @@ func Test_taskLifeSpan(t *testing.T) {
 	assert.NoError(t, rc.ExpectOtherResponsesStatus(http.StatusBadRequest))
 	assert.NoError(t, rc.ExpectOtherResponsesBody([]byte(`{"status":"FAILED_PRECONDITION",`+
 		`"error":"failed precondition: task is already closed"}`)))
+
+	rc.Reset().WithMethod(http.MethodPost).WithURI("/user/tasks").
+		WithBody([]byte(`{"deadline": "2022-06-20T23:49:10.227Z","goal": "goal!"}`)).Concurrently()
+	assert.NoError(t, rc.ExpectResponseStatus(http.StatusUnauthorized))
+	assert.NoError(t, rc.ExpectResponseBody(nil))
+
+	rc.Reset().WithMethod(http.MethodPost).WithURI("/user/tasks").
+		WithHeader("Authorization", "Basic dXNlcjp1c2Vy"). // user:user.
+		WithBody([]byte(`{"deadline": "2022-06-20T23:49:10.227Z","goal": "goal!"}`)).Concurrently()
+	assert.NoError(t, rc.ExpectResponseStatus(http.StatusCreated))
+	assert.NoError(t, rc.ExpectResponseBody([]byte(`{"id":"<ignore-diff>","goal":"goal!","deadline":"2022-06-20T23:49:10.227Z","createdAt":"<ignore-diff>"}`)))
 }
