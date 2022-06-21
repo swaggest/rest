@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/nethttp"
 )
 
@@ -25,6 +26,7 @@ type Wrapper struct {
 
 	middlewares []func(http.Handler) http.Handler
 	wraps       []func(http.Handler) http.Handler
+	handlers    []http.Handler
 }
 
 var _ chi.Router = &Wrapper{}
@@ -89,8 +91,27 @@ func (r *Wrapper) Route(pattern string, fn func(r chi.Router)) chi.Router {
 
 // Mount attaches another http.Handler along "./basePattern/*".
 func (r *Wrapper) Mount(pattern string, h http.Handler) {
-	h = r.prepareHandler("", pattern, h)
-	r.captureHandler(h)
+	if hr, ok := h.(interface {
+		handlersWithRoute() []http.Handler
+		handlerWraps() []func(http.Handler) http.Handler
+	}); ok {
+		pattern = strings.TrimSuffix(pattern, "/")
+
+		for _, h := range hr.handlersWithRoute() {
+			var rh rest.HandlerWithRoute
+			if nethttp.HandlerAs(h, &rh) {
+				m := rh.RouteMethod()
+				p := r.resolvePattern(pattern + rh.RoutePattern())
+				h := nethttp.WrapHandler(h, nethttp.HandlerWithRouteMiddleware(m, p))
+				h = nethttp.WrapHandler(h, hr.handlerWraps()...)
+				h = nethttp.WrapHandler(h, r.wraps...)
+			}
+		}
+	} else {
+		h = r.prepareHandler("", pattern, h)
+		r.captureHandler(h)
+	}
+
 	r.Router.Mount(pattern, h)
 }
 
@@ -167,9 +188,17 @@ func (r *Wrapper) captureHandler(h http.Handler) {
 }
 
 func (r *Wrapper) prepareHandler(method, pattern string, h http.Handler) http.Handler {
-	mw := r.wraps
-	mw = append(mw, nethttp.HandlerWithRouteMiddleware(method, r.resolvePattern(pattern)))
-	h = nethttp.WrapHandler(h, mw...)
+	h = nethttp.WrapHandler(h, nethttp.HandlerWithRouteMiddleware(method, r.resolvePattern(pattern)))
+	r.handlers = append(r.handlers, h)
+	h = nethttp.WrapHandler(h, r.wraps...)
 
 	return h
+}
+
+func (r *Wrapper) handlersWithRoute() []http.Handler {
+	return r.handlers
+}
+
+func (r *Wrapper) handlerWraps() []func(http.Handler) http.Handler {
+	return r.wraps
 }
