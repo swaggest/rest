@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/swaggest/rest"
+	"github.com/swaggest/rest-fasthttp"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 )

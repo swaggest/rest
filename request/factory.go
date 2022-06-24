@@ -3,6 +3,7 @@ package request
 import (
 	"bytes"
 	"encoding/json"
+	rest2 "github.com/swaggest/rest"
 	"io"
 	"net/http"
 	"net/url"
@@ -13,8 +14,7 @@ import (
 	"github.com/swaggest/form/v5"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/refl"
-	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/valyala/fasthttp"
 )
 
@@ -39,8 +39,8 @@ type DecoderFactory struct {
 	// If not set encoding/json.Decoder is used.
 	JSONReader func(rd io.Reader, v interface{}) error
 
-	formDecoders      map[rest.ParamIn]*form.Decoder
-	decoderFunctions  map[rest.ParamIn]decoderFunc
+	formDecoders      map[rest2.ParamIn]*form.Decoder
+	decoderFunctions  map[rest2.ParamIn]decoderFunc
 	defaultValDecoder *form.Decoder
 	customDecoders    []customDecoder
 }
@@ -53,10 +53,10 @@ type customDecoder struct {
 // NewDecoderFactory creates request decoder factory.
 func NewDecoderFactory() *DecoderFactory {
 	df := DecoderFactory{}
-	df.SetDecoderFunc(rest.ParamInCookie, cookiesToURLValues)
-	df.SetDecoderFunc(rest.ParamInFormData, formDataToURLValues)
-	df.SetDecoderFunc(rest.ParamInHeader, headerToURLValues)
-	df.SetDecoderFunc(rest.ParamInQuery, queryToURLValues)
+	df.SetDecoderFunc(rest2.ParamInCookie, cookiesToURLValues)
+	df.SetDecoderFunc(rest2.ParamInFormData, formDataToURLValues)
+	df.SetDecoderFunc(rest2.ParamInHeader, headerToURLValues)
+	df.SetDecoderFunc(rest2.ParamInQuery, queryToURLValues)
 
 	defaultValDecoder := form.NewDecoder()
 	defaultValDecoder.RegisterTagNameFunc(func(field reflect.StructField) string {
@@ -69,13 +69,13 @@ func NewDecoderFactory() *DecoderFactory {
 }
 
 // SetDecoderFunc adds custom decoder function for values of particular field tag name.
-func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(rc *fasthttp.RequestCtx, v url.Values) error) {
+func (df *DecoderFactory) SetDecoderFunc(tagName rest2.ParamIn, d func(rc *fasthttp.RequestCtx, v url.Values) error) {
 	if df.decoderFunctions == nil {
-		df.decoderFunctions = make(map[rest.ParamIn]decoderFunc)
+		df.decoderFunctions = make(map[rest2.ParamIn]decoderFunc)
 	}
 
 	if df.formDecoders == nil {
-		df.formDecoders = make(map[rest.ParamIn]*form.Decoder)
+		df.formDecoders = make(map[rest2.ParamIn]*form.Decoder)
 	}
 
 	df.decoderFunctions[tagName] = d
@@ -94,11 +94,11 @@ func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(rc *fastht
 func (df *DecoderFactory) MakeDecoder(
 	method string,
 	input interface{},
-	customMapping rest.RequestMapping,
-) nethttp.RequestDecoder {
+	customMapping rest2.RequestMapping,
+) fhttp.RequestDecoder {
 	m := decoder{
 		decoders: make([]valueDecoderFunc, 0),
-		in:       make([]rest.ParamIn, 0),
+		in:       make([]rest2.ParamIn, 0),
 	}
 
 	if df.ApplyDefaults && refl.HasTaggedFields(input, defaultTag) {
@@ -139,33 +139,33 @@ func (df *DecoderFactory) MakeDecoder(
 			m.decoders = append(m.decoders, decodeJSONBody(readJSON))
 		}
 
-		m.in = append(m.in, rest.ParamInBody)
+		m.in = append(m.in, rest2.ParamInBody)
 	}
 
 	if hasFileFields(input, fileTag) || hasFileFields(input, formDataTag) {
 		m.decoders = append(m.decoders, decodeFiles)
-		m.in = append(m.in, rest.ParamInFormData)
+		m.in = append(m.in, rest2.ParamInFormData)
 	}
 
 	return &m
 }
 
-func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping rest.RequestMapping) rest.RequestMapping {
+func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping rest2.RequestMapping) rest2.RequestMapping {
 	// Copy custom mapping to avoid mutability issues on original map.
-	cm := make(rest.RequestMapping, len(customMapping))
+	cm := make(rest2.RequestMapping, len(customMapping))
 	for k, v := range customMapping {
 		cm[k] = v
 	}
 
 	// Move header names to custom mapping and/or apply canonical form to match net/http request decoder.
-	if hdm, exists := cm[rest.ParamInHeader]; !exists && refl.HasTaggedFields(input, string(rest.ParamInHeader)) {
+	if hdm, exists := cm[rest2.ParamInHeader]; !exists && refl.HasTaggedFields(input, string(rest2.ParamInHeader)) {
 		hdm = make(map[string]string)
 
 		refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
 			hdm[sf.Name] = http.CanonicalHeaderKey(tag)
-		}, string(rest.ParamInHeader))
+		}, string(rest2.ParamInHeader))
 
-		cm[rest.ParamInHeader] = hdm
+		cm[rest2.ParamInHeader] = hdm
 	} else if exists {
 		for k, v := range hdm {
 			hdm[k] = http.CanonicalHeaderKey(v)
@@ -198,7 +198,7 @@ func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping 
 }
 
 // jsonParams configures custom decoding for parameters with JSON struct values.
-func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn, input interface{}) {
+func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest2.ParamIn, input interface{}) {
 	// Check fields for struct values with json tags. E.g. query parameter with json value.
 	refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
 		// Skip unexported fields.
@@ -239,13 +239,13 @@ func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 
 	dec := df.defaultValDecoder
 
-	m.decoders = append(m.decoders, func(rc *fasthttp.RequestCtx, v interface{}, validator rest.Validator) error {
+	m.decoders = append(m.decoders, func(rc *fasthttp.RequestCtx, v interface{}, validator rest2.Validator) error {
 		return dec.Decode(v, defaults)
 	})
 	m.in = append(m.in, defaultTag)
 }
 
-func (df *DecoderFactory) makeCustomMappingDecoder(customMapping rest.RequestMapping, m *decoder) {
+func (df *DecoderFactory) makeCustomMappingDecoder(customMapping rest2.RequestMapping, m *decoder) {
 	for in, mapping := range customMapping {
 		dec := form.NewDecoder()
 		dec.SetTagName(string(in))

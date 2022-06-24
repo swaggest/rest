@@ -4,7 +4,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/swaggest/rest"
+	"github.com/swaggest/rest-fasthttp"
 )
 
 func TestRequestErrors_Error(t *testing.T) {

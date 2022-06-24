@@ -1,18 +1,18 @@
-package nethttp_test
+package fhttp_test
 
 import (
 	"context"
 	"errors"
+	rest2 "github.com/swaggest/rest"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/fchi"
-	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/request"
-	"github.com/swaggest/rest/response"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/swaggest/rest-fasthttp/request"
+	"github.com/swaggest/rest-fasthttp/response"
 	"github.com/swaggest/usecase"
 	"github.com/valyala/fasthttp"
 )
@@ -54,22 +54,22 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	rc.Request.SetRequestURI("/test")
 
 	validatorCalled := false
-	h := nethttp.NewHandler(u,
-		func(h *nethttp.Handler) {
-			h.ReqValidator = rest.ValidatorFunc(func(in rest.ParamIn, namedData map[string]interface{}) error {
+	h := fhttp.NewHandler(u,
+		func(h *fhttp.Handler) {
+			h.ReqValidator = rest2.ValidatorFunc(func(in rest2.ParamIn, namedData map[string]interface{}) error {
 				validatorCalled = true
 
 				return nil
 			})
 		},
-		func(h *nethttp.Handler) {
+		func(h *fhttp.Handler) {
 			h.SuccessStatus = http.StatusAccepted
 		},
 	)
 	h.SetResponseEncoder(&response.Encoder{})
 
 	h.SetRequestDecoder(request.DecoderFunc(
-		func(r *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
+		func(r *fasthttp.RequestCtx, input interface{}, validator rest2.Validator) error {
 			assert.Equal(t, rc, r)
 			in, ok := input.(*Input)
 			require.True(t, ok)
@@ -86,7 +86,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	assert.Equal(t, u, h.UseCase())
 
 	umwCalled := false
-	hh := nethttp.UseCaseMiddlewares(usecase.MiddlewareFunc(func(next usecase.Interactor) usecase.Interactor {
+	hh := fhttp.UseCaseMiddlewares(usecase.MiddlewareFunc(func(next usecase.Interactor) usecase.Interactor {
 		return usecase.Interact(func(ctx context.Context, input, output interface{}) error {
 			umwCalled = true
 
@@ -121,16 +121,16 @@ func TestHandler_ServeHTTP_decodeErr(t *testing.T) {
 	rc := &fasthttp.RequestCtx{}
 	rc.Request.SetRequestURI("/test")
 
-	uh := nethttp.NewHandler(u)
+	uh := fhttp.NewHandler(u)
 	uh.SetRequestDecoder(request.DecoderFunc(
-		func(r *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
+		func(r *fasthttp.RequestCtx, input interface{}, validator rest2.Validator) error {
 			return errors.New("failed to decode request")
 		},
 	))
 	uh.SetResponseEncoder(&response.Encoder{})
 
 	umwCalled := false
-	h := nethttp.UseCaseMiddlewares(usecase.MiddlewareFunc(func(next usecase.Interactor) usecase.Interactor {
+	h := fhttp.UseCaseMiddlewares(usecase.MiddlewareFunc(func(next usecase.Interactor) usecase.Interactor {
 		return usecase.Interact(func(ctx context.Context, input, output interface{}) error {
 			umwCalled = true
 
@@ -158,7 +158,7 @@ func TestHandler_ServeHTTP_emptyPorts(t *testing.T) {
 		return nil
 	})
 
-	h := nethttp.NewHandler(u)
+	h := fhttp.NewHandler(u)
 	h.SetResponseEncoder(&response.Encoder{})
 
 	rc := &fasthttp.RequestCtx{}
@@ -183,7 +183,7 @@ func TestHandler_ServeHTTP_customErrResp(t *testing.T) {
 		return errors.New("use case failed")
 	})
 
-	h := nethttp.NewHandler(u)
+	h := fhttp.NewHandler(u)
 	h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
 		return http.StatusExpectationFailed, struct {
 			Custom string `json:"custom"`
@@ -210,8 +210,8 @@ func TestHandlerWithRouteMiddleware(t *testing.T) {
 		called = true
 	})
 
-	h = nethttp.HandlerWithRouteMiddleware(http.MethodPost, "/test/")(h)
-	hr, ok := h.(rest.HandlerWithRoute)
+	h = fhttp.HandlerWithRouteMiddleware(http.MethodPost, "/test/")(h)
+	hr, ok := h.(rest2.HandlerWithRoute)
 	require.True(t, ok)
 	assert.Equal(t, http.MethodPost, hr.RouteMethod())
 	assert.Equal(t, "/test/", hr.RoutePattern())
@@ -244,7 +244,7 @@ func TestHandler_ServeHTTP_getWithBody(t *testing.T) {
 		return nil
 	})
 
-	h := nethttp.NewHandler(u)
+	h := fhttp.NewHandler(u)
 	h.SetRequestDecoder(request.NewDecoderFactory().MakeDecoder(http.MethodGet, new(reqWithBody), nil))
 	h.SetResponseEncoder(&response.Encoder{})
 
@@ -274,14 +274,14 @@ func TestHandler_ServeHTTP_customMapping(t *testing.T) {
 		return nil
 	})
 
-	uh := nethttp.NewHandler(u)
-	uh.ReqMapping = rest.RequestMapping{
-		rest.ParamInQuery: map[string]string{"ID": "ident"},
+	uh := fhttp.NewHandler(u)
+	uh.ReqMapping = rest2.RequestMapping{
+		rest2.ParamInQuery: map[string]string{"ID": "ident"},
 	}
 
-	h := nethttp.WrapHandler(uh,
+	h := fhttp.WrapHandler(uh,
 		request.DecoderMiddleware(request.NewDecoderFactory()),
-		nethttp.HandlerWithRouteMiddleware(http.MethodGet, "/test"),
+		fhttp.HandlerWithRouteMiddleware(http.MethodGet, "/test"),
 		response.EncoderMiddleware,
 	)
 
@@ -298,7 +298,7 @@ func TestOptionsMiddleware(t *testing.T) {
 	u := usecase.NewIOI(nil, nil, func(ctx context.Context, input, output interface{}) error {
 		return errors.New("failed")
 	})
-	h := nethttp.NewHandler(u, func(h *nethttp.Handler) {
+	h := fhttp.NewHandler(u, func(h *fhttp.Handler) {
 		h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
 			return http.StatusExpectationFailed, struct {
 				Foo string `json:"foo"`
@@ -312,7 +312,7 @@ func TestOptionsMiddleware(t *testing.T) {
 	rc := &fasthttp.RequestCtx{}
 	rc.Request.SetRequestURI("/")
 
-	oh := nethttp.OptionsMiddleware(func(h *nethttp.Handler) {
+	oh := fhttp.OptionsMiddleware(func(h *fhttp.Handler) {
 		handleErrResponse := h.HandleErrResponse
 		h.HandleErrResponse = func(ctx context.Context, r *fasthttp.RequestCtx, err error) {
 			assert.Equal(t, rc, r)

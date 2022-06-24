@@ -312,8 +312,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/swaggest/rest/response/gzip"
-	"github.com/swaggest/rest/web"
+	"github.com/swaggest/rest-fasthttp/response/gzip"
+	"github.com/swaggest/rest-fasthttp/web"
 	swgui "github.com/swaggest/swgui/v4emb"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"

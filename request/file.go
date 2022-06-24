@@ -3,11 +3,11 @@ package request
 import (
 	"errors"
 	"fmt"
+	rest2 "github.com/swaggest/rest"
 	"mime/multipart"
 	"net/http"
 	"reflect"
 
-	"github.com/swaggest/rest"
 	"github.com/valyala/fasthttp"
 )
 
@@ -18,7 +18,7 @@ var (
 	multipartFileHeadersType = reflect.TypeOf(([]*multipart.FileHeader)(nil))
 )
 
-func decodeFiles(rc *fasthttp.RequestCtx, input interface{}, _ rest.Validator) error {
+func decodeFiles(rc *fasthttp.RequestCtx, input interface{}, _ rest2.Validator) error {
 	v := reflect.ValueOf(input)
 
 	return decodeFilesInStruct(rc, v)

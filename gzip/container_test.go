@@ -9,10 +9,10 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/assertjson"
-	"github.com/swaggest/rest/gzip"
-	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/response"
-	gzip2 "github.com/swaggest/rest/response/gzip"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/swaggest/rest-fasthttp/gzip"
+	"github.com/swaggest/rest-fasthttp/response"
+	gzip2 "github.com/swaggest/rest-fasthttp/response/gzip"
 	"github.com/swaggest/usecase"
 	"github.com/valyala/fasthttp"
 )
@@ -55,7 +55,7 @@ func TestWriteJSON(t *testing.T) {
 		return nil
 	})
 
-	h := nethttp.NewHandler(u)
+	h := fhttp.NewHandler(u)
 	h.SetResponseEncoder(&response.Encoder{})
 
 	rc := &fasthttp.RequestCtx{}

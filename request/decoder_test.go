@@ -2,6 +2,7 @@ package request_test
 
 import (
 	"fmt"
+	rest2 "github.com/swaggest/rest"
 	"net/http"
 	"net/url"
 	"testing"
@@ -10,10 +11,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	jschema "github.com/swaggest/jsonschema-go"
-	"github.com/swaggest/rest"
+	"github.com/swaggest/rest-fasthttp/request"
 	"github.com/swaggest/rest/jsonschema"
 	"github.com/swaggest/rest/openapi"
-	"github.com/swaggest/rest/request"
 	"github.com/valyala/fasthttp"
 )
 
@@ -94,7 +94,7 @@ func TestDecoder_Decode(t *testing.T) {
 	rc.Request.Header.SetCookie("in_cookie", "jkl")
 
 	df := request.NewDecoderFactory()
-	df.SetDecoderFunc(rest.ParamInPath, func(r *fasthttp.RequestCtx, params url.Values) error {
+	df.SetDecoderFunc(rest2.ParamInPath, func(r *fasthttp.RequestCtx, params url.Values) error {
 		assert.Equal(t, rc, r)
 		params["in_path"] = []string{"mno"}
 
@@ -112,14 +112,14 @@ func TestDecoder_Decode(t *testing.T) {
 	assert.Equal(t, "mno", input.Path)
 
 	inputCM := new(reqTestCustomMapping)
-	decCM := df.MakeDecoder(http.MethodPost, input, map[rest.ParamIn]map[string]string{
-		rest.ParamInHeader: {
+	decCM := df.MakeDecoder(http.MethodPost, input, map[rest2.ParamIn]map[string]string{
+		rest2.ParamInHeader: {
 			"Header": "X-In-HeAdEr", // Headers are mapped using canonical names.
 		},
-		rest.ParamInCookie:   {"Cookie": "in_cookie"},
-		rest.ParamInQuery:    {"Query": "in_query"},
-		rest.ParamInPath:     {"Path": "in_path"},
-		rest.ParamInFormData: {"FormData": "inFormData"},
+		rest2.ParamInCookie:   {"Cookie": "in_cookie"},
+		rest2.ParamInQuery:    {"Query": "in_query"},
+		rest2.ParamInPath:     {"Path": "in_path"},
+		rest2.ParamInFormData: {"FormData": "inFormData"},
 	})
 
 	assert.NoError(t, decCM.Decode(rc, inputCM, nil))
@@ -141,7 +141,7 @@ func BenchmarkDecoderFunc_Decode(b *testing.B) {
 	rc.Request.Header.SetCookie("in_cookie", "jkl")
 
 	df := request.NewDecoderFactory()
-	df.SetDecoderFunc(rest.ParamInPath, func(r *fasthttp.RequestCtx, params url.Values) error {
+	df.SetDecoderFunc(rest2.ParamInPath, func(r *fasthttp.RequestCtx, params url.Values) error {
 		params["in_path"] = []string{"mno"}
 
 		return nil
@@ -177,7 +177,7 @@ func TestDecoder_Decode_required(t *testing.T) {
 		MakeRequestValidator(http.MethodPost, input, nil)
 
 	err := dec.Decode(rc, input, validator)
-	assert.Equal(t, rest.ValidationErrors{"header:X-In-HeAdEr": []string{"missing value"}}, err)
+	assert.Equal(t, rest2.ValidationErrors{"header:X-In-HeAdEr": []string{"missing value"}}, err)
 }
 
 func TestDecoder_Decode_json(t *testing.T) {
@@ -202,7 +202,7 @@ func TestDecoder_Decode_json(t *testing.T) {
 	rc.Request.SetBody([]byte(`{"bodyTwo":[1]}`))
 
 	err := dec.Decode(rc, input, validator)
-	assert.Equal(t, rest.ValidationErrors{"body": []string{
+	assert.Equal(t, rest2.ValidationErrors{"body": []string{
 		"#: validation failed",
 		"#: missing properties: \"bodyOne\"",
 		"#/bodyTwo: minimum 2 items allowed, but found 1 items",
@@ -215,7 +215,7 @@ func TestDecoder_Decode_json(t *testing.T) {
 
 	err = dec.Decode(rc, input, validator)
 	assert.Error(t, err)
-	assert.Equal(t, rest.ValidationErrors{"body": []string{"#/bodyTwo: minimum 2 items allowed, but found 1 items"}}, err)
+	assert.Equal(t, rest2.ValidationErrors{"body": []string{"#/bodyTwo: minimum 2 items allowed, but found 1 items"}}, err)
 }
 
 // BenchmarkDecoder_Decode_json-4   	   36660	     29688 ns/op	   12310 B/op	     169 allocs/op.
@@ -278,7 +278,7 @@ func TestDecoder_Decode_queryObject(t *testing.T) {
 
 	err := dec.Decode(rc, input, nil)
 	assert.Error(t, err)
-	assert.Equal(t, rest.RequestErrors{"query:in_query": []string{
+	assert.Equal(t, rest2.RequestErrors{"query:in_query": []string{
 		"#: invalid integer value 'c' type 'int' namespace 'in_query'",
 	}}, err)
 }
@@ -375,7 +375,7 @@ func TestDecoder_Decode_error(t *testing.T) {
 	in := new(reqs)
 	err := d.Decode(rc, in, nil)
 	assert.EqualError(t, err, "bad request")
-	assert.Equal(t, rest.RequestErrors{"query:q": []string{
+	assert.Equal(t, rest2.RequestErrors{"query:q": []string{
 		"#: invalid integer value 'undefined' type 'int' namespace 'q'",
 	}}, err)
 }
@@ -450,7 +450,7 @@ func TestDecoder_Decode_unknownParams(t *testing.T) {
 		MakeRequestValidator(http.MethodGet, in, nil)
 
 	err := dec.Decode(rc, in, validator)
-	assert.Equal(t, rest.ValidationErrors{"query:quux": []string{"unknown parameter with value 123"}}, err,
+	assert.Equal(t, rest2.ValidationErrors{"query:quux": []string{"unknown parameter with value 123"}}, err,
 		fmt.Sprintf("%#v", err))
 }
 

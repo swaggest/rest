@@ -3,7 +3,7 @@ package usecase
 import (
 	"context"
 
-	"github.com/swaggest/rest/_examples/task-api/internal/domain/task"
+	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/domain/task"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 )

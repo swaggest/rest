@@ -1,4 +1,4 @@
-package nethttp_test
+package fhttp_test
 
 import (
 	"context"
@@ -6,14 +6,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/fchi"
-	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/valyala/fasthttp"
 )
 
 func TestWrapHandler(t *testing.T) {
 	var flow []string
 
-	h := nethttp.WrapHandler(
+	h := fhttp.WrapHandler(
 		fchi.HandlerFunc(func(ctx context.Context, rc *fasthttp.RequestCtx) {
 			flow = append(flow, "handler")
 		}),
@@ -57,7 +57,7 @@ func TestWrapHandler(t *testing.T) {
 }
 
 func TestHandlerAs_nil(t *testing.T) {
-	var uh *nethttp.Handler
+	var uh *fhttp.Handler
 
-	assert.False(t, nethttp.HandlerAs(nil, &uh))
+	assert.False(t, fhttp.HandlerAs(nil, &uh))
 }

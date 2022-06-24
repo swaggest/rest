@@ -9,11 +9,10 @@ import (
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
-	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/response"
-	"github.com/swaggest/rest/response/gzip"
-	"github.com/swaggest/rest/web"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/swaggest/rest-fasthttp/response"
+	"github.com/swaggest/rest-fasthttp/response/gzip"
+	"github.com/swaggest/rest-fasthttp/web"
 	swgui "github.com/swaggest/swgui/v4emb"
 )
 
@@ -59,8 +58,8 @@ func NewRouter() fchi.Handler {
 
 		// Example middleware to setup custom error responses.
 		func(handler fchi.Handler) fchi.Handler {
-			var h *nethttp.Handler
-			if nethttp.HandlerAs(handler, &h) {
+			var h *fhttp.Handler
+			if fhttp.HandlerAs(handler, &h) {
 				h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
 					code, er := rest.Err(err)
 
@@ -96,13 +95,13 @@ func NewRouter() fchi.Handler {
 	s.Post("/file-multi-upload", fileMultiUploader())
 	s.Get("/json-param/{in-path}", jsonParam())
 	s.Post("/json-body/{in-path}", jsonBody(),
-		nethttp.SuccessStatus(http.StatusCreated))
+		fhttp.SuccessStatus(http.StatusCreated))
 	s.Post("/json-body-validation/{in-path}", jsonBodyValidation())
 	s.Post("/json-slice-body", jsonSliceBody())
 
 	s.Post("/json-map-body", jsonMapBody(),
 		// Annotate operation to add post-processing if necessary.
-		nethttp.AnnotateOperation(func(op *openapi3.Operation) error {
+		fhttp.AnnotateOperation(func(op *openapi3.Operation) error {
 			op.WithDescription("Request with JSON object (map) body.")
 
 			return nil
@@ -111,14 +110,14 @@ func NewRouter() fchi.Handler {
 	s.Get("/output-headers", outputHeaders())
 	s.Head("/output-headers", outputHeaders())
 	s.Get("/output-csv-writer", outputCSVWriter(),
-		nethttp.SuccessfulResponseContentType("text/csv; charset=utf-8"))
+		fhttp.SuccessfulResponseContentType("text/csv; charset=utf-8"))
 
 	s.Post("/req-resp-mapping", reqRespMapping(),
-		nethttp.RequestMapping(new(struct {
+		fhttp.RequestMapping(new(struct {
 			Val1 string `header:"X-Header"`
 			Val2 int    `formData:"val2"`
 		})),
-		nethttp.ResponseHeaderMapping(new(struct {
+		fhttp.ResponseHeaderMapping(new(struct {
 			Val1 string `header:"X-Value-1"`
 			Val2 int    `header:"X-Value-2"`
 		})),

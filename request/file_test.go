@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	rest2 "github.com/swaggest/rest"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -12,13 +13,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/fchi"
-	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/chirouter"
+	"github.com/swaggest/rest-fasthttp/chirouter"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/swaggest/rest-fasthttp/request"
+	"github.com/swaggest/rest-fasthttp/response"
 	"github.com/swaggest/rest/jsonschema"
-	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/openapi"
-	"github.com/swaggest/rest/request"
-	"github.com/swaggest/rest/response"
 	"github.com/swaggest/usecase"
 )
 
@@ -39,10 +39,10 @@ func TestMapper_Decode_fileUploadTag(t *testing.T) {
 	decoderFactory := request.NewDecoderFactory()
 	validatorFactory := jsonschema.NewFactory(&apiSchema, &apiSchema)
 
-	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
+	decoderFactory.SetDecoderFunc(rest2.ParamInPath, chirouter.PathToURLValues)
 
 	r.Wrap(
-		nethttp.OpenAPIMiddleware(&apiSchema),
+		fhttp.OpenAPIMiddleware(&apiSchema),
 		request.DecoderMiddleware(decoderFactory),
 		request.ValidatorMiddleware(validatorFactory),
 		response.EncoderMiddleware,
@@ -91,7 +91,7 @@ func TestMapper_Decode_fileUploadTag(t *testing.T) {
 		return nil
 	})
 
-	h := nethttp.NewHandler(u)
+	h := fhttp.NewHandler(u)
 	r.Method(http.MethodPost, "/receive", h)
 
 	srv := fchi.NewTestServer(r)

@@ -7,10 +7,10 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/swaggest/rest-fasthttp/response"
 	"github.com/swaggest/rest/jsonschema"
-	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/openapi"
-	"github.com/swaggest/rest/response"
 	"github.com/swaggest/usecase"
 	"github.com/valyala/fasthttp"
 )
@@ -41,11 +41,11 @@ func TestValidatorMiddleware(t *testing.T) {
 		return nil
 	})
 
-	h := nethttp.NewHandler(u)
+	h := fhttp.NewHandler(u)
 
 	apiSchema := &openapi.Collector{}
 	validatorFactory := jsonschema.NewFactory(apiSchema, apiSchema)
-	wh := nethttp.WrapHandler(h, response.EncoderMiddleware, response.ValidatorMiddleware(validatorFactory))
+	wh := fhttp.WrapHandler(h, response.EncoderMiddleware, response.ValidatorMiddleware(validatorFactory))
 
 	rc := &fasthttp.RequestCtx{}
 	rc.Request.SetRequestURI("/")

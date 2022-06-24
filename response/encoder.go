@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	rest2 "github.com/swaggest/rest"
 	"io"
 	"net/http"
 	"reflect"
@@ -13,7 +14,6 @@ import (
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/form/v5"
 	"github.com/swaggest/refl"
-	"github.com/swaggest/rest"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 	"github.com/valyala/fasthttp"
@@ -47,7 +47,7 @@ func addressable(output interface{}) interface{} {
 }
 
 // SetupOutput configures encoder with and instance of use case output.
-func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
+func (h *Encoder) SetupOutput(output interface{}, ht *rest2.HandlerTrait) {
 	h.outputBufferType = reflect.TypeOf(output)
 	h.outputHeadersEncoder = nil
 	h.skipRendering = true
@@ -62,18 +62,18 @@ func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
 	if h.unwrapInterface = reflect.ValueOf(output).Elem().Kind() == reflect.Interface; h.unwrapInterface {
 		enc := form.NewEncoder()
 		enc.SetMode(form.ModeExplicit)
-		enc.SetTagName(string(rest.ParamInHeader))
+		enc.SetTagName(string(rest2.ParamInHeader))
 
 		h.outputHeadersEncoder = enc
 	}
 
 	respHeaderMapping := ht.RespHeaderMapping
-	if len(respHeaderMapping) == 0 && refl.HasTaggedFields(output, string(rest.ParamInHeader)) {
+	if len(respHeaderMapping) == 0 && refl.HasTaggedFields(output, string(rest2.ParamInHeader)) {
 		respHeaderMapping = make(map[string]string)
 
 		refl.WalkTaggedFields(reflect.ValueOf(output), func(v reflect.Value, sf reflect.StructField, tag string) {
 			respHeaderMapping[sf.Name] = tag
-		}, string(rest.ParamInHeader))
+		}, string(rest2.ParamInHeader))
 	}
 
 	if len(respHeaderMapping) > 0 {
@@ -90,7 +90,7 @@ func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
 		h.outputBufferType = h.outputBufferType.Elem()
 	}
 
-	if !rest.OutputHasNoContent(output) {
+	if !rest2.OutputHasNoContent(output) {
 		h.skipRendering = false
 	}
 
@@ -131,7 +131,7 @@ var jsonEncoderPool = sync.Pool{
 func (h *Encoder) writeJSONResponse(
 	rc *fasthttp.RequestCtx,
 	v interface{},
-	ht rest.HandlerTrait,
+	ht rest2.HandlerTrait,
 ) {
 	if ht.SuccessContentType == "" {
 		ht.SuccessContentType = "application/json; charset=utf-8"
@@ -139,7 +139,7 @@ func (h *Encoder) writeJSONResponse(
 
 	hd := &rc.Response.Header
 
-	if jw, ok := v.(rest.JSONWriterTo); ok {
+	if jw, ok := v.(rest2.JSONWriterTo); ok {
 		hd.Set("Content-Type", ht.SuccessContentType)
 
 		_, err := jw.JSONWriteTo(rc)
@@ -167,7 +167,7 @@ func (h *Encoder) writeJSONResponse(
 	if ht.RespValidator != nil {
 		err = ht.RespValidator.ValidateJSONBody(e.buf.Bytes())
 		if err != nil {
-			code, er := rest.Err(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal))
+			code, er := rest2.Err(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal))
 			h.WriteErrResponse(rc, code, er)
 
 			return
@@ -227,13 +227,13 @@ func (h *Encoder) WriteErrResponse(rc *fasthttp.RequestCtx, statusCode int, resp
 func (h *Encoder) WriteSuccessfulResponse(
 	rc *fasthttp.RequestCtx,
 	output interface{},
-	ht rest.HandlerTrait,
+	ht rest2.HandlerTrait,
 ) {
 	if h.unwrapInterface {
 		output = reflect.ValueOf(output).Elem().Interface()
 	}
 
-	if etagged, ok := output.(rest.ETagged); ok {
+	if etagged, ok := output.(rest2.ETagged); ok {
 		etag := etagged.ETag()
 		if etag != "" {
 			rc.Response.Header.Set("Etag", etag)
@@ -269,7 +269,7 @@ func (h *Encoder) WriteSuccessfulResponse(
 	h.writeJSONResponse(rc, output, ht)
 }
 
-func (h *Encoder) whiteHeader(rc *fasthttp.RequestCtx, output interface{}, ht rest.HandlerTrait) bool {
+func (h *Encoder) whiteHeader(rc *fasthttp.RequestCtx, output interface{}, ht rest2.HandlerTrait) bool {
 	var headerValues map[string]interface{}
 	if ht.RespValidator != nil {
 		headerValues = make(map[string]interface{})
@@ -277,16 +277,16 @@ func (h *Encoder) whiteHeader(rc *fasthttp.RequestCtx, output interface{}, ht re
 
 	headers, err := h.outputHeadersEncoder.Encode(output, headerValues)
 	if err != nil {
-		code, er := rest.Err(err)
+		code, er := rest2.Err(err)
 		h.WriteErrResponse(rc, code, er)
 
 		return false
 	}
 
 	if ht.RespValidator != nil {
-		err = ht.RespValidator.ValidateData(rest.ParamInHeader, headerValues)
+		err = ht.RespValidator.ValidateData(rest2.ParamInHeader, headerValues)
 		if err != nil {
-			code, er := rest.Err(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal))
+			code, er := rest2.Err(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal))
 			h.WriteErrResponse(rc, code, er)
 
 			return false
@@ -305,7 +305,7 @@ func (h *Encoder) whiteHeader(rc *fasthttp.RequestCtx, output interface{}, ht re
 }
 
 // MakeOutput instantiates a value for use case output port.
-func (h *Encoder) MakeOutput(rc *fasthttp.RequestCtx, ht rest.HandlerTrait) interface{} {
+func (h *Encoder) MakeOutput(rc *fasthttp.RequestCtx, ht rest2.HandlerTrait) interface{} {
 	if h.outputBufferType == nil {
 		return nil
 	}
@@ -336,7 +336,7 @@ type writerWithHeaders struct {
 	rc *fasthttp.RequestCtx
 
 	responseWriter *Encoder
-	trait          rest.HandlerTrait
+	trait          rest2.HandlerTrait
 	output         interface{}
 	headersSet     bool
 }

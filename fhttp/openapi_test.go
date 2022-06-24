@@ -1,4 +1,4 @@
-package nethttp_test
+package fhttp_test
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/assertjson"
 	"github.com/swaggest/openapi-go/openapi3"
-	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/rest/openapi"
 	"github.com/swaggest/usecase"
 )
@@ -34,15 +34,15 @@ func TestOpenAPIMiddleware(t *testing.T) {
 		return nil
 	})
 
-	uh := nethttp.NewHandler(u,
-		nethttp.SuccessfulResponseContentType("application/vnd.ms-excel"),
-		nethttp.RequestMapping(new(struct {
+	uh := fhttp.NewHandler(u,
+		fhttp.SuccessfulResponseContentType("application/vnd.ms-excel"),
+		fhttp.RequestMapping(new(struct {
 			ID int `query:"ident"`
 		})),
-		nethttp.ResponseHeaderMapping(new(struct {
+		fhttp.ResponseHeaderMapping(new(struct {
 			Header int `header:"X-Hd"`
 		})),
-		nethttp.AnnotateOperation(func(op *openapi3.Operation) error {
+		fhttp.AnnotateOperation(func(op *openapi3.Operation) error {
 			op.WithDescription("Hello!")
 
 			return nil
@@ -51,14 +51,14 @@ func TestOpenAPIMiddleware(t *testing.T) {
 
 	c := openapi.Collector{}
 
-	_ = nethttp.WrapHandler(uh,
-		nethttp.OpenAPIMiddleware(&c),
-		nethttp.HTTPBasicSecurityMiddleware(&c, "admin", "Admin Area."),
-		nethttp.HTTPBearerSecurityMiddleware(&c, "api", "API Security.", "JWT",
-			nethttp.SecurityResponse(new(struct {
+	_ = fhttp.WrapHandler(uh,
+		fhttp.OpenAPIMiddleware(&c),
+		fhttp.HTTPBasicSecurityMiddleware(&c, "admin", "Admin Area."),
+		fhttp.HTTPBearerSecurityMiddleware(&c, "api", "API Security.", "JWT",
+			fhttp.SecurityResponse(new(struct {
 				Error string `json:"error"`
 			}), http.StatusForbidden)),
-		nethttp.HandlerWithRouteMiddleware(http.MethodGet, "/test"),
+		fhttp.HandlerWithRouteMiddleware(http.MethodGet, "/test"),
 	)
 
 	sp, err := assertjson.MarshalIndentCompact(c.Reflector().Spec, "", " ", 100)
@@ -79,7 +79,7 @@ func TestOpenAPIMiddleware(t *testing.T) {
 		 },
 		 "401":{
 		  "description":"Unauthorized",
-		  "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
+		  "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestFasthttpErrResponse"}}}
 		 },
 		 "403":{
 		  "description":"Forbidden",
@@ -92,7 +92,7 @@ func TestOpenAPIMiddleware(t *testing.T) {
 	 },
 	 "components":{
 	  "schemas":{
-	   "RestErrResponse":{
+	   "RestFasthttpErrResponse":{
 		"type":"object",
 		"properties":{
 		 "code":{"type":"integer","description":"Application-specific error code."},

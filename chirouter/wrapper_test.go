@@ -9,9 +9,9 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/fchi/middleware"
-	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/chirouter"
-	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/rest-fasthttp"
+	"github.com/swaggest/rest-fasthttp/chirouter"
+	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/valyala/fasthttp"
 )
 
@@ -60,11 +60,11 @@ func TestNewWrapper(t *testing.T) {
 
 		totalCnt++
 
-		if nethttp.HandlerAs(handler, &withRoute) {
+		if fhttp.HandlerAs(handler, &withRoute) {
 			handlersCnt++
 
-			assert.False(t, nethttp.HandlerAs(handler, &bar), "%s", handler)
-			assert.True(t, nethttp.HandlerAs(handler, &foo), "%s", handler)
+			assert.False(t, fhttp.HandlerAs(handler, &bar), "%s", handler)
+			assert.True(t, fhttp.HandlerAs(handler, &foo), "%s", handler)
 		}
 
 		return HandlerWithBar{Handler: handler}

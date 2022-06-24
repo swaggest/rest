@@ -7,9 +7,9 @@ import (
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/swaggest/fchi"
-	"github.com/swaggest/rest/_examples/task-api/internal/infra"
-	"github.com/swaggest/rest/_examples/task-api/internal/infra/nethttp"
-	"github.com/swaggest/rest/_examples/task-api/internal/infra/service"
+	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra"
+	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra/fhttp"
+	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra/service"
 	"github.com/valyala/fasthttp"
 )
 
@@ -31,7 +31,7 @@ func main() {
 	srv := fasthttp.Server{
 		ReadTimeout: 9 * time.Second,
 		IdleTimeout: 9 * time.Second,
-		Handler:     fchi.RequestHandler(nethttp.NewRouter(l)),
+		Handler:     fchi.RequestHandler(fhttp.NewRouter(l)),
 	}
 
 	// Start HTTP server.

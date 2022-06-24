@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/swaggest/fchi"
-	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/rest-fasthttp/fhttp"
 )
 
 // NewWrapper creates router wrapper to upgrade middlewares processing.
@@ -17,7 +17,7 @@ func NewWrapper(r fchi.Router) *Wrapper {
 
 // Wrapper wraps chi.Router to enable unwrappable handlers in middlewares.
 //
-// Middlewares can call nethttp.HandlerAs to inspect wrapped handlers.
+// Middlewares can call fhttp.HandlerAs to inspect wrapped handlers.
 type Wrapper struct {
 	fchi.Router
 	name        string
@@ -42,7 +42,7 @@ func (r *Wrapper) copy(router fchi.Router, pattern string) *Wrapper {
 // Wrap appends one or more wrappers that will be applied to handler before adding to Router.
 // It is different from middleware in the sense that it is handler-centric, rather than request-centric.
 // Wraps are invoked once for each added handler, they are not invoked for http requests.
-// Wraps can leverage nethttp.HandlerAs to inspect and access deeper layers.
+// Wraps can leverage fhttp.HandlerAs to inspect and access deeper layers.
 // For most cases Wrap can be safely used instead of Use, Use is mandatory for middlewares
 // that affect routing (such as middleware.StripSlashes for example).
 func (r *Wrapper) Wrap(wraps ...func(handler fchi.Handler) fchi.Handler) {
@@ -158,13 +158,13 @@ func (r *Wrapper) resolvePattern(pattern string) string {
 }
 
 func (r *Wrapper) captureHandler(h fchi.Handler) {
-	nethttp.WrapHandler(h, r.middlewares...)
+	fhttp.WrapHandler(h, r.middlewares...)
 }
 
 func (r *Wrapper) prepareHandler(method, pattern string, h fchi.Handler) fchi.Handler {
 	mw := r.wraps
-	mw = append(mw, nethttp.HandlerWithRouteMiddleware(method, r.resolvePattern(pattern)))
-	h = nethttp.WrapHandler(h, mw...)
+	mw = append(mw, fhttp.HandlerWithRouteMiddleware(method, r.resolvePattern(pattern)))
+	h = fhttp.WrapHandler(h, mw...)
 
 	return h
 }

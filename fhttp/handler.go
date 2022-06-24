@@ -1,12 +1,13 @@
-package nethttp
+package fhttp
 
 import (
 	"context"
+	rest2 "github.com/swaggest/rest"
 	"net/http"
 	"reflect"
 
 	"github.com/swaggest/fchi"
-	"github.com/swaggest/rest"
+	"github.com/swaggest/rest-fasthttp"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 	"github.com/valyala/fasthttp"
@@ -50,7 +51,7 @@ func (h *Handler) SetUseCase(useCase usecase.Interactor) {
 //
 // Please use NewHandler to create instance.
 type Handler struct {
-	rest.HandlerTrait
+	rest2.HandlerTrait
 
 	// HandleErrResponse allows control of error response processing.
 	HandleErrResponse func(ctx context.Context, rc *fasthttp.RequestCtx, err error)
@@ -230,7 +231,7 @@ func HandlerWithRouteMiddleware(method, pathPattern string) func(fchi.Handler) f
 
 // RequestDecoder maps data from http.Request into structured Go input value.
 type RequestDecoder interface {
-	Decode(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error
+	Decode(rc *fasthttp.RequestCtx, input interface{}, validator rest2.Validator) error
 }
 
 // ResponseEncoder writes data from use case output/error into http.ResponseWriter.
@@ -239,8 +240,8 @@ type ResponseEncoder interface {
 	WriteSuccessfulResponse(
 		rc *fasthttp.RequestCtx,
 		output interface{},
-		ht rest.HandlerTrait,
+		ht rest2.HandlerTrait,
 	)
-	SetupOutput(output interface{}, ht *rest.HandlerTrait)
-	MakeOutput(rc *fasthttp.RequestCtx, ht rest.HandlerTrait) interface{}
+	SetupOutput(output interface{}, ht *rest2.HandlerTrait)
+	MakeOutput(rc *fasthttp.RequestCtx, ht rest2.HandlerTrait) interface{}
 }

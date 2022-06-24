@@ -1,2 +1,2 @@
-// Package nethttp defines HTTP API using net/http.
-package nethttp
+// Package fhttp defines HTTP API using net/http.
+package fhttp

@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/swaggest/fchi"
-	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/web"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/swaggest/rest-fasthttp/web"
 	"github.com/swaggest/usecase"
 	"github.com/valyala/fasthttp"
 )
@@ -39,7 +39,7 @@ func ExampleDefaultService() {
 	service.OpenAPI.Info.WithDescription("This service provides API to manage albums.")
 	service.OpenAPI.Info.Version = "v1.0.0"
 
-	service.Post("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
+	service.Post("/albums", postAlbums(), fhttp.SuccessStatus(http.StatusCreated))
 
 	log.Println("Starting service at http://localhost:8080")
 

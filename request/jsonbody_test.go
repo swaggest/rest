@@ -2,11 +2,11 @@ package request // nolint:testpackage
 
 import (
 	"errors"
+	rest2 "github.com/swaggest/rest"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/swaggest/rest"
 	"github.com/valyala/fasthttp"
 )
 
@@ -29,7 +29,7 @@ func Test_decodeJSONBody(t *testing.T) {
 	assert.Equal(t, "248df4b7-aa70-47b8-a036-33ac447e668d", i.CustomerID)
 	assert.Equal(t, "withdraw", i.Type)
 
-	vl := rest.ValidatorFunc(func(in rest.ParamIn, namedData map[string]interface{}) error {
+	vl := rest2.ValidatorFunc(func(in rest2.ParamIn, namedData map[string]interface{}) error {
 		return nil
 	})
 
@@ -96,7 +96,7 @@ func Test_decodeJSONBody_validateFailed(t *testing.T) {
 
 	var i []int
 
-	vl := rest.ValidatorFunc(func(in rest.ParamIn, namedData map[string]interface{}) error {
+	vl := rest2.ValidatorFunc(func(in rest2.ParamIn, namedData map[string]interface{}) error {
 		return errors.New("failed")
 	})
 

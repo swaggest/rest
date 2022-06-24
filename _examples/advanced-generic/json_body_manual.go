@@ -10,7 +10,7 @@ import (
 
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/jsonschema-go"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest-fasthttp/request"
 	"github.com/swaggest/usecase"
 	"github.com/valyala/fasthttp"
 )

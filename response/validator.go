@@ -1,20 +1,21 @@
 package response
 
 import (
+	rest2 "github.com/swaggest/rest"
 	"net/http"
 
 	"github.com/swaggest/fchi"
-	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/rest-fasthttp"
+	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/usecase"
 )
 
 type withRestHandler interface {
-	RestHandler() *rest.HandlerTrait
+	RestHandler() *rest2.HandlerTrait
 }
 
 // ValidatorMiddleware sets up response validator in suitable handlers.
-func ValidatorMiddleware(factory rest.ResponseValidatorFactory) func(fchi.Handler) fchi.Handler {
+func ValidatorMiddleware(factory rest2.ResponseValidatorFactory) func(fchi.Handler) fchi.Handler {
 	return func(handler fchi.Handler) fchi.Handler {
 		var (
 			withUseCase       rest.HandlerWithUseCase
@@ -22,8 +23,8 @@ func ValidatorMiddleware(factory rest.ResponseValidatorFactory) func(fchi.Handle
 			useCaseWithOutput usecase.HasOutputPort
 		)
 
-		if !nethttp.HandlerAs(handler, &handlerTrait) ||
-			!nethttp.HandlerAs(handler, &withUseCase) ||
+		if !fhttp.HandlerAs(handler, &handlerTrait) ||
+			!fhttp.HandlerAs(handler, &withUseCase) ||
 			!usecase.As(withUseCase.UseCase(), &useCaseWithOutput) {
 			return handler
 		}
@@ -34,7 +35,7 @@ func ValidatorMiddleware(factory rest.ResponseValidatorFactory) func(fchi.Handle
 		if statusCode == 0 {
 			statusCode = http.StatusOK
 
-			if rest.OutputHasNoContent(useCaseWithOutput.OutputPort()) {
+			if rest2.OutputHasNoContent(useCaseWithOutput.OutputPort()) {
 				statusCode = http.StatusNoContent
 			}
 		}

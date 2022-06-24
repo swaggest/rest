@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	rest2 "github.com/swaggest/rest"
 	"io"
 
-	"github.com/swaggest/rest"
 	"github.com/valyala/fasthttp"
 )
 
@@ -18,7 +18,7 @@ func readJSON(rd io.Reader, v interface{}) error {
 }
 
 func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error) valueDecoderFunc {
-	return func(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
+	return func(rc *fasthttp.RequestCtx, input interface{}, validator rest2.Validator) error {
 		if len(rc.Request.Body()) == 0 {
 			return errors.New("missing request body to decode json")
 		}
@@ -32,7 +32,7 @@ func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error) valueDecod
 
 		b := rc.Request.Body()
 
-		validate := validator != nil && validator.HasConstraints(rest.ParamInBody)
+		validate := validator != nil && validator.HasConstraints(rest2.ParamInBody)
 
 		rd := bytes.NewReader(b)
 

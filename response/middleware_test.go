@@ -6,8 +6,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/response"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/swaggest/rest-fasthttp/response"
 	"github.com/swaggest/usecase"
 	"github.com/valyala/fasthttp"
 )
@@ -31,7 +31,7 @@ func TestEncoderMiddleware(t *testing.T) {
 		return nil
 	})
 
-	h := nethttp.NewHandler(u)
+	h := fhttp.NewHandler(u)
 
 	rc := &fasthttp.RequestCtx{}
 	rc.Request.SetRequestURI("/")

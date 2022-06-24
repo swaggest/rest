@@ -1,4 +1,4 @@
-package nethttp_test
+package fhttp_test
 
 import (
 	"bytes"
@@ -7,8 +7,8 @@ import (
 
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/openapi-go/openapi3"
-	"github.com/swaggest/rest/chirouter"
-	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/rest-fasthttp/chirouter"
+	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/rest/openapi"
 	"github.com/swaggest/usecase"
 	"github.com/valyala/fasthttp"
@@ -23,7 +23,7 @@ func ExampleSecurityMiddleware() {
 
 	// Setup middlewares (non-documentary middlewares omitted for brevity).
 	r.Wrap(
-		nethttp.OpenAPIMiddleware(apiSchema), // Documentation collector.
+		fhttp.OpenAPIMiddleware(apiSchema), // Documentation collector.
 	)
 
 	// Configure an actual security middleware.
@@ -40,7 +40,7 @@ func ExampleSecurityMiddleware() {
 	}
 
 	// Configure documentation middleware to describe actual security middleware.
-	serviceTokenDoc := nethttp.SecurityMiddleware(apiSchema, "serviceToken", openapi3.SecurityScheme{
+	serviceTokenDoc := fhttp.SecurityMiddleware(apiSchema, "serviceToken", openapi3.SecurityScheme{
 		APIKeySecurityScheme: &openapi3.APIKeySecurityScheme{
 			Name: "Authorization",
 			In:   openapi3.APIKeySecuritySchemeInHeader,
@@ -55,5 +55,5 @@ func ExampleSecurityMiddleware() {
 	// Add use case handler to router with security middleware.
 	r.
 		With(serviceTokenAuth, serviceTokenDoc). // Apply a pair of middlewares: actual security and documentation.
-		Method(http.MethodGet, "/foo", nethttp.NewHandler(u))
+		Method(http.MethodGet, "/foo", fhttp.NewHandler(u))
 }

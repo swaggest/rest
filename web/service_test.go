@@ -10,8 +10,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/assertjson"
-	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/web"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/swaggest/rest-fasthttp/web"
 	"github.com/swaggest/usecase"
 	"github.com/valyala/fasthttp"
 )
@@ -49,11 +49,11 @@ func TestDefaultService(t *testing.T) {
 	service.Delete("/albums/{id}", albumByID())
 	service.Head("/albums/{id}", albumByID())
 	service.Get("/albums/{id}", albumByID())
-	service.Post("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
-	service.Patch("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
-	service.Put("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
-	service.Trace("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
-	service.Options("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
+	service.Post("/albums", postAlbums(), fhttp.SuccessStatus(http.StatusCreated))
+	service.Patch("/albums", postAlbums(), fhttp.SuccessStatus(http.StatusCreated))
+	service.Put("/albums", postAlbums(), fhttp.SuccessStatus(http.StatusCreated))
+	service.Trace("/albums", postAlbums(), fhttp.SuccessStatus(http.StatusCreated))
+	service.Options("/albums", postAlbums(), fhttp.SuccessStatus(http.StatusCreated))
 	service.Docs("/docs", func(title, schemaURL, basePath string) http.Handler {
 		// Mount github.com/swaggest/swgui/v4emb.New here.
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {})

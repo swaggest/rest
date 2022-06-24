@@ -13,8 +13,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/fchi"
-	gzip2 "github.com/swaggest/rest/gzip"
-	"github.com/swaggest/rest/response/gzip"
+	gzip2 "github.com/swaggest/rest-fasthttp/gzip"
+	"github.com/swaggest/rest-fasthttp/response/gzip"
 	"github.com/valyala/fasthttp"
 )
 
