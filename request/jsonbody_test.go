@@ -2,11 +2,11 @@ package request // nolint:testpackage
 
 import (
 	"errors"
-	rest2 "github.com/swaggest/rest"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	rest2 "github.com/swaggest/rest"
 	"github.com/valyala/fasthttp"
 )
 

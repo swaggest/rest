@@ -1,10 +1,10 @@
 package response
 
 import (
-	rest2 "github.com/swaggest/rest"
 	"net/http"
 
 	"github.com/swaggest/fchi"
+	rest2 "github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/usecase"

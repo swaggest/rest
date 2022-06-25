@@ -2,11 +2,11 @@ package fhttp
 
 import (
 	"context"
-	rest2 "github.com/swaggest/rest"
 	"net/http"
 	"reflect"
 
 	"github.com/swaggest/fchi"
+	rest2 "github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"

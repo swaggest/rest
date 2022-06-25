@@ -7,15 +7,16 @@ import (
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/fchi/middleware"
 	"github.com/swaggest/openapi-go/openapi3"
+	rest2 "github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra/log"
 	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra/schema"
 	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra/service"
 	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/usecase"
 	"github.com/swaggest/rest-fasthttp/chirouter"
 	"github.com/swaggest/rest-fasthttp/fhttp"
-	"github.com/swaggest/rest-fasthttp/jsonschema"
 	"github.com/swaggest/rest-fasthttp/request"
 	"github.com/swaggest/rest-fasthttp/response"
+	"github.com/swaggest/rest/jsonschema"
 	swgui "github.com/swaggest/swgui/v4emb"
 )
 
@@ -24,7 +25,7 @@ func NewRouter(locator *service.Locator) fchi.Handler {
 	apiSchema := schema.NewOpenAPICollector()
 	validatorFactory := jsonschema.NewFactory(apiSchema, apiSchema)
 	decoderFactory := request.NewDecoderFactory()
-	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
+	decoderFactory.SetDecoderFunc(rest2.ParamInPath, chirouter.PathToURLValues)
 
 	r := chirouter.NewWrapper(fchi.NewRouter())
 
@@ -46,7 +47,7 @@ func NewRouter(locator *service.Locator) fchi.Handler {
 	)
 
 	ff := func(h *fhttp.Handler) {
-		h.ReqMapping = rest.RequestMapping{rest.ParamInPath: map[string]string{"ID": "id"}}
+		h.ReqMapping = rest2.RequestMapping{rest2.ParamInPath: map[string]string{"ID": "id"}}
 	}
 
 	// Unrestricted access.
@@ -89,7 +90,7 @@ func NewRouter(locator *service.Locator) fchi.Handler {
 	})
 
 	// Swagger UI endpoint at /docs.
-	r.Method(http.MethodGet, "/docs/openapi.json", apiSchema)
+	r.Method(http.MethodGet, "/docs/openapi.json", fchi.Adapt(apiSchema))
 	r.Mount("/docs", fchi.Adapt(swgui.NewHandler(apiSchema.Reflector().Spec.Info.Title,
 		"/docs/openapi.json", "/docs")))
 

@@ -1,11 +1,11 @@
 package request
 
 import (
-	rest2 "github.com/swaggest/rest"
 	"net/url"
 	"sync"
 
 	"github.com/swaggest/form/v5"
+	rest2 "github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/valyala/fasthttp"
 )

@@ -15,6 +15,7 @@ require (
 	github.com/swaggest/fchi v1.1.0
 	github.com/swaggest/jsonschema-go v0.3.35
 	github.com/swaggest/openapi-go v0.2.18
+	github.com/swaggest/rest v0.2.28
 	github.com/swaggest/rest-fasthttp v0.0.0-00010101000000-000000000000
 	github.com/swaggest/swgui v1.4.5
 	github.com/swaggest/usecase v1.1.3

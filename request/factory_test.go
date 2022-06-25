@@ -2,7 +2,6 @@ package request_test
 
 import (
 	"encoding/json"
-	rest2 "github.com/swaggest/rest"
 	"net/http"
 	"net/url"
 	"strings"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	rest2 "github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/request"
 	"github.com/valyala/fasthttp"
 )

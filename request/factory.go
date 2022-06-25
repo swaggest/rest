@@ -3,7 +3,6 @@ package request
 import (
 	"bytes"
 	"encoding/json"
-	rest2 "github.com/swaggest/rest"
 	"io"
 	"net/http"
 	"net/url"
@@ -14,6 +13,7 @@ import (
 	"github.com/swaggest/form/v5"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/refl"
+	rest2 "github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/valyala/fasthttp"
 )

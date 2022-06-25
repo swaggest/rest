@@ -2,7 +2,6 @@ package request_test
 
 import (
 	"fmt"
-	rest2 "github.com/swaggest/rest"
 	"net/http"
 	"net/url"
 	"testing"
@@ -11,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	jschema "github.com/swaggest/jsonschema-go"
+	rest2 "github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/request"
 	"github.com/swaggest/rest/jsonschema"
 	"github.com/swaggest/rest/openapi"

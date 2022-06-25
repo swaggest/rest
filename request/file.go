@@ -3,11 +3,11 @@ package request
 import (
 	"errors"
 	"fmt"
-	rest2 "github.com/swaggest/rest"
 	"mime/multipart"
 	"net/http"
 	"reflect"
 
+	rest2 "github.com/swaggest/rest"
 	"github.com/valyala/fasthttp"
 )
 

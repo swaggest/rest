@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"errors"
-	rest2 "github.com/swaggest/rest"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
@@ -13,6 +12,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/fchi"
+	rest2 "github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/chirouter"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/rest-fasthttp/request"

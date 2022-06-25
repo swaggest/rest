@@ -2,13 +2,13 @@
 package web
 
 import (
-	rest2 "github.com/swaggest/rest"
 	"net/http"
 	"strings"
 
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/fchi/middleware"
 	"github.com/swaggest/openapi-go/openapi3"
+	rest2 "github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/chirouter"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/rest-fasthttp/request"

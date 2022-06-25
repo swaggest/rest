@@ -1,12 +1,12 @@
 package fhttp
 
 import (
-	rest2 "github.com/swaggest/rest"
 	"reflect"
 
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/refl"
+	rest2 "github.com/swaggest/rest"
 )
 
 // OptionsMiddleware applies options to encountered fhttp.Handler.

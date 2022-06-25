@@ -3,13 +3,13 @@ package fhttp_test
 import (
 	"context"
 	"errors"
-	rest2 "github.com/swaggest/rest"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/fchi"
+	rest2 "github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/rest-fasthttp/request"
 	"github.com/swaggest/rest-fasthttp/response"

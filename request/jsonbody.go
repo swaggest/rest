@@ -5,9 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	rest2 "github.com/swaggest/rest"
 	"io"
 
+	rest2 "github.com/swaggest/rest"
 	"github.com/valyala/fasthttp"
 )
 
