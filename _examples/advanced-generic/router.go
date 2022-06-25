@@ -54,6 +54,8 @@ func NewRouter() fchi.Handler {
 		}
 	})
 
+	// When multiple structures can be returned with the same HTTP status code, it is possible to combine them into a
+	// single schema with such configuration.
 	s.OpenAPICollector.CombineErrors = "anyOf"
 
 	s.Wrap(

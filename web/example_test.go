@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/swaggest/fchi"
+	"github.com/swaggest/fchi/middleware"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/rest-fasthttp/web"
 	"github.com/swaggest/usecase"
@@ -33,12 +34,24 @@ func postAlbums() usecase.Interactor {
 }
 
 func ExampleDefaultService() {
+	// Service initializes router with required middlewares.
 	service := web.DefaultService()
 
+	// It allows OpenAPI configuration.
 	service.OpenAPI.Info.Title = "Albums API"
 	service.OpenAPI.Info.WithDescription("This service provides API to manage albums.")
 	service.OpenAPI.Info.Version = "v1.0.0"
 
+	// Additional middlewares can be added.
+	service.Use(
+		middleware.StripSlashes,
+
+		// cors.AllowAll().Handler, // "github.com/rs/cors", 3rd-party CORS middleware can also be configured here.
+	)
+
+	service.Wrap()
+
+	// Use cases can be mounted using short syntax .<Method>(...).
 	service.Post("/albums", postAlbums(), fhttp.SuccessStatus(http.StatusCreated))
 
 	log.Println("Starting service at http://localhost:8080")

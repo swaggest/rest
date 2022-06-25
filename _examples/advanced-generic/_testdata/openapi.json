@@ -41,7 +41,7 @@
     },
     "/file-multi-upload":{
       "post":{
-        "summary":"Files Uploads With 'multipart/form-data'","description":"",
+        "summary":"Files Uploads With 'multipart/form-data'",
         "operationId":"_examples/advanced-generic.fileMultiUploader",
         "parameters":[
           {
@@ -61,8 +61,7 @@
     },
     "/file-upload":{
       "post":{
-        "summary":"File Upload With 'multipart/form-data'","description":"",
-        "operationId":"_examples/advanced-generic.fileUploader",
+        "summary":"File Upload With 'multipart/form-data'","operationId":"_examples/advanced-generic.fileUploader",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Simple scalar value in query.",
@@ -78,7 +77,7 @@
     },
     "/gzip-pass-through":{
       "get":{
-        "summary":"Direct Gzip","description":"","operationId":"_examples/advanced-generic.directGzip",
+        "summary":"Direct Gzip","operationId":"_examples/advanced-generic.directGzip",
         "parameters":[
           {
             "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",
@@ -98,7 +97,7 @@
         "x-forbid-unknown-query":true
       },
       "head":{
-        "summary":"Direct Gzip","description":"","operationId":"_examples/advanced-generic.directGzip",
+        "summary":"Direct Gzip","operationId":"_examples/advanced-generic.directGzip2",
         "parameters":[
           {
             "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",
@@ -263,8 +262,7 @@
     },
     "/json-slice-body":{
       "post":{
-        "summary":"Request With JSON Array In Body","description":"",
-        "operationId":"_examples/advanced-generic.jsonSliceBody",
+        "summary":"Request With JSON Array In Body","operationId":"_examples/advanced-generic.jsonSliceBody",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Simple scalar value in query.",
@@ -348,7 +346,7 @@
       },
       "head":{
         "summary":"Output With Headers","description":"Output with headers.",
-        "operationId":"_examples/advanced-generic.outputHeaders",
+        "operationId":"_examples/advanced-generic.outputHeaders2",
         "responses":{
           "200":{
             "description":"OK",
@@ -365,8 +363,7 @@
     },
     "/query-object":{
       "get":{
-        "summary":"Request With Object As Query Parameter","description":"",
-        "operationId":"_examples/advanced-generic.queryObject",
+        "summary":"Request With Object As Query Parameter","operationId":"_examples/advanced-generic.queryObject",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Object value in query.","style":"deepObject","explode":true,
