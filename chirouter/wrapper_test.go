@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/fchi/middleware"
-	"github.com/swaggest/rest-fasthttp"
+	"github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/chirouter"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/valyala/fasthttp"

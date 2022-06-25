@@ -2,7 +2,7 @@ package response
 
 import (
 	"github.com/swaggest/fchi"
-	rest2 "github.com/swaggest/rest"
+	"github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/usecase"
 )
@@ -14,7 +14,7 @@ type responseEncoderSetter interface {
 // EncoderMiddleware instruments qualifying fchi.Handler with Encoder.
 func EncoderMiddleware(handler fchi.Handler) fchi.Handler {
 	var (
-		withUseCase        rest2.HandlerWithUseCase
+		withUseCase        rest.HandlerWithUseCase
 		setResponseEncoder responseEncoderSetter
 		useCaseWithOutput  usecase.HasOutputPort
 		restHandler        withRestHandler

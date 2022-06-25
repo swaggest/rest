@@ -79,7 +79,7 @@ func TestOpenAPIMiddleware(t *testing.T) {
 		 },
 		 "401":{
 		  "description":"Unauthorized",
-		  "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestFasthttpErrResponse"}}}
+		  "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
 		 },
 		 "403":{
 		  "description":"Forbidden",
@@ -92,7 +92,7 @@ func TestOpenAPIMiddleware(t *testing.T) {
 	 },
 	 "components":{
 	  "schemas":{
-	   "RestFasthttpErrResponse":{
+	   "RestErrResponse":{
 		"type":"object",
 		"properties":{
 		 "code":{"type":"integer","description":"Application-specific error code."},

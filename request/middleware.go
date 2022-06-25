@@ -2,7 +2,7 @@ package request
 
 import (
 	"github.com/swaggest/fchi"
-	rest2 "github.com/swaggest/rest"
+	"github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/usecase"
 	"github.com/valyala/fasthttp"
@@ -13,15 +13,15 @@ type requestDecoderSetter interface {
 }
 
 type requestMapping interface {
-	RequestMapping() rest2.RequestMapping
+	RequestMapping() rest.RequestMapping
 }
 
 // DecoderMiddleware sets up request decoder in suitable handlers.
 func DecoderMiddleware(factory DecoderMaker) func(fchi.Handler) fchi.Handler {
 	return func(handler fchi.Handler) fchi.Handler {
 		var (
-			withRoute          rest2.HandlerWithRoute
-			withUseCase        rest2.HandlerWithUseCase
+			withRoute          rest.HandlerWithRoute
+			withUseCase        rest.HandlerWithUseCase
 			withRequestMapping requestMapping
 			setRequestDecoder  requestDecoderSetter
 			useCaseWithInput   usecase.HasInputPort
@@ -34,7 +34,7 @@ func DecoderMiddleware(factory DecoderMaker) func(fchi.Handler) fchi.Handler {
 			return handler
 		}
 
-		var customMapping rest2.RequestMapping
+		var customMapping rest.RequestMapping
 		if fhttp.HandlerAs(handler, &withRequestMapping) {
 			customMapping = withRequestMapping.RequestMapping()
 		}
@@ -51,15 +51,15 @@ func DecoderMiddleware(factory DecoderMaker) func(fchi.Handler) fchi.Handler {
 }
 
 type withRestHandler interface {
-	RestHandler() *rest2.HandlerTrait
+	RestHandler() *rest.HandlerTrait
 }
 
 // ValidatorMiddleware sets up request validator in suitable handlers.
-func ValidatorMiddleware(factory rest2.RequestValidatorFactory) func(fchi.Handler) fchi.Handler {
+func ValidatorMiddleware(factory rest.RequestValidatorFactory) func(fchi.Handler) fchi.Handler {
 	return func(handler fchi.Handler) fchi.Handler {
 		var (
-			withRoute        rest2.HandlerWithRoute
-			withUseCase      rest2.HandlerWithUseCase
+			withRoute        rest.HandlerWithRoute
+			withUseCase      rest.HandlerWithUseCase
 			handlerTrait     withRestHandler
 			useCaseWithInput usecase.HasInputPort
 		)
@@ -83,14 +83,14 @@ func ValidatorMiddleware(factory rest2.RequestValidatorFactory) func(fchi.Handle
 var _ fhttp.RequestDecoder = DecoderFunc(nil)
 
 // DecoderFunc implements RequestDecoder with a func.
-type DecoderFunc func(rc *fasthttp.RequestCtx, input interface{}, validator rest2.Validator) error
+type DecoderFunc func(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error
 
 // Decode implements RequestDecoder.
-func (df DecoderFunc) Decode(rc *fasthttp.RequestCtx, input interface{}, validator rest2.Validator) error {
+func (df DecoderFunc) Decode(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
 	return df(rc, input, validator)
 }
 
 // DecoderMaker creates request decoder for particular structured Go input value.
 type DecoderMaker interface {
-	MakeDecoder(method string, input interface{}, customMapping rest2.RequestMapping) fhttp.RequestDecoder
+	MakeDecoder(method string, input interface{}, customMapping rest.RequestMapping) fhttp.RequestDecoder
 }

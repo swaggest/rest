@@ -12,7 +12,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/fchi"
-	rest2 "github.com/swaggest/rest"
+	"github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/chirouter"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/rest-fasthttp/request"
@@ -39,7 +39,7 @@ func TestMapper_Decode_fileUploadTag(t *testing.T) {
 	decoderFactory := request.NewDecoderFactory()
 	validatorFactory := jsonschema.NewFactory(&apiSchema, &apiSchema)
 
-	decoderFactory.SetDecoderFunc(rest2.ParamInPath, chirouter.PathToURLValues)
+	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
 	r.Wrap(
 		fhttp.OpenAPIMiddleware(&apiSchema),

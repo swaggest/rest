@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/fchi"
-	rest2 "github.com/swaggest/rest"
+	"github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/rest-fasthttp/request"
 	"github.com/swaggest/rest-fasthttp/response"
@@ -56,7 +56,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	validatorCalled := false
 	h := fhttp.NewHandler(u,
 		func(h *fhttp.Handler) {
-			h.ReqValidator = rest2.ValidatorFunc(func(in rest2.ParamIn, namedData map[string]interface{}) error {
+			h.ReqValidator = rest.ValidatorFunc(func(in rest.ParamIn, namedData map[string]interface{}) error {
 				validatorCalled = true
 
 				return nil
@@ -69,7 +69,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	h.SetResponseEncoder(&response.Encoder{})
 
 	h.SetRequestDecoder(request.DecoderFunc(
-		func(r *fasthttp.RequestCtx, input interface{}, validator rest2.Validator) error {
+		func(r *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
 			assert.Equal(t, rc, r)
 			in, ok := input.(*Input)
 			require.True(t, ok)
@@ -123,7 +123,7 @@ func TestHandler_ServeHTTP_decodeErr(t *testing.T) {
 
 	uh := fhttp.NewHandler(u)
 	uh.SetRequestDecoder(request.DecoderFunc(
-		func(r *fasthttp.RequestCtx, input interface{}, validator rest2.Validator) error {
+		func(r *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
 			return errors.New("failed to decode request")
 		},
 	))
@@ -211,7 +211,7 @@ func TestHandlerWithRouteMiddleware(t *testing.T) {
 	})
 
 	h = fhttp.HandlerWithRouteMiddleware(http.MethodPost, "/test/")(h)
-	hr, ok := h.(rest2.HandlerWithRoute)
+	hr, ok := h.(rest.HandlerWithRoute)
 	require.True(t, ok)
 	assert.Equal(t, http.MethodPost, hr.RouteMethod())
 	assert.Equal(t, "/test/", hr.RoutePattern())
@@ -275,8 +275,8 @@ func TestHandler_ServeHTTP_customMapping(t *testing.T) {
 	})
 
 	uh := fhttp.NewHandler(u)
-	uh.ReqMapping = rest2.RequestMapping{
-		rest2.ParamInQuery: map[string]string{"ID": "ident"},
+	uh.ReqMapping = rest.RequestMapping{
+		rest.ParamInQuery: map[string]string{"ID": "ident"},
 	}
 
 	h := fhttp.WrapHandler(uh,

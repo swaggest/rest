@@ -5,7 +5,7 @@ import (
 
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/openapi-go/openapi3"
-	"github.com/swaggest/rest-fasthttp"
+	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/openapi"
 )
 

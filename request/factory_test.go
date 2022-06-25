@@ -9,7 +9,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	rest2 "github.com/swaggest/rest"
+	"github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/request"
 	"github.com/valyala/fasthttp"
 )
@@ -156,9 +156,9 @@ func TestDecoderFactory_MakeDecoder_invalidMapping(t *testing.T) {
 
 		df := request.NewDecoderFactory()
 
-		customMapping := rest2.RequestMapping{
-			rest2.ParamInQuery:  map[string]string{"ID2": "id"},
-			rest2.ParamInHeader: map[string]string{"WrongName": "X-Name"},
+		customMapping := rest.RequestMapping{
+			rest.ParamInQuery:  map[string]string{"ID2": "id"},
+			rest.ParamInHeader: map[string]string{"WrongName": "X-Name"},
 		}
 
 		_ = df.MakeDecoder(http.MethodPost, new(MyInput), customMapping)
@@ -174,9 +174,9 @@ func TestDecoderFactory_MakeDecoder_customMapping(t *testing.T) {
 	df := request.NewDecoderFactory()
 	df.ApplyDefaults = true
 
-	customMapping := rest2.RequestMapping{
-		rest2.ParamInQuery:  map[string]string{"ID": "id"},
-		rest2.ParamInHeader: map[string]string{"Name": "X-Name"},
+	customMapping := rest.RequestMapping{
+		rest.ParamInQuery:  map[string]string{"ID": "id"},
+		rest.ParamInHeader: map[string]string{"Name": "X-Name"},
 	}
 
 	dec := df.MakeDecoder(http.MethodPost, new(MyInput), customMapping)

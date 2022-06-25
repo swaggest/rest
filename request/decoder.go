@@ -5,7 +5,7 @@ import (
 	"sync"
 
 	"github.com/swaggest/form/v5"
-	rest2 "github.com/swaggest/rest"
+	"github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/valyala/fasthttp"
 )
@@ -19,10 +19,10 @@ type (
 	}
 
 	decoderFunc      func(rc *fasthttp.RequestCtx, v url.Values) error
-	valueDecoderFunc func(rc *fasthttp.RequestCtx, v interface{}, validator rest2.Validator) error
+	valueDecoderFunc func(rc *fasthttp.RequestCtx, v interface{}, validator rest.Validator) error
 )
 
-func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest2.ParamIn, val rest2.Validator) error {
+func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamIn, val rest.Validator) error {
 	goValues := make(map[string]interface{}, len(p))
 
 	err := d.Decode(v, p, goValues)
@@ -55,8 +55,8 @@ var valuesPool = &sync.Pool{
 	},
 }
 
-func makeDecoder(in rest2.ParamIn, formDecoder *form.Decoder, decoderFunc decoderFunc) valueDecoderFunc {
-	return func(rc *fasthttp.RequestCtx, v interface{}, validator rest2.Validator) error {
+func makeDecoder(in rest.ParamIn, formDecoder *form.Decoder, decoderFunc decoderFunc) valueDecoderFunc {
+	return func(rc *fasthttp.RequestCtx, v interface{}, validator rest.Validator) error {
 		values := valuesPool.Get().(url.Values) // nolint:errcheck
 		for k := range values {
 			delete(values, k)
@@ -82,13 +82,13 @@ func makeDecoder(in rest2.ParamIn, formDecoder *form.Decoder, decoderFunc decode
 // decoder extracts Go value from *http.Request.
 type decoder struct {
 	decoders []valueDecoderFunc
-	in       []rest2.ParamIn
+	in       []rest.ParamIn
 }
 
 var _ fhttp.RequestDecoder = &decoder{}
 
 // Decode populates and validates input with data from http request.
-func (d *decoder) Decode(rc *fasthttp.RequestCtx, input interface{}, validator rest2.Validator) error {
+func (d *decoder) Decode(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
 	if i, ok := input.(Loader); ok {
 		return i.LoadFromFastHTTPRequest(rc)
 	}
@@ -98,7 +98,7 @@ func (d *decoder) Decode(rc *fasthttp.RequestCtx, input interface{}, validator r
 		if err != nil {
 			// nolint:errorlint // Error is not wrapped, type assertion is more performant.
 			if de, ok := err.(form.DecodeErrors); ok {
-				errs := make(rest2.RequestErrors, len(de))
+				errs := make(rest.RequestErrors, len(de))
 				for name, e := range de {
 					errs[string(d.in[i])+":"+name] = []string{"#: " + e.Error()}
 				}

@@ -12,8 +12,7 @@ import (
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
-	rest2 "github.com/swaggest/rest"
-	"github.com/swaggest/rest-fasthttp"
+	"github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/rest-fasthttp/response"
 	"github.com/swaggest/rest-fasthttp/response/gzip"
@@ -42,7 +41,7 @@ func NewRouter() fchi.Handler {
 
 			// Allow unknown request headers and skip response.
 			if oc, ok := openapi3.OperationCtx(rc); !ok ||
-				oc.ProcessingResponse || oc.ProcessingIn == string(rest2.ParamInHeader) {
+				oc.ProcessingResponse || oc.ProcessingIn == string(rest.ParamInHeader) {
 				return stop, nil
 			}
 

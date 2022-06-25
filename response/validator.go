@@ -4,18 +4,17 @@ import (
 	"net/http"
 
 	"github.com/swaggest/fchi"
-	rest2 "github.com/swaggest/rest"
-	"github.com/swaggest/rest-fasthttp"
+	"github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/usecase"
 )
 
 type withRestHandler interface {
-	RestHandler() *rest2.HandlerTrait
+	RestHandler() *rest.HandlerTrait
 }
 
 // ValidatorMiddleware sets up response validator in suitable handlers.
-func ValidatorMiddleware(factory rest2.ResponseValidatorFactory) func(fchi.Handler) fchi.Handler {
+func ValidatorMiddleware(factory rest.ResponseValidatorFactory) func(fchi.Handler) fchi.Handler {
 	return func(handler fchi.Handler) fchi.Handler {
 		var (
 			withUseCase       rest.HandlerWithUseCase
@@ -35,7 +34,7 @@ func ValidatorMiddleware(factory rest2.ResponseValidatorFactory) func(fchi.Handl
 		if statusCode == 0 {
 			statusCode = http.StatusOK
 
-			if rest2.OutputHasNoContent(useCaseWithOutput.OutputPort()) {
+			if rest.OutputHasNoContent(useCaseWithOutput.OutputPort()) {
 				statusCode = http.StatusNoContent
 			}
 		}

@@ -6,7 +6,7 @@ import (
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/refl"
-	rest2 "github.com/swaggest/rest"
+	"github.com/swaggest/rest"
 )
 
 // OptionsMiddleware applies options to encountered fhttp.Handler.
@@ -52,14 +52,14 @@ func SuccessStatus(status int) func(h *Handler) {
 // This can be used to decouple mapping from usecase input with additional struct.
 func RequestMapping(v interface{}) func(h *Handler) {
 	return func(h *Handler) {
-		m := make(rest2.RequestMapping)
+		m := make(rest.RequestMapping)
 
-		for _, in := range []rest2.ParamIn{
-			rest2.ParamInFormData,
-			rest2.ParamInQuery,
-			rest2.ParamInHeader,
-			rest2.ParamInPath,
-			rest2.ParamInCookie,
+		for _, in := range []rest.ParamIn{
+			rest.ParamInFormData,
+			rest.ParamInQuery,
+			rest.ParamInHeader,
+			rest.ParamInPath,
+			rest.ParamInCookie,
 		} {
 			mm := make(map[string]string)
 

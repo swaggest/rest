@@ -8,7 +8,7 @@ import (
 	"github.com/swaggest/fchi"
 	"github.com/swaggest/fchi/middleware"
 	"github.com/swaggest/openapi-go/openapi3"
-	rest2 "github.com/swaggest/rest"
+	"github.com/swaggest/rest"
 	"github.com/swaggest/rest-fasthttp/chirouter"
 	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/rest-fasthttp/request"
@@ -45,7 +45,7 @@ func DefaultService(options ...func(s *Service, initialized bool)) *Service {
 	if s.DecoderFactory == nil {
 		decoderFactory := request.NewDecoderFactory()
 		decoderFactory.ApplyDefaults = true
-		decoderFactory.SetDecoderFunc(rest2.ParamInPath, chirouter.PathToURLValues)
+		decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
 		s.DecoderFactory = decoderFactory
 	}
@@ -85,7 +85,7 @@ type Service struct {
 	// Response validation is not enabled by default for its less justifiable performance impact.
 	// This field is populated so that response.ValidatorMiddleware(s.ResponseValidatorFactory) can be
 	// added to service via Wrap.
-	ResponseValidatorFactory rest2.ResponseValidatorFactory
+	ResponseValidatorFactory rest.ResponseValidatorFactory
 }
 
 // Delete adds the route `pattern` that matches a DELETE http method to invoke use case interactor.
