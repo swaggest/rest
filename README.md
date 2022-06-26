@@ -427,6 +427,26 @@ func main() {
 
 ![Documentation Page](./_examples/basic/screen.png)
 
+## Performance Optimization
+
+If top performance is critical for the service or particular endpoints, you can trade 
+simplicity for performance by implementing manual request loader on input type.
+
+```go
+func (i *myInput) LoadFromHTTPRequest(r *http.Request) (err error) {
+	i.Header = r.Header.Get("X-Header")
+
+	return nil
+}
+```
+
+If `request.Loader` is implemented, it will be called instead of both automatic decoding and validation.
+
+Check advanced [example](https://github.com/swaggest/rest/blob/v0.2.29/_examples/advanced-generic/json_body_manual.go#L58).
+
+To further improve performance you may try to use `fasthttp` instead of `net/http` with 
+[`rest-fasthttp`](https://github.com/swaggest/rest-fasthttp) fork.
+
 ## Versioning
 
 This project adheres to [Semantic Versioning](https://semver.org/#semantic-versioning-200).

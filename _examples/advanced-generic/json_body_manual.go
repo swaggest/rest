@@ -68,7 +68,7 @@ func (i *inputWithJSON) LoadFromHTTPRequest(r *http.Request) (err error) {
 	}
 
 	if err = json.Unmarshal(b, i); err != nil {
-		return fmt.Errorf("failsed to unmarshal request body: %w", err)
+		return fmt.Errorf("failed to unmarshal request body: %w", err)
 	}
 
 	i.Header = r.Header.Get("X-Header")
