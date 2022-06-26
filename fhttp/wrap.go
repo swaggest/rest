@@ -1,17 +1,18 @@
-package nethttp
+package fhttp
 
 import (
-	"net/http"
 	"reflect"
 	"runtime"
+
+	"github.com/swaggest/fchi"
 )
 
-// WrapHandler wraps http.Handler with an unwrappable middleware.
+// WrapHandler wraps fchi.Handler with an unwrappable middleware.
 //
 // Wrapping order is reversed, e.g. if you call WrapHandler(h, mw1, mw2, mw3) middlewares will be
 // invoked in order of mw1(mw2(mw3(h))), mw3 first and mw1 last. So that request processing is first
 // affected by mw1.
-func WrapHandler(h http.Handler, mw ...func(http.Handler) http.Handler) http.Handler {
+func WrapHandler(h fchi.Handler, mw ...func(fchi.Handler) fchi.Handler) fchi.Handler {
 	for i := len(mw) - 1; i >= 0; i-- {
 		w := mw[i](h)
 		if w == nil {
@@ -28,15 +29,15 @@ func WrapHandler(h http.Handler, mw ...func(http.Handler) http.Handler) http.Han
 	return h
 }
 
-// HandlerAs finds the first http.Handler in http.Handler's chain that matches target, and if so, sets
-// target to that http.Handler value and returns true.
+// HandlerAs finds the first fchi.Handler in fchi.Handler's chain that matches target, and if so, sets
+// target to that fchi.Handler value and returns true.
 //
-// An http.Handler matches target if the http.Handler's concrete value is assignable to the value
+// An fchi.Handler matches target if the fchi.Handler's concrete value is assignable to the value
 // pointed to by target.
 //
 // HandlerAs will panic if target is not a non-nil pointer to either a type that implements
-// http.Handler, or to any interface type.
-func HandlerAs(handler http.Handler, target interface{}) bool {
+// fchi.Handler, or to any interface type.
+func HandlerAs(handler fchi.Handler, target interface{}) bool {
 	if target == nil {
 		panic("target cannot be nil")
 	}
@@ -49,7 +50,7 @@ func HandlerAs(handler http.Handler, target interface{}) bool {
 	}
 
 	if e := typ.Elem(); e.Kind() != reflect.Interface && !e.Implements(handlerType) {
-		panic("*target must be interface or implement http.Handler")
+		panic("*target must be interface or implement fchi.Handler")
 	}
 
 	targetType := typ.Elem()
@@ -81,11 +82,11 @@ func HandlerAs(handler http.Handler, target interface{}) bool {
 	return false
 }
 
-var handlerType = reflect.TypeOf((*http.Handler)(nil)).Elem()
+var handlerType = reflect.TypeOf((*fchi.Handler)(nil)).Elem()
 
 type wrappedHandler struct {
-	http.Handler
-	wrapped http.Handler
+	fchi.Handler
+	wrapped fchi.Handler
 	mwName  string
 }
 

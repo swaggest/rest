@@ -4,18 +4,18 @@ package main
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/bool64/httptestbench"
+	"github.com/swaggest/fchi"
 	"github.com/valyala/fasthttp"
 )
 
-// Benchmark_jsonBody-12    	   96762	     12042 ns/op	       208.0 B:rcvd/op	       188.0 B:sent/op	     83033 rps	   10312 B/op	     100 allocs/op.
+// Benchmark_jsonBody-12    	   68124	     17828 ns/op	       226.0 B:rcvd/op	       188.0 B:sent/op	     56083 rps	    6864 B/op	      85 allocs/op.
 func Benchmark_jsonBody(b *testing.B) {
 	r := NewRouter()
 
-	srv := httptest.NewServer(r)
+	srv := fchi.NewTestServer(r)
 	defer srv.Close()
 
 	httptestbench.RoundTrip(b, 50, func(i int, req *fasthttp.Request) {

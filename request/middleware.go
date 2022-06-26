@@ -1,15 +1,15 @@
 package request
 
 import (
-	"net/http"
-
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/usecase"
+	"github.com/valyala/fasthttp"
 )
 
 type requestDecoderSetter interface {
-	SetRequestDecoder(nethttp.RequestDecoder)
+	SetRequestDecoder(fhttp.RequestDecoder)
 }
 
 type requestMapping interface {
@@ -17,8 +17,8 @@ type requestMapping interface {
 }
 
 // DecoderMiddleware sets up request decoder in suitable handlers.
-func DecoderMiddleware(factory DecoderMaker) func(http.Handler) http.Handler {
-	return func(handler http.Handler) http.Handler {
+func DecoderMiddleware(factory DecoderMaker) func(fchi.Handler) fchi.Handler {
+	return func(handler fchi.Handler) fchi.Handler {
 		var (
 			withRoute          rest.HandlerWithRoute
 			withUseCase        rest.HandlerWithUseCase
@@ -27,15 +27,15 @@ func DecoderMiddleware(factory DecoderMaker) func(http.Handler) http.Handler {
 			useCaseWithInput   usecase.HasInputPort
 		)
 
-		if !nethttp.HandlerAs(handler, &setRequestDecoder) ||
-			!nethttp.HandlerAs(handler, &withRoute) ||
-			!nethttp.HandlerAs(handler, &withUseCase) ||
+		if !fhttp.HandlerAs(handler, &setRequestDecoder) ||
+			!fhttp.HandlerAs(handler, &withRoute) ||
+			!fhttp.HandlerAs(handler, &withUseCase) ||
 			!usecase.As(withUseCase.UseCase(), &useCaseWithInput) {
 			return handler
 		}
 
 		var customMapping rest.RequestMapping
-		if nethttp.HandlerAs(handler, &withRequestMapping) {
+		if fhttp.HandlerAs(handler, &withRequestMapping) {
 			customMapping = withRequestMapping.RequestMapping()
 		}
 
@@ -55,8 +55,8 @@ type withRestHandler interface {
 }
 
 // ValidatorMiddleware sets up request validator in suitable handlers.
-func ValidatorMiddleware(factory rest.RequestValidatorFactory) func(http.Handler) http.Handler {
-	return func(handler http.Handler) http.Handler {
+func ValidatorMiddleware(factory rest.RequestValidatorFactory) func(fchi.Handler) fchi.Handler {
+	return func(handler fchi.Handler) fchi.Handler {
 		var (
 			withRoute        rest.HandlerWithRoute
 			withUseCase      rest.HandlerWithUseCase
@@ -64,9 +64,9 @@ func ValidatorMiddleware(factory rest.RequestValidatorFactory) func(http.Handler
 			useCaseWithInput usecase.HasInputPort
 		)
 
-		if !nethttp.HandlerAs(handler, &handlerTrait) ||
-			!nethttp.HandlerAs(handler, &withRoute) ||
-			!nethttp.HandlerAs(handler, &withUseCase) ||
+		if !fhttp.HandlerAs(handler, &handlerTrait) ||
+			!fhttp.HandlerAs(handler, &withRoute) ||
+			!fhttp.HandlerAs(handler, &withUseCase) ||
 			!usecase.As(withUseCase.UseCase(), &useCaseWithInput) {
 			return handler
 		}
@@ -80,17 +80,17 @@ func ValidatorMiddleware(factory rest.RequestValidatorFactory) func(http.Handler
 	}
 }
 
-var _ nethttp.RequestDecoder = DecoderFunc(nil)
+var _ fhttp.RequestDecoder = DecoderFunc(nil)
 
 // DecoderFunc implements RequestDecoder with a func.
-type DecoderFunc func(r *http.Request, input interface{}, validator rest.Validator) error
+type DecoderFunc func(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error
 
 // Decode implements RequestDecoder.
-func (df DecoderFunc) Decode(r *http.Request, input interface{}, validator rest.Validator) error {
-	return df(r, input, validator)
+func (df DecoderFunc) Decode(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
+	return df(rc, input, validator)
 }
 
 // DecoderMaker creates request decoder for particular structured Go input value.
 type DecoderMaker interface {
-	MakeDecoder(method string, input interface{}, customMapping rest.RequestMapping) nethttp.RequestDecoder
+	MakeDecoder(method string, input interface{}, customMapping rest.RequestMapping) fhttp.RequestDecoder
 }

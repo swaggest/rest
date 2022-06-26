@@ -9,7 +9,7 @@
     "/albums":{
       "options":{
         "tags":["Album"],"summary":"Post Albums",
-        "operationId":"rest/web_test.postAlbums5",
+        "operationId":"rest-fasthttp/web_test.postAlbums5",
         "parameters":[{"name":"locale","in":"query","schema":{"type":"string"}}],
         "requestBody":{
           "content":{
@@ -27,7 +27,7 @@
       },
       "patch":{
         "tags":["Album"],"summary":"Post Albums",
-        "operationId":"rest/web_test.postAlbums2",
+        "operationId":"rest-fasthttp/web_test.postAlbums2",
         "parameters":[{"name":"locale","in":"query","schema":{"type":"string"}}],
         "requestBody":{
           "content":{
@@ -45,7 +45,7 @@
       },
       "post":{
         "tags":["Album"],"summary":"Post Albums",
-        "operationId":"rest/web_test.postAlbums",
+        "operationId":"rest-fasthttp/web_test.postAlbums",
         "parameters":[{"name":"locale","in":"query","schema":{"type":"string"}}],
         "requestBody":{
           "content":{
@@ -63,7 +63,7 @@
       },
       "put":{
         "tags":["Album"],"summary":"Post Albums",
-        "operationId":"rest/web_test.postAlbums3",
+        "operationId":"rest-fasthttp/web_test.postAlbums3",
         "parameters":[{"name":"locale","in":"query","schema":{"type":"string"}}],
         "requestBody":{
           "content":{
@@ -81,7 +81,7 @@
       },
       "trace":{
         "tags":["Album"],"summary":"Post Albums",
-        "operationId":"rest/web_test.postAlbums4",
+        "operationId":"rest-fasthttp/web_test.postAlbums4",
         "parameters":[{"name":"locale","in":"query","schema":{"type":"string"}}],
         "responses":{
           "201":{
@@ -96,7 +96,7 @@
     "/albums/{id}":{
       "delete":{
         "tags":["Album"],"summary":"Album By ID",
-        "operationId":"rest/web_test.albumByID",
+        "operationId":"rest-fasthttp/web_test.albumByID",
         "parameters":[
           {"name":"locale","in":"query","schema":{"type":"string"}},
           {
@@ -114,7 +114,7 @@
       },
       "get":{
         "tags":["Album"],"summary":"Album By ID",
-        "operationId":"rest/web_test.albumByID3",
+        "operationId":"rest-fasthttp/web_test.albumByID3",
         "parameters":[
           {"name":"locale","in":"query","schema":{"type":"string"}},
           {
@@ -132,7 +132,7 @@
       },
       "head":{
         "tags":["Album"],"summary":"Album By ID",
-        "operationId":"rest/web_test.albumByID2",
+        "operationId":"rest-fasthttp/web_test.albumByID2",
         "parameters":[
           {"name":"locale","in":"query","schema":{"type":"string"}},
           {

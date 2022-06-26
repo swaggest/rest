@@ -1,15 +1,15 @@
-package nethttp
+package fhttp
 
 import (
 	"context"
-	"net/http"
 
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/usecase"
 )
 
 // UseCaseMiddlewares applies use case middlewares to Handler.
-func UseCaseMiddlewares(mw ...usecase.Middleware) func(http.Handler) http.Handler {
-	return func(handler http.Handler) http.Handler {
+func UseCaseMiddlewares(mw ...usecase.Middleware) func(fchi.Handler) fchi.Handler {
+	return func(handler fchi.Handler) fchi.Handler {
 		var uh *Handler
 		if !HandlerAs(handler, &uh) {
 			return handler

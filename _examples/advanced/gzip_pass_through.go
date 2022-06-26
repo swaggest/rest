@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 
-	"github.com/swaggest/rest/gzip"
+	"github.com/swaggest/rest-fasthttp/gzip"
 	"github.com/swaggest/usecase"
 )
 

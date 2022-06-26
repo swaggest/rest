@@ -14,7 +14,8 @@ import (
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/refl"
 	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/valyala/fasthttp"
 )
 
 var _ DecoderMaker = &DecoderFactory{}
@@ -68,7 +69,7 @@ func NewDecoderFactory() *DecoderFactory {
 }
 
 // SetDecoderFunc adds custom decoder function for values of particular field tag name.
-func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(r *http.Request) (url.Values, error)) {
+func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(rc *fasthttp.RequestCtx, v url.Values) error) {
 	if df.decoderFunctions == nil {
 		df.decoderFunctions = make(map[rest.ParamIn]decoderFunc)
 	}
@@ -94,7 +95,7 @@ func (df *DecoderFactory) MakeDecoder(
 	method string,
 	input interface{},
 	customMapping rest.RequestMapping,
-) nethttp.RequestDecoder {
+) fhttp.RequestDecoder {
 	m := decoder{
 		decoders: make([]valueDecoderFunc, 0),
 		in:       make([]rest.ParamIn, 0),
@@ -239,7 +240,7 @@ func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 
 	dec := df.defaultValDecoder
 
-	m.decoders = append(m.decoders, func(r *http.Request, v interface{}, validator rest.Validator) error {
+	m.decoders = append(m.decoders, func(rc *fasthttp.RequestCtx, v interface{}, validator rest.Validator) error {
 		return dec.Decode(v, defaults)
 	})
 	m.in = append(m.in, defaultTag)

@@ -1,22 +1,22 @@
-package nethttp_test
+package fhttp_test
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/bool64/httpmock"
 	"github.com/stretchr/testify/assert"
-	"github.com/swaggest/rest/_examples/task-api/internal/infra"
-	"github.com/swaggest/rest/_examples/task-api/internal/infra/nethttp"
-	"github.com/swaggest/rest/_examples/task-api/internal/infra/service"
+	"github.com/swaggest/fchi"
+	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra"
+	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra/fhttp"
+	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra/service"
 )
 
 func Test_taskLifeSpan(t *testing.T) {
 	l := infra.NewServiceLocator(service.Config{})
 	defer l.Close()
 
-	srv := httptest.NewServer(nethttp.NewRouter(l))
+	srv := fchi.NewTestServer(fhttp.NewRouter(l))
 	defer srv.Close()
 
 	rc := httpmock.NewClient(srv.URL)

@@ -8,14 +8,15 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
-	"github.com/swaggest/rest/response/gzip"
-	"github.com/swaggest/rest/web"
+	"github.com/swaggest/fchi"
+	"github.com/swaggest/rest-fasthttp/response/gzip"
+	"github.com/swaggest/rest-fasthttp/web"
 	swgui "github.com/swaggest/swgui/v4emb"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
+	"github.com/valyala/fasthttp"
 )
 
 func main() {
@@ -82,7 +83,7 @@ func main() {
 
 	// Start server.
 	log.Println("http://localhost:8011/docs")
-	if err := http.ListenAndServe(":8011", s); err != nil {
+	if err := fasthttp.ListenAndServe(":8011", fchi.RequestHandler(s)); err != nil {
 		log.Fatal(err)
 	}
 }

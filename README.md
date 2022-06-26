@@ -10,6 +10,15 @@
 This module implements HTTP transport level for [`github.com/swaggest/usecase`](https://github.com/swaggest/usecase) 
 to build REST services.
 
+## This Fork
+
+This is a reduced fork of [`github.com/swaggest/rest`](https://github.com/swaggest/rest) 
+that uses [`fasthttp`](https://github.com/valyala/fasthttp) instead of standard `net/http`.
+
+On one `fasthttp` brings better performance and memory efficiency to highly loaded services, 
+on another hand it is not compatible with many existing middlewares and may require additional 
+dev effort for such cases.
+
 ## Goals
 
 * Maintain single source of truth for documentation, validation and input/output of HTTP API.
@@ -85,8 +94,8 @@ type helloInput struct {
 
 ```go
 // Add use case handler with custom input mapping to router.
-r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u,
-    nethttp.RequestMapping(new(struct {
+r.Method(http.MethodGet, "/hello/{name}", fhttp.NewHandler(u,
+    fhttp.RequestMapping(new(struct {
        Locale string `query:"locale"`
        Name   string `path:"name"` // Field tags define parameter location and JSON schema constraints.
     })),
@@ -137,8 +146,8 @@ type helloOutput struct {
 
 ```go
 // Add use case handler with custom output headers mapping to router.
-r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u,
-    nethttp.ResponseHeaderMapping(new(struct {
+r.Method(http.MethodGet, "/hello/{name}", fhttp.NewHandler(u,
+    fhttp.ResponseHeaderMapping(new(struct {
         Now     time.Time `header:"X-Now"`
     })),
 ))
@@ -215,12 +224,10 @@ service.OpenAPI.Info.Version = "v1.0.0"
 // Additional middlewares can be added.
 service.Use(
     middleware.StripSlashes,
-
-    // cors.AllowAll().Handler, // "github.com/rs/cors", 3rd-party CORS middleware can also be configured here.
 )
 
 // Use cases can be mounted using short syntax .<Method>(...).
-service.Post("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
+service.Post("/albums", postAlbums(), fhttp.SuccessStatus(http.StatusCreated))
 
 log.Println("Starting service at http://localhost:8080")
 
@@ -237,7 +244,7 @@ the documentation below.
 
 ```go
 // Add use case handler to router.
-r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u))
+r.Method(http.MethodGet, "/hello/{name}", fhttp.NewHandler(u))
 ```
 
 ## API Schema Collector
@@ -279,7 +286,7 @@ decoderFactory := request.NewDecoderFactory()
 decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
 // Create router.
-r := chirouter.NewWrapper(chi.NewRouter())
+r := chirouter.NewWrapper(fchi.NewRouter())
 
 // Setup middlewares.
 r.Use(
@@ -313,10 +320,10 @@ adminAuth := middleware.BasicAuth("Admin Access", map[string]string{"admin": "ad
 adminSecuritySchema := nethttp.HTTPBasicSecurityMiddleware(apiSchema, "Admin", "Admin access")
 
 // Endpoints with admin access.
-r.Route("/admin", func(r chi.Router) {
-    r.Group(func(r chi.Router) {
+r.Route("/admin", func(r fchi.Router) {
+    r.Group(func(r fchi.Router) {
         r.Wrap(adminAuth, adminSecuritySchema) // Add both middlewares to routing group to enforce and document security.
-        r.Method(http.MethodPut, "/hello/{name}", nethttp.NewHandler(u))
+        r.Method(http.MethodPut, "/hello/{name}", fhttp.NewHandler(u))
     })
 })
 ```
@@ -329,7 +336,7 @@ Handler is a generalized adapter for use case interactor, so usually setup is tr
 
 ```go
 // Add use case handler to router.
-r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u))
+r.Method(http.MethodGet, "/hello/{name}", fhttp.NewHandler(u))
 ```
 
 ## Example
@@ -344,14 +351,15 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"net/http"
 	"time"
 
-	"github.com/swaggest/rest/response/gzip"
-	"github.com/swaggest/rest/web"
+	"github.com/swaggest/fchi"
+	"github.com/swaggest/rest-fasthttp/response/gzip"
+	"github.com/swaggest/rest-fasthttp/web"
 	swgui "github.com/swaggest/swgui/v4emb"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
+	"github.com/valyala/fasthttp"
 )
 
 func main() {
@@ -418,11 +426,10 @@ func main() {
 
 	// Start server.
 	log.Println("http://localhost:8011/docs")
-	if err := http.ListenAndServe(":8011", s); err != nil {
+	if err := fasthttp.ListenAndServe(":8011", fchi.RequestHandler(s)); err != nil {
 		log.Fatal(err)
 	}
 }
-
 ```
 
 ![Documentation Page](./_examples/basic/screen.png)

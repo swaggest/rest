@@ -4,16 +4,19 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"reflect"
 	"strconv"
 	"sync"
 
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/form/v5"
 	"github.com/swaggest/refl"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
+	"github.com/valyala/fasthttp"
 )
 
 // Encoder prepares and writes http response.
@@ -126,8 +129,7 @@ var jsonEncoderPool = sync.Pool{
 }
 
 func (h *Encoder) writeJSONResponse(
-	w http.ResponseWriter,
-	r *http.Request,
+	rc *fasthttp.RequestCtx,
 	v interface{},
 	ht rest.HandlerTrait,
 ) {
@@ -135,12 +137,14 @@ func (h *Encoder) writeJSONResponse(
 		ht.SuccessContentType = "application/json; charset=utf-8"
 	}
 
-	if jw, ok := v.(rest.JSONWriterTo); ok {
-		w.Header().Set("Content-Type", ht.SuccessContentType)
+	hd := &rc.Response.Header
 
-		_, err := jw.JSONWriteTo(w)
+	if jw, ok := v.(rest.JSONWriterTo); ok {
+		hd.Set("Content-Type", ht.SuccessContentType)
+
+		_, err := jw.JSONWriteTo(rc)
 		if err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
+			fchi.Error(rc, err.Error(), http.StatusInternalServerError)
 
 			return
 		}
@@ -155,7 +159,7 @@ func (h *Encoder) writeJSONResponse(
 
 	err := e.enc.Encode(v)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fchi.Error(rc, err.Error(), http.StatusInternalServerError)
 
 		return
 	}
@@ -164,30 +168,30 @@ func (h *Encoder) writeJSONResponse(
 		err = ht.RespValidator.ValidateJSONBody(e.buf.Bytes())
 		if err != nil {
 			code, er := rest.Err(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal))
-			h.WriteErrResponse(w, r, code, er)
+			h.WriteErrResponse(rc, code, er)
 
 			return
 		}
 	}
 
-	w.Header().Set("Content-Length", strconv.Itoa(e.buf.Len()))
-	w.Header().Set("Content-Type", ht.SuccessContentType)
-	w.WriteHeader(ht.SuccessStatus)
+	hd.Set("Content-Length", strconv.Itoa(e.buf.Len()))
+	hd.Set("Content-Type", ht.SuccessContentType)
+	rc.Response.SetStatusCode(ht.SuccessStatus)
 
-	if r.Method == http.MethodHead {
+	if bytes.Equal(rc.Method(), []byte(http.MethodHead)) {
 		return
 	}
 
-	_, err = w.Write(e.buf.Bytes())
+	_, err = rc.Write(e.buf.Bytes())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fchi.Error(rc, err.Error(), http.StatusInternalServerError)
 
 		return
 	}
 }
 
 // WriteErrResponse encodes and writes error to response.
-func (h *Encoder) WriteErrResponse(w http.ResponseWriter, r *http.Request, statusCode int, response interface{}) {
+func (h *Encoder) WriteErrResponse(rc *fasthttp.RequestCtx, statusCode int, response interface{}) {
 	contentType := "application/json; charset=utf-8"
 
 	e := jsonEncoderPool.Get().(*jsonEncoder) // nolint:errcheck
@@ -197,22 +201,23 @@ func (h *Encoder) WriteErrResponse(w http.ResponseWriter, r *http.Request, statu
 
 	err := e.enc.Encode(response)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fchi.Error(rc, err.Error(), http.StatusInternalServerError)
 
 		return
 	}
 
-	w.Header().Set("Content-Length", strconv.Itoa(e.buf.Len()))
-	w.Header().Set("Content-Type", contentType)
-	w.WriteHeader(statusCode)
+	hd := &rc.Response.Header
+	hd.Set("Content-Length", strconv.Itoa(e.buf.Len()))
+	hd.Set("Content-Type", contentType)
+	rc.Response.SetStatusCode(statusCode)
 
-	if r.Method == http.MethodHead {
+	if bytes.Equal(rc.Method(), []byte(fasthttp.MethodHead)) {
 		return
 	}
 
-	_, err = w.Write(e.buf.Bytes())
+	_, err = rc.Write(e.buf.Bytes())
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		fchi.Error(rc, err.Error(), fasthttp.StatusInternalServerError)
 
 		return
 	}
@@ -220,8 +225,7 @@ func (h *Encoder) WriteErrResponse(w http.ResponseWriter, r *http.Request, statu
 
 // WriteSuccessfulResponse encodes and writes successful output of use case interactor to http response.
 func (h *Encoder) WriteSuccessfulResponse(
-	w http.ResponseWriter,
-	r *http.Request,
+	rc *fasthttp.RequestCtx,
 	output interface{},
 	ht rest.HandlerTrait,
 ) {
@@ -232,11 +236,11 @@ func (h *Encoder) WriteSuccessfulResponse(
 	if etagged, ok := output.(rest.ETagged); ok {
 		etag := etagged.ETag()
 		if etag != "" {
-			w.Header().Set("Etag", etag)
+			rc.Response.Header.Set("Etag", etag)
 		}
 	}
 
-	if h.outputHeadersEncoder != nil && !h.whiteHeader(w, r, output, ht) {
+	if h.outputHeadersEncoder != nil && !h.whiteHeader(rc, output, ht) {
 		return
 	}
 
@@ -256,16 +260,16 @@ func (h *Encoder) WriteSuccessfulResponse(
 
 	if skipRendering {
 		if ht.SuccessStatus != http.StatusOK {
-			w.WriteHeader(ht.SuccessStatus)
+			rc.Response.SetStatusCode(ht.SuccessStatus)
 		}
 
 		return
 	}
 
-	h.writeJSONResponse(w, r, output, ht)
+	h.writeJSONResponse(rc, output, ht)
 }
 
-func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output interface{}, ht rest.HandlerTrait) bool {
+func (h *Encoder) whiteHeader(rc *fasthttp.RequestCtx, output interface{}, ht rest.HandlerTrait) bool {
 	var headerValues map[string]interface{}
 	if ht.RespValidator != nil {
 		headerValues = make(map[string]interface{})
@@ -274,7 +278,7 @@ func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output int
 	headers, err := h.outputHeadersEncoder.Encode(output, headerValues)
 	if err != nil {
 		code, er := rest.Err(err)
-		h.WriteErrResponse(w, r, code, er)
+		h.WriteErrResponse(rc, code, er)
 
 		return false
 	}
@@ -283,15 +287,17 @@ func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output int
 		err = ht.RespValidator.ValidateData(rest.ParamInHeader, headerValues)
 		if err != nil {
 			code, er := rest.Err(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal))
-			h.WriteErrResponse(w, r, code, er)
+			h.WriteErrResponse(rc, code, er)
 
 			return false
 		}
 	}
 
+	hd := &rc.Response.Header
+
 	for header, val := range headers {
 		if len(val) == 1 {
-			w.Header().Set(header, val[0])
+			hd.Set(header, val[0])
 		}
 	}
 
@@ -299,7 +305,7 @@ func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output int
 }
 
 // MakeOutput instantiates a value for use case output port.
-func (h *Encoder) MakeOutput(w http.ResponseWriter, ht rest.HandlerTrait) interface{} {
+func (h *Encoder) MakeOutput(rc *fasthttp.RequestCtx, ht rest.HandlerTrait) interface{} {
 	if h.outputBufferType == nil {
 		return nil
 	}
@@ -310,13 +316,14 @@ func (h *Encoder) MakeOutput(w http.ResponseWriter, ht rest.HandlerTrait) interf
 		if withWriter, ok := output.(usecase.OutputWithWriter); ok {
 			if h.outputHeadersEncoder != nil || ht.SuccessContentType != "" {
 				withWriter.SetWriter(&writerWithHeaders{
-					ResponseWriter: w,
+					Writer:         rc,
+					rc:             rc,
 					responseWriter: h,
 					trait:          ht,
 					output:         output,
 				})
 			} else {
-				withWriter.SetWriter(w)
+				withWriter.SetWriter(rc)
 			}
 		}
 	}
@@ -325,7 +332,8 @@ func (h *Encoder) MakeOutput(w http.ResponseWriter, ht rest.HandlerTrait) interf
 }
 
 type writerWithHeaders struct {
-	http.ResponseWriter
+	io.Writer
+	rc *fasthttp.RequestCtx
 
 	responseWriter *Encoder
 	trait          rest.HandlerTrait
@@ -345,7 +353,7 @@ func (w *writerWithHeaders) setHeaders() error {
 
 	for header, val := range headers {
 		if len(val) == 1 {
-			w.Header().Set(header, val[0])
+			w.rc.Response.Header.Set(header, val[0])
 		}
 	}
 
@@ -359,11 +367,11 @@ func (w *writerWithHeaders) Write(data []byte) (int, error) {
 		}
 
 		if w.trait.SuccessContentType != "" {
-			w.Header().Set("Content-Type", w.trait.SuccessContentType)
+			w.rc.Response.Header.Set("Content-Type", w.trait.SuccessContentType)
 		}
 
 		w.headersSet = true
 	}
 
-	return w.ResponseWriter.Write(data)
+	return w.rc.Write(data)
 }

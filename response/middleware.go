@@ -1,19 +1,18 @@
 package response
 
 import (
-	"net/http"
-
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/rest-fasthttp/fhttp"
 	"github.com/swaggest/usecase"
 )
 
 type responseEncoderSetter interface {
-	SetResponseEncoder(responseWriter nethttp.ResponseEncoder)
+	SetResponseEncoder(responseWriter fhttp.ResponseEncoder)
 }
 
-// EncoderMiddleware instruments qualifying http.Handler with Encoder.
-func EncoderMiddleware(handler http.Handler) http.Handler {
+// EncoderMiddleware instruments qualifying fchi.Handler with Encoder.
+func EncoderMiddleware(handler fchi.Handler) fchi.Handler {
 	var (
 		withUseCase        rest.HandlerWithUseCase
 		setResponseEncoder responseEncoderSetter
@@ -21,14 +20,14 @@ func EncoderMiddleware(handler http.Handler) http.Handler {
 		restHandler        withRestHandler
 	)
 
-	if !nethttp.HandlerAs(handler, &setResponseEncoder) {
+	if !fhttp.HandlerAs(handler, &setResponseEncoder) {
 		return handler
 	}
 
 	responseEncoder := Encoder{}
 
-	if nethttp.HandlerAs(handler, &withUseCase) &&
-		nethttp.HandlerAs(handler, &restHandler) &&
+	if fhttp.HandlerAs(handler, &withUseCase) &&
+		fhttp.HandlerAs(handler, &restHandler) &&
 		usecase.As(withUseCase.UseCase(), &useCaseWithOutput) {
 		responseEncoder.SetupOutput(useCaseWithOutput.OutputPort(), restHandler.RestHandler())
 	}

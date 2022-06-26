@@ -3,14 +3,13 @@ package response_test
 import (
 	"context"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
-	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/response"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/swaggest/rest-fasthttp/response"
 	"github.com/swaggest/usecase"
+	"github.com/valyala/fasthttp"
 )
 
 func TestEncoderMiddleware(t *testing.T) {
@@ -32,14 +31,13 @@ func TestEncoderMiddleware(t *testing.T) {
 		return nil
 	})
 
-	h := nethttp.NewHandler(u)
+	h := fhttp.NewHandler(u)
 
-	w := httptest.NewRecorder()
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
 
-	response.EncoderMiddleware(h).ServeHTTP(w, r)
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, `{"items":["one","two","three"]}`+"\n", w.Body.String())
-	assert.Equal(t, "Jane", w.Header().Get("X-Name"))
+	response.EncoderMiddleware(h).ServeHTTP(rc, rc)
+	assert.Equal(t, http.StatusOK, rc.Response.StatusCode())
+	assert.Equal(t, `{"items":["one","two","three"]}`+"\n", string(rc.Response.Body()))
+	assert.Equal(t, "Jane", string(rc.Response.Header.Peek("X-Name")))
 }

@@ -5,10 +5,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/web"
+	"github.com/swaggest/fchi"
+	"github.com/swaggest/fchi/middleware"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/swaggest/rest-fasthttp/web"
 	"github.com/swaggest/usecase"
+	"github.com/valyala/fasthttp"
 )
 
 // album represents data about a record album.
@@ -50,11 +52,11 @@ func ExampleDefaultService() {
 	service.Wrap()
 
 	// Use cases can be mounted using short syntax .<Method>(...).
-	service.Post("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
+	service.Post("/albums", postAlbums(), fhttp.SuccessStatus(http.StatusCreated))
 
 	log.Println("Starting service at http://localhost:8080")
 
-	if err := http.ListenAndServe("localhost:8080", service); err != nil {
+	if err := fasthttp.ListenAndServe("localhost:8080", fchi.RequestHandler(service)); err != nil {
 		log.Fatal(err)
 	}
 }

@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/swaggest/rest/_examples/task-api/internal/infra/repository"
-	"github.com/swaggest/rest/_examples/task-api/internal/infra/service"
+	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra/repository"
+	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra/service"
 )
 
 // NewServiceLocator initializes application resources.

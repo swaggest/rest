@@ -3,19 +3,13 @@ package request
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
-	"net/http"
-	"sync"
 
 	"github.com/swaggest/rest"
+	"github.com/valyala/fasthttp"
 )
-
-var bufPool = sync.Pool{
-	New: func() interface{} {
-		return bytes.NewBuffer(nil)
-	},
-}
 
 func readJSON(rd io.Reader, v interface{}) error {
 	d := json.NewDecoder(rd)
@@ -24,32 +18,23 @@ func readJSON(rd io.Reader, v interface{}) error {
 }
 
 func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error) valueDecoderFunc {
-	return func(r *http.Request, input interface{}, validator rest.Validator) error {
-		if r.ContentLength == 0 {
-			return ErrMissingRequestBody
+	return func(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
+		if len(rc.Request.Body()) == 0 {
+			return errors.New("missing request body to decode json")
 		}
 
-		contentType := r.Header.Get("Content-Type")
-		if contentType != "" {
-			if len(contentType) < 16 || contentType[0:16] != "application/json" { // allow 'application/json;charset=UTF-8'
+		contentType := rc.Request.Header.ContentType()
+		if len(contentType) > 0 {
+			if len(contentType) < 16 || !bytes.Equal(contentType[0:16], []byte("application/json")) { // allow 'application/json;charset=UTF-8'
 				return fmt.Errorf("%w, received: %s", ErrJSONExpected, contentType)
 			}
 		}
 
-		var (
-			rd io.Reader = r.Body
-			b  *bytes.Buffer
-		)
+		b := rc.Request.Body()
 
 		validate := validator != nil && validator.HasConstraints(rest.ParamInBody)
 
-		if validate {
-			b = bufPool.Get().(*bytes.Buffer) // nolint:errcheck // bufPool is configured to provide *bytes.Buffer.
-			defer bufPool.Put(b)
-
-			b.Reset()
-			rd = io.TeeReader(r.Body, b)
-		}
+		rd := bytes.NewReader(b)
 
 		err := readJSON(rd, &input)
 		if err != nil {
@@ -57,7 +42,7 @@ func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error) valueDecod
 		}
 
 		if validator != nil && validate {
-			err = validator.ValidateJSONBody(b.Bytes())
+			err = validator.ValidateJSONBody(b)
 			if err != nil {
 				return err
 			}

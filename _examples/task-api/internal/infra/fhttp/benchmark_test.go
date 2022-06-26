@@ -1,20 +1,20 @@
-package nethttp_test
+package fhttp_test
 
 import (
 	"context"
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/bool64/httptestbench"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/swaggest/rest/_examples/task-api/internal/domain/task"
-	"github.com/swaggest/rest/_examples/task-api/internal/infra"
-	"github.com/swaggest/rest/_examples/task-api/internal/infra/nethttp"
-	"github.com/swaggest/rest/_examples/task-api/internal/infra/service"
+	"github.com/swaggest/fchi"
+	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/domain/task"
+	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra"
+	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra/fhttp"
+	"github.com/swaggest/rest-fasthttp/_examples/task-api/internal/infra/service"
 	"github.com/valyala/fasthttp"
 )
 
@@ -28,7 +28,7 @@ func Benchmark_notFoundSrv(b *testing.B) {
 	l := infra.NewServiceLocator(service.Config{})
 	defer l.Close()
 
-	srv := httptest.NewServer(nethttp.NewRouter(l))
+	srv := fchi.NewTestServer(fhttp.NewRouter(l))
 	defer srv.Close()
 
 	httptestbench.RoundTrip(b, 50,
@@ -51,7 +51,7 @@ func Benchmark_ok(b *testing.B) {
 	l := infra.NewServiceLocator(service.Config{})
 	defer l.Close()
 
-	srv := httptest.NewServer(nethttp.NewRouter(l))
+	srv := fchi.NewTestServer(fhttp.NewRouter(l))
 	defer srv.Close()
 
 	_, err := l.TaskCreator().Create(context.Background(), task.Value{Goal: "victory!"})
@@ -77,8 +77,8 @@ func Benchmark_invalidBody(b *testing.B) {
 	l := infra.NewServiceLocator(service.Config{})
 	defer l.Close()
 
-	r := nethttp.NewRouter(l)
-	srv := httptest.NewServer(r)
+	r := fhttp.NewRouter(l)
+	srv := fchi.NewTestServer(r)
 
 	tt, err := l.TaskCreator().Create(context.Background(), task.Value{Goal: "win"})
 	require.NoError(b, err)

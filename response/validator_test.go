@@ -3,16 +3,16 @@ package response_test
 import (
 	"context"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/swaggest/rest-fasthttp/response"
 	"github.com/swaggest/rest/jsonschema"
-	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/openapi"
-	"github.com/swaggest/rest/response"
 	"github.com/swaggest/usecase"
+	"github.com/valyala/fasthttp"
 )
 
 func TestValidatorMiddleware(t *testing.T) {
@@ -41,26 +41,25 @@ func TestValidatorMiddleware(t *testing.T) {
 		return nil
 	})
 
-	h := nethttp.NewHandler(u)
+	h := fhttp.NewHandler(u)
 
 	apiSchema := &openapi.Collector{}
 	validatorFactory := jsonschema.NewFactory(apiSchema, apiSchema)
-	wh := nethttp.WrapHandler(h, response.EncoderMiddleware, response.ValidatorMiddleware(validatorFactory))
+	wh := fhttp.WrapHandler(h, response.EncoderMiddleware, response.ValidatorMiddleware(validatorFactory))
 
-	w := httptest.NewRecorder()
-	r, err := http.NewRequest(http.MethodGet, "/", nil)
-	require.NoError(t, err)
+	rc := &fasthttp.RequestCtx{}
+	rc.Request.SetRequestURI("/")
 
-	wh.ServeHTTP(w, r)
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	wh.ServeHTTP(rc, rc)
+	assert.Equal(t, http.StatusInternalServerError, rc.Response.StatusCode())
 	assert.Equal(t, `{"status":"INTERNAL","error":"internal: bad response: validation failed",`+
-		`"context":{"header:X-Name":["#: length must be >= 3, but got 2"]}}`+"\n", w.Body.String())
+		`"context":{"header:X-Name":["#: length must be >= 3, but got 2"]}}`+"\n", string(rc.Response.Body()))
 
 	invalidOut.Name = "Jane"
-	w = httptest.NewRecorder()
+	rc.Response = fasthttp.Response{}
 
-	wh.ServeHTTP(w, r)
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	wh.ServeHTTP(rc, rc)
+	assert.Equal(t, http.StatusInternalServerError, rc.Response.StatusCode())
 	assert.Equal(t, `{"status":"INTERNAL","error":"internal: bad response: validation failed",`+
-		`"context":{"body":["#/items: minimum 3 items allowed, but found 1 items"]}}`+"\n", w.Body.String())
+		`"context":{"body":["#/items: minimum 3 items allowed, but found 1 items"]}}`+"\n", string(rc.Response.Body()))
 }

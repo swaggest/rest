@@ -9,18 +9,18 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/rs/cors"
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/response"
-	"github.com/swaggest/rest/response/gzip"
-	"github.com/swaggest/rest/web"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/swaggest/rest-fasthttp/response"
+	"github.com/swaggest/rest-fasthttp/response/gzip"
+	"github.com/swaggest/rest-fasthttp/web"
 	swgui "github.com/swaggest/swgui/v4emb"
 )
 
-func NewRouter() http.Handler {
+func NewRouter() fchi.Handler {
 	s := web.DefaultService()
 
 	s.OpenAPI.Info.Title = "Advanced Example"
@@ -58,10 +58,10 @@ func NewRouter() http.Handler {
 	s.OpenAPICollector.CombineErrors = "anyOf"
 
 	s.Wrap(
-		// Example middleware to set up custom error responses and disable response validation for particular handlers.
-		func(handler http.Handler) http.Handler {
-			var h *nethttp.Handler
-			if nethttp.HandlerAs(handler, &h) {
+		// Example middleware to set up custom error responses.
+		func(handler fchi.Handler) fchi.Handler {
+			var h *fhttp.Handler
+			if fhttp.HandlerAs(handler, &h) {
 				h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
 					code, er := rest.Err(err)
 
@@ -79,7 +79,7 @@ func NewRouter() http.Handler {
 
 				var hr rest.HandlerWithRoute
 				if h.RespValidator != nil &&
-					nethttp.HandlerAs(handler, &hr) {
+					fhttp.HandlerAs(handler, &hr) {
 					if hr.RoutePattern() == "/json-body-manual/{in-path}" || hr.RoutePattern() == "/json-body/{in-path}" {
 						h.RespValidator = nil
 					}
@@ -88,10 +88,6 @@ func NewRouter() http.Handler {
 
 			return handler
 		},
-
-		// Example middleware to set up CORS headers.
-		// See https://pkg.go.dev/github.com/rs/cors for more details.
-		cors.AllowAll().Handler,
 
 		// Response validator setup.
 		//
@@ -116,15 +112,15 @@ func NewRouter() http.Handler {
 	s.Post("/file-multi-upload", fileMultiUploader())
 	s.Get("/json-param/{in-path}", jsonParam())
 	s.Post("/json-body/{in-path}", jsonBody(),
-		nethttp.SuccessStatus(http.StatusCreated))
+		fhttp.SuccessStatus(http.StatusCreated))
 	s.Post("/json-body-manual/{in-path}", jsonBodyManual(),
-		nethttp.SuccessStatus(http.StatusCreated))
+		fhttp.SuccessStatus(http.StatusCreated))
 	s.Post("/json-body-validation/{in-path}", jsonBodyValidation())
 	s.Post("/json-slice-body", jsonSliceBody())
 
 	s.Post("/json-map-body", jsonMapBody(),
 		// Annotate operation to add post-processing if necessary.
-		nethttp.AnnotateOperation(func(op *openapi3.Operation) error {
+		fhttp.AnnotateOperation(func(op *openapi3.Operation) error {
 			op.WithDescription("Request with JSON object (map) body.")
 
 			return nil
@@ -133,14 +129,14 @@ func NewRouter() http.Handler {
 	s.Get("/output-headers", outputHeaders())
 	s.Head("/output-headers", outputHeaders())
 	s.Get("/output-csv-writer", outputCSVWriter(),
-		nethttp.SuccessfulResponseContentType("text/csv; charset=utf-8"))
+		fhttp.SuccessfulResponseContentType("text/csv; charset=utf-8"))
 
 	s.Post("/req-resp-mapping", reqRespMapping(),
-		nethttp.RequestMapping(new(struct {
+		fhttp.RequestMapping(new(struct {
 			Val1 string `header:"X-Header"`
 			Val2 int    `formData:"val2"`
 		})),
-		nethttp.ResponseHeaderMapping(new(struct {
+		fhttp.ResponseHeaderMapping(new(struct {
 			Val1 string `header:"X-Value-1"`
 			Val2 int    `header:"X-Value-2"`
 		})),

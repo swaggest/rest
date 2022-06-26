@@ -3,22 +3,22 @@ package request_test
 import (
 	"bytes"
 	"context"
+	"errors"
 	"io/ioutil"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
+	"github.com/swaggest/fchi"
 	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/chirouter"
+	"github.com/swaggest/rest-fasthttp/chirouter"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/swaggest/rest-fasthttp/request"
+	"github.com/swaggest/rest-fasthttp/response"
 	"github.com/swaggest/rest/jsonschema"
-	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/openapi"
-	"github.com/swaggest/rest/request"
-	"github.com/swaggest/rest/response"
 	"github.com/swaggest/usecase"
 )
 
@@ -34,7 +34,7 @@ type fileReqTest struct {
 }
 
 func TestMapper_Decode_fileUploadTag(t *testing.T) {
-	r := chirouter.NewWrapper(chi.NewRouter())
+	r := chirouter.NewWrapper(fchi.NewRouter())
 	apiSchema := openapi.Collector{}
 	decoderFactory := request.NewDecoderFactory()
 	validatorFactory := jsonschema.NewFactory(&apiSchema, &apiSchema)
@@ -42,7 +42,7 @@ func TestMapper_Decode_fileUploadTag(t *testing.T) {
 	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
 	r.Wrap(
-		nethttp.OpenAPIMiddleware(&apiSchema),
+		fhttp.OpenAPIMiddleware(&apiSchema),
 		request.DecoderMiddleware(decoderFactory),
 		request.ValidatorMiddleware(validatorFactory),
 		response.EncoderMiddleware,
@@ -66,8 +66,13 @@ func TestMapper_Decode_fileUploadTag(t *testing.T) {
 		assert.NoError(t, in.Upload.Close())
 		assert.Equal(t, "Hello!", string(content))
 
-		require.Len(t, in.Uploads, 2)
-		require.Len(t, in.UploadsHeaders, 2)
+		assert.Len(t, in.Uploads, 2)
+		assert.Len(t, in.UploadsHeaders, 2)
+
+		if !assert.Len(t, in.Uploads, 2) || assert.Len(t, in.UploadsHeaders, 2) {
+			return errors.New("missing uploads")
+		}
+
 		assert.Equal(t, "my1.csv", in.UploadsHeaders[0].Filename)
 		assert.Equal(t, int64(7), in.UploadsHeaders[0].Size)
 		assert.Equal(t, "my2.csv", in.UploadsHeaders[1].Filename)
@@ -86,10 +91,10 @@ func TestMapper_Decode_fileUploadTag(t *testing.T) {
 		return nil
 	})
 
-	h := nethttp.NewHandler(u)
+	h := fhttp.NewHandler(u)
 	r.Method(http.MethodPost, "/receive", h)
 
-	srv := httptest.NewServer(r)
+	srv := fchi.NewTestServer(r)
 	defer srv.Close()
 
 	var b bytes.Buffer
@@ -119,7 +124,7 @@ func TestMapper_Decode_fileUploadTag(t *testing.T) {
 	hreq.RequestURI = ""
 	hreq.Header.Set("Content-Type", w.FormDataContentType())
 
-	resp, err := srv.Client().Do(hreq)
+	resp, err := http.DefaultTransport.RoundTrip(hreq)
 	assert.NoError(t, err)
 	assert.NoError(t, resp.Body.Close())
 }

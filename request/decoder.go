@@ -1,13 +1,13 @@
 package request
 
 import (
-	"net/http"
 	"net/url"
-	"strings"
+	"sync"
 
 	"github.com/swaggest/form/v5"
 	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/rest-fasthttp/fhttp"
+	"github.com/valyala/fasthttp"
 )
 
 type (
@@ -15,11 +15,11 @@ type (
 	//
 	// Implement this interface on a pointer to your input structure to disable automatic request mapping.
 	Loader interface {
-		LoadFromHTTPRequest(r *http.Request) error
+		LoadFromFastHTTPRequest(rc *fasthttp.RequestCtx) error
 	}
 
-	decoderFunc      func(r *http.Request) (url.Values, error)
-	valueDecoderFunc func(r *http.Request, v interface{}, validator rest.Validator) error
+	decoderFunc      func(rc *fasthttp.RequestCtx, v url.Values) error
+	valueDecoderFunc func(rc *fasthttp.RequestCtx, v interface{}, validator rest.Validator) error
 )
 
 func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamIn, val rest.Validator) error {
@@ -49,9 +49,24 @@ func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamI
 	return val.ValidateData(in, goValues)
 }
 
+var valuesPool = &sync.Pool{
+	New: func() interface{} {
+		return make(url.Values)
+	},
+}
+
 func makeDecoder(in rest.ParamIn, formDecoder *form.Decoder, decoderFunc decoderFunc) valueDecoderFunc {
-	return func(r *http.Request, v interface{}, validator rest.Validator) error {
-		values, err := decoderFunc(r)
+	return func(rc *fasthttp.RequestCtx, v interface{}, validator rest.Validator) error {
+		values := valuesPool.Get().(url.Values) // nolint:errcheck
+		for k := range values {
+			delete(values, k)
+		}
+
+		defer func() {
+			valuesPool.Put(values)
+		}()
+
+		err := decoderFunc(rc, values)
 		if err != nil {
 			return err
 		}
@@ -70,16 +85,16 @@ type decoder struct {
 	in       []rest.ParamIn
 }
 
-var _ nethttp.RequestDecoder = &decoder{}
+var _ fhttp.RequestDecoder = &decoder{}
 
 // Decode populates and validates input with data from http request.
-func (d *decoder) Decode(r *http.Request, input interface{}, validator rest.Validator) error {
+func (d *decoder) Decode(rc *fasthttp.RequestCtx, input interface{}, validator rest.Validator) error {
 	if i, ok := input.(Loader); ok {
-		return i.LoadFromHTTPRequest(r)
+		return i.LoadFromFastHTTPRequest(rc)
 	}
 
 	for i, decode := range d.decoders {
-		err := decode(r, input, validator)
+		err := decode(rc, input, validator)
 		if err != nil {
 			// nolint:errorlint // Error is not wrapped, type assertion is more performant.
 			if de, ok := err.(form.DecodeErrors); ok {
@@ -98,40 +113,48 @@ func (d *decoder) Decode(r *http.Request, input interface{}, validator rest.Vali
 	return nil
 }
 
-const defaultMaxMemory = 32 << 20 // 32 MB
+func formDataToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
+	args := rc.Request.PostArgs()
 
-func formDataToURLValues(r *http.Request) (url.Values, error) {
-	if r.ContentLength == 0 {
-		return nil, nil
+	if args.Len() == 0 {
+		return nil
 	}
 
-	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
-		err := r.ParseMultipartForm(defaultMaxMemory)
-		if err != nil {
-			return nil, err
-		}
-	} else if err := r.ParseForm(); err != nil {
-		return nil, err
-	}
+	args.VisitAll(func(key, value []byte) {
+		k := b2s(key)
+		v := params[k]
+		params[k] = append(v, b2s(value))
+	})
 
-	return r.PostForm, nil
+	return nil
 }
 
-func headerToURLValues(r *http.Request) (url.Values, error) {
-	return url.Values(r.Header), nil
+func headerToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
+	rc.Request.Header.VisitAll(func(key, value []byte) {
+		k := b2s(key)
+		v := params[k]
+		params[k] = append(v, b2s(value))
+	})
+
+	return nil
 }
 
-func queryToURLValues(r *http.Request) (url.Values, error) {
-	return r.URL.Query(), nil
+func queryToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
+	rc.Request.URI().QueryArgs().VisitAll(func(key, value []byte) {
+		k := b2s(key)
+		v := params[k]
+		params[k] = append(v, b2s(value))
+	})
+
+	return nil
 }
 
-func cookiesToURLValues(r *http.Request) (url.Values, error) {
-	cookies := r.Cookies()
-	params := make(url.Values, len(cookies))
+func cookiesToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
+	rc.Request.Header.VisitAllCookie(func(key, value []byte) {
+		k := b2s(key)
+		v := params[k]
+		params[k] = append(v, b2s(value))
+	})
 
-	for _, c := range cookies {
-		params[c.Name] = []string{c.Value}
-	}
-
-	return params, nil
+	return nil
 }
