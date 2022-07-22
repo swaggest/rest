@@ -104,7 +104,7 @@ func (r *Wrapper) Mount(pattern string, h http.Handler) {
 				p := r.resolvePattern(pattern + rh.RoutePattern())
 				h := nethttp.WrapHandler(h, nethttp.HandlerWithRouteMiddleware(m, p))
 				h = nethttp.WrapHandler(h, hr.handlerWraps()...)
-				h = nethttp.WrapHandler(h, r.wraps...)
+				_ = nethttp.WrapHandler(h, r.wraps...)
 			}
 		}
 	} else {

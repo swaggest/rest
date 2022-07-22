@@ -39,24 +39,25 @@ func main() {
 	service := web.DefaultService()
 	service.OpenAPI.Info.Title = "Security and Mount Example"
 
-	service.Post("/mul", mul())
-	service.Post("/sum", sum())
+	apiV1 := web.DefaultService()
 
-	sub := web.DefaultService()
-
-	sub.Wrap(
+	apiV1.Wrap(
 		middleware.BasicAuth("Admin Access", map[string]string{"admin": "admin"}),
 		nethttp.HTTPBasicSecurityMiddleware(service.OpenAPICollector, "Admin", "Admin access"),
 	)
 
-	sub.Post("/sum2", sum())
-	sub.Post("/mul2", mul())
+	apiV1.Post("/sum", sum())
+	apiV1.Post("/mul", mul())
 
-	service.Mount("/restricted", sub)
+	service.Mount("/api/v1", apiV1)
+	service.Docs("/api/v1/docs", swgui.New)
 
-	service.Docs("/docs", swgui.New)
+	// Blanket handler, for example to serve static content.
+	service.Mount("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("blanket handler got a request: " + r.URL.String()))
+	}))
 
-	fmt.Println("Swagger UI at http://localhost:8010/docs.")
+	fmt.Println("Swagger UI at http://localhost:8010/api/v1/docs.")
 	if err := http.ListenAndServe("localhost:8010", service); err != nil {
 		log.Fatal(err)
 	}
