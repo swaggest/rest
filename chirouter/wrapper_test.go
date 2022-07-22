@@ -280,7 +280,8 @@ func TestWrapper_Mount(t *testing.T) {
 
 	// Blanket handler, for example to serve static content.
 	service.Mount("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, _ = w.Write([]byte("blanket handler got a request: " + r.URL.String()))
+		_, err := w.Write([]byte("blanket handler got a request: " + r.URL.String()))
+		assert.NoError(t, err)
 	}))
 
 	req, err := http.NewRequest(http.MethodGet, "/foo", nil)
@@ -300,6 +301,7 @@ func TestWrapper_Mount(t *testing.T) {
 	assert.Equal(t, http.StatusUnauthorized, rw.Code)
 
 	req.Header.Set("Authorization", "Basic YWRtaW46YWRtaW4=")
+
 	rw = httptest.NewRecorder()
 
 	service.ServeHTTP(rw, req)
