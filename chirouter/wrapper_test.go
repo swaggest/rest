@@ -1,6 +1,9 @@
 package chirouter_test
 
 import (
+	"bytes"
+	"context"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -10,9 +13,12 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/swaggest/assertjson"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/chirouter"
 	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/rest/web"
+	"github.com/swaggest/usecase"
 )
 
 type HandlerWithFoo struct {
@@ -253,4 +259,98 @@ func TestWrapper_Use_StripSlashes(t *testing.T) {
 	assert.Equal(t, []string{
 		"h", "h",
 	}, log)
+}
+
+func TestWrapper_Mount(t *testing.T) {
+	service := web.DefaultService()
+	service.OpenAPI.Info.Title = "Security and Mount Example"
+
+	apiV1 := web.DefaultService()
+
+	apiV1.Wrap(
+		middleware.BasicAuth("Admin Access", map[string]string{"admin": "admin"}),
+		nethttp.HTTPBasicSecurityMiddleware(service.OpenAPICollector, "Admin", "Admin access"),
+	)
+
+	apiV1.Post("/sum", usecase.NewIOI(new([]int), new(int), func(ctx context.Context, input, output interface{}) error {
+		return errors.New("oops")
+	}))
+
+	service.Mount("/api/v1", apiV1)
+
+	// Blanket handler, for example to serve static content.
+	service.Mount("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write([]byte("blanket handler got a request: " + r.URL.String()))
+	}))
+
+	req, err := http.NewRequest(http.MethodGet, "/foo", nil)
+	require.NoError(t, err)
+
+	rw := httptest.NewRecorder()
+	service.ServeHTTP(rw, req)
+
+	assert.Equal(t, "blanket handler got a request: /foo", rw.Body.String())
+
+	req, err = http.NewRequest(http.MethodPost, "/api/v1/sum", bytes.NewBufferString(`[1,2,3]`))
+	require.NoError(t, err)
+
+	rw = httptest.NewRecorder()
+
+	service.ServeHTTP(rw, req)
+	assert.Equal(t, http.StatusUnauthorized, rw.Code)
+
+	req.Header.Set("Authorization", "Basic YWRtaW46YWRtaW4=")
+	rw = httptest.NewRecorder()
+
+	service.ServeHTTP(rw, req)
+	assert.Equal(t, `{"error":"oops"}`+"\n", rw.Body.String())
+
+	assertjson.EqualMarshal(t, []byte(`{
+	  "openapi":"3.0.3","info":{"title":"Security and Mount Example","version":""},
+	  "paths":{
+		"/api/v1/sum":{
+		  "post":{
+			"summary":"Test Wrapper _ Mount",
+			"operationId":"rest/chirouter_test.TestWrapper_Mount",
+			"requestBody":{
+			  "content":{
+				"application/json":{
+				  "schema":{"type":"array","items":{"type":"integer"},"nullable":true}
+				}
+			  }
+			},
+			"responses":{
+			  "200":{
+				"description":"OK",
+				"content":{"application/json":{"schema":{"type":"integer"}}}
+			  },
+			  "401":{
+				"description":"Unauthorized",
+				"content":{
+				  "application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}
+				}
+			  }
+			},
+			"security":[{"Admin":[]}]
+		  }
+		}
+	  },
+	  "components":{
+		"schemas":{
+		  "RestErrResponse":{
+			"type":"object",
+			"properties":{
+			  "code":{"type":"integer","description":"Application-specific error code."},
+			  "context":{
+				"type":"object","additionalProperties":{},
+				"description":"Application context."
+			  },
+			  "error":{"type":"string","description":"Error message."},
+			  "status":{"type":"string","description":"Status text."}
+			}
+		  }
+		},
+		"securitySchemes":{"Admin":{"type":"http","scheme":"basic","description":"Admin access"}}
+	  }
+	}`), service.OpenAPI)
 }
