@@ -16,7 +16,7 @@ func queryObject() usecase.Interactor {
 	}
 
 	u := usecase.NewIOI(new(inputQueryObject), new(outputQueryObject),
-		func(ctx context.Context, input, output interface{}) (err error) {
+		func(ctx context.Context, input, output any) (err error) {
 			var (
 				in  = input.(*inputQueryObject)
 				out = output.(*outputQueryObject)

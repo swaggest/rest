@@ -12,8 +12,8 @@ import (
 )
 
 type customErr struct {
-	Message string                 `json:"msg"`
-	Details map[string]interface{} `json:"details,omitempty"`
+	Message string         `json:"msg"`
+	Details map[string]any `json:"details,omitempty"`
 }
 
 func errorResponse() usecase.Interactor {

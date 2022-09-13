@@ -7,7 +7,7 @@ import (
 )
 
 // HasFileFields checks if the structure has fields to receive uploaded files.
-func hasFileFields(i interface{}, tagname string) bool {
+func hasFileFields(i any, tagname string) bool {
 	found := false
 
 	refl.WalkTaggedFields(reflect.ValueOf(i), func(v reflect.Value, sf reflect.StructField, tag string) {

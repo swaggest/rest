@@ -15,7 +15,7 @@ func CreateTask(
 		TaskCreator() task.Creator
 	},
 ) usecase.IOInteractor {
-	u := usecase.NewIOI(new(task.Value), new(task.Entity), func(ctx context.Context, input, output interface{}) error {
+	u := usecase.NewIOI(new(task.Value), new(task.Entity), func(ctx context.Context, input, output any) error {
 		var (
 			in  = input.(*task.Value)
 			out = output.(*task.Entity)

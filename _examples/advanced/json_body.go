@@ -29,7 +29,7 @@ func jsonBody() usecase.Interactor {
 	}
 
 	u := usecase.NewIOI(new(inputWithJSON), new(outputWithJSON),
-		func(ctx context.Context, input, output interface{}) (err error) {
+		func(ctx context.Context, input, output any) (err error) {
 			var (
 				in  = input.(*inputWithJSON)
 				out = output.(*outputWithJSON)

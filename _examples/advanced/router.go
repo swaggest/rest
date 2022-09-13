@@ -69,7 +69,7 @@ func NewRouter() http.Handler {
 		func(handler http.Handler) http.Handler {
 			var h *nethttp.Handler
 			if nethttp.HandlerAs(handler, &h) {
-				h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
+				h.MakeErrResp = func(ctx context.Context, err error) (int, any) {
 					code, er := rest.Err(err)
 
 					var ae anotherErr

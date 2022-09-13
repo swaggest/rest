@@ -5,7 +5,6 @@ import (
 	"compress/gzip"
 	"encoding/json"
 	"io"
-	"io/ioutil"
 	"strconv"
 
 	"github.com/cespare/xxhash/v2"
@@ -39,18 +38,19 @@ func WriteCompressedBytes(compressed []byte, w io.Writer) (int, error) {
 		return 0, err
 	}
 
-	n, err := io.Copy(w, gr) //nolint:gosec // The origin of compressed data supposed to be app itself, safe to copy.
+	// The origin of compressed data supposed to be app itself, safe to copy.
+	n, err := io.Copy(w, gr) //nolint:gosec
 
 	return int(n), err
 }
 
 // UnpackJSON unmarshals data from JSON container into a Go value.
-func (jc JSONContainer) UnpackJSON(v interface{}) error {
+func (jc JSONContainer) UnpackJSON(v any) error {
 	return UnmarshalJSON(jc.gz, v)
 }
 
 // PackJSON puts Go value in JSON container.
-func (jc *JSONContainer) PackJSON(v interface{}) error {
+func (jc *JSONContainer) PackJSON(v any) error {
 	res, err := MarshalJSON(v)
 	if err != nil {
 		return err
@@ -83,7 +83,7 @@ func (jc JSONContainer) MarshalJSON() (j []byte, err error) {
 		}
 	}()
 
-	return ioutil.ReadAll(r)
+	return io.ReadAll(r)
 }
 
 // ETag returns hash of compressed bytes.
@@ -92,7 +92,7 @@ func (jc JSONContainer) ETag() string {
 }
 
 // MarshalJSON encodes Go value as JSON and compresses result with gzip.
-func MarshalJSON(v interface{}) ([]byte, error) {
+func MarshalJSON(v any) ([]byte, error) {
 	b := bytes.Buffer{}
 	w := gzip.NewWriter(&b)
 
@@ -116,7 +116,7 @@ func MarshalJSON(v interface{}) ([]byte, error) {
 }
 
 // UnmarshalJSON decodes compressed JSON bytes into a Go value.
-func UnmarshalJSON(data []byte, v interface{}) error {
+func UnmarshalJSON(data []byte, v any) error {
 	b := bytes.NewReader(data)
 
 	r, err := gzip.NewReader(b)

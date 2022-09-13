@@ -66,7 +66,7 @@ func directGzip() usecase.Interactor {
 	}
 
 	u := usecase.NewIOI(new(gzipPassThroughInput), new(gzipPassThroughOutput),
-		func(ctx context.Context, input, output interface{}) error {
+		func(ctx context.Context, input, output any) error {
 			var (
 				in  = input.(*gzipPassThroughInput)
 				out = output.(*gzipPassThroughOutput)

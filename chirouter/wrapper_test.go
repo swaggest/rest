@@ -272,7 +272,7 @@ func TestWrapper_Mount(t *testing.T) {
 		nethttp.HTTPBasicSecurityMiddleware(service.OpenAPICollector, "Admin", "Admin access"),
 	)
 
-	apiV1.Post("/sum", usecase.NewIOI(new([]int), new(int), func(ctx context.Context, input, output interface{}) error {
+	apiV1.Post("/sum", usecase.NewIOI(new([]int), new(int), func(ctx context.Context, input, output any) error {
 		return errors.New("oops")
 	}))
 

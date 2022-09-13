@@ -7,7 +7,7 @@ import (
 )
 
 func dummy() usecase.Interactor {
-	return usecase.NewIOI(nil, nil, func(ctx context.Context, input, output interface{}) error {
+	return usecase.NewIOI(nil, nil, func(ctx context.Context, input, output any) error {
 		return nil
 	})
 }

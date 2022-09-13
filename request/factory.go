@@ -36,7 +36,7 @@ type DecoderFactory struct {
 
 	// JSONReader allows custom JSON decoder for request body.
 	// If not set encoding/json.Decoder is used.
-	JSONReader func(rd io.Reader, v interface{}) error
+	JSONReader func(rd io.Reader, v any) error
 
 	formDecoders      map[rest.ParamIn]*form.Decoder
 	decoderFunctions  map[rest.ParamIn]decoderFunc
@@ -45,7 +45,7 @@ type DecoderFactory struct {
 }
 
 type customDecoder struct {
-	types []interface{}
+	types []any
 	fn    form.DecodeFunc
 }
 
@@ -92,7 +92,7 @@ func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(r *http.Re
 // CustomMapping can be nil, otherwise it is used instead of field tags to match decoded fields with struct.
 func (df *DecoderFactory) MakeDecoder(
 	method string,
-	input interface{},
+	input any,
 	customMapping rest.RequestMapping,
 ) nethttp.RequestDecoder {
 	m := decoder{
@@ -152,7 +152,7 @@ func (df *DecoderFactory) MakeDecoder(
 	return &m
 }
 
-func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping rest.RequestMapping) rest.RequestMapping {
+func (df *DecoderFactory) prepareCustomMapping(input any, customMapping rest.RequestMapping) rest.RequestMapping {
 	// Copy custom mapping to avoid mutability issues on original map.
 	cm := make(rest.RequestMapping, len(customMapping))
 	for k, v := range customMapping {
@@ -200,7 +200,7 @@ func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping 
 }
 
 // jsonParams configures custom decoding for parameters with JSON struct values.
-func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn, input interface{}) {
+func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn, input any) {
 	// Check fields for struct values with json tags. E.g. query parameter with json value.
 	refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
 		// Skip unexported fields.
@@ -213,7 +213,7 @@ func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn,
 		if refl.HasTaggedFields(fieldVal, jsonTag) {
 			// If value is a struct with `json` tags, custom decoder unmarshals json
 			// from a string value into a struct.
-			formDecoder.RegisterFunc(func(s string) (interface{}, error) {
+			formDecoder.RegisterFunc(func(s string) (any, error) {
 				var err error
 				f := reflect.New(sf.Type)
 				if df.JSONReader != nil {
@@ -232,7 +232,7 @@ func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn,
 	}, string(in))
 }
 
-func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
+func (df *DecoderFactory) makeDefaultDecoder(input any, m *decoder) {
 	defaults := url.Values{}
 
 	refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
@@ -241,7 +241,7 @@ func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 
 	dec := df.defaultValDecoder
 
-	m.decoders = append(m.decoders, func(r *http.Request, v interface{}, validator rest.Validator) error {
+	m.decoders = append(m.decoders, func(r *http.Request, v any, validator rest.Validator) error {
 		return dec.Decode(v, defaults)
 	})
 	m.in = append(m.in, defaultTag)
@@ -277,7 +277,7 @@ func (df *DecoderFactory) makeCustomMappingDecoder(customMapping rest.RequestMap
 }
 
 // RegisterFunc adds custom type handling.
-func (df *DecoderFactory) RegisterFunc(fn form.DecodeFunc, types ...interface{}) {
+func (df *DecoderFactory) RegisterFunc(fn form.DecodeFunc, types ...any) {
 	for _, fd := range df.formDecoders {
 		fd.RegisterFunc(fn, types...)
 	}

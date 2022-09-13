@@ -15,7 +15,7 @@ func FindTasks(
 		TaskFinder() task.Finder
 	},
 ) usecase.IOInteractor {
-	u := usecase.NewIOI(nil, new([]task.Entity), func(ctx context.Context, input, output interface{}) error {
+	u := usecase.NewIOI(nil, new([]task.Entity), func(ctx context.Context, input, output any) error {
 		out, ok := output.(*[]task.Entity)
 		if !ok {
 			return fmt.Errorf("%w: unexpected output type %T", status.Unimplemented, output)

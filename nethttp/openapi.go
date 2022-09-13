@@ -129,7 +129,7 @@ func AnnotateOpenAPI(
 }
 
 // SecurityResponse is a security middleware option to customize response structure and status.
-func SecurityResponse(structure interface{}, httpStatus int) func(config *MiddlewareConfig) {
+func SecurityResponse(structure any, httpStatus int) func(config *MiddlewareConfig) {
 	return func(config *MiddlewareConfig) {
 		config.ResponseStructure = structure
 		config.ResponseStatus = httpStatus
@@ -139,7 +139,7 @@ func SecurityResponse(structure interface{}, httpStatus int) func(config *Middle
 // MiddlewareConfig defines security middleware options.
 type MiddlewareConfig struct {
 	// ResponseStructure declares structure that is used for unauthorized message, default rest.ErrResponse{}.
-	ResponseStructure interface{}
+	ResponseStructure any
 
 	// ResponseStatus declares HTTP status code that is used for unauthorized message, default http.StatusUnauthorized.
 	ResponseStatus int

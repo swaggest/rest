@@ -14,7 +14,7 @@ type finishTaskDeps interface {
 
 // FinishTask creates usecase interactor.
 func FinishTask(deps finishTaskDeps) usecase.IOInteractor {
-	u := usecase.NewIOI(new(task.Identity), nil, func(ctx context.Context, input, _ interface{}) error {
+	u := usecase.NewIOI(new(task.Identity), nil, func(ctx context.Context, input, _ any) error {
 		var (
 			in  = input.(*task.Identity)
 			err error

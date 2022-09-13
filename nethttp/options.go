@@ -50,7 +50,7 @@ func SuccessStatus(status int) func(h *Handler) {
 // RequestMapping creates rest.RequestMapping from struct tags.
 //
 // This can be used to decouple mapping from usecase input with additional struct.
-func RequestMapping(v interface{}) func(h *Handler) {
+func RequestMapping(v any) func(h *Handler) {
 	return func(h *Handler) {
 		m := make(rest.RequestMapping)
 
@@ -81,7 +81,7 @@ func RequestMapping(v interface{}) func(h *Handler) {
 // ResponseHeaderMapping creates headers mapping from struct tags.
 //
 // This can be used to decouple mapping from usecase input with additional struct.
-func ResponseHeaderMapping(v interface{}) func(h *Handler) {
+func ResponseHeaderMapping(v any) func(h *Handler) {
 	return func(h *Handler) {
 		if mm, ok := v.(map[string]string); ok {
 			h.RespHeaderMapping = mm

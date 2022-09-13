@@ -22,7 +22,7 @@ type HandlerTrait struct {
 
 	// MakeErrResp overrides error response builder instead of default Err,
 	// returned values are HTTP status code and error structure to be marshaled.
-	MakeErrResp func(ctx context.Context, err error) (int, interface{})
+	MakeErrResp func(ctx context.Context, err error) (int, any)
 
 	// ReqMapping controls request decoding into use case input.
 	// Optional, if not set field tags are used as mapping.
@@ -51,7 +51,7 @@ func (h *HandlerTrait) RequestMapping() RequestMapping {
 }
 
 // OutputHasNoContent indicates if output does not seem to have any content body to render in response.
-func OutputHasNoContent(output interface{}) bool {
+func OutputHasNoContent(output any) bool {
 	if output == nil {
 		return true
 	}

@@ -15,7 +15,7 @@ func FindTask(
 	},
 ) usecase.IOInteractor {
 	u := usecase.NewIOI(new(task.Identity), new(task.Entity),
-		func(ctx context.Context, input, output interface{}) error {
+		func(ctx context.Context, input, output any) error {
 			var (
 				in  = input.(*task.Identity)
 				out = output.(*task.Entity)

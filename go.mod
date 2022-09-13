@@ -1,6 +1,6 @@
 module github.com/swaggest/rest
 
-go 1.17
+go 1.18
 
 require (
 	github.com/bool64/dev v0.2.22

@@ -3,9 +3,9 @@ package web_test
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -22,7 +22,7 @@ type albumID struct {
 }
 
 func albumByID() usecase.Interactor {
-	u := usecase.NewIOI(new(albumID), new(album), func(ctx context.Context, input, output interface{}) error {
+	u := usecase.NewIOI(new(albumID), new(album), func(ctx context.Context, input, output any) error {
 		return nil
 	})
 	u.SetTags("Album")
@@ -67,7 +67,7 @@ func TestDefaultService(t *testing.T) {
 	assert.Equal(t, http.StatusOK, rw.Code)
 	assertjson.EqualMarshal(t, rw.Body.Bytes(), service.OpenAPI)
 
-	expected, err := ioutil.ReadFile("_testdata/openapi.json")
+	expected, err := os.ReadFile("_testdata/openapi.json")
 	require.NoError(t, err)
 	assertjson.EqualMarshal(t, expected, service.OpenAPI)
 

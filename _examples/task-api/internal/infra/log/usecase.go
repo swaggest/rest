@@ -25,7 +25,7 @@ func UseCaseMiddleware() usecase.Middleware {
 			name = hasName.Name()
 		}
 
-		return usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+		return usecase.Interact(func(ctx context.Context, input, output any) error {
 			err := next.Interact(ctx, input, output)
 			if err != nil {
 				log.Printf("usecase %s request (%v) failed: %v", name, input, err)

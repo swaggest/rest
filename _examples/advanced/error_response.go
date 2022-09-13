@@ -10,8 +10,8 @@ import (
 )
 
 type customErr struct {
-	Message string                 `json:"msg"`
-	Details map[string]interface{} `json:"details,omitempty"`
+	Message string         `json:"msg"`
+	Details map[string]any `json:"details,omitempty"`
 }
 
 func errorResponse() usecase.Interactor {
@@ -23,7 +23,7 @@ func errorResponse() usecase.Interactor {
 		Status string `json:"status"`
 	}
 
-	u := usecase.NewIOI(new(errType), new(okResp), func(ctx context.Context, input, output interface{}) (err error) {
+	u := usecase.NewIOI(new(errType), new(okResp), func(ctx context.Context, input, output any) (err error) {
 		var (
 			in  = input.(*errType)
 			out = output.(*okResp)
