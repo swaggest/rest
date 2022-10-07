@@ -81,7 +81,7 @@ func (d *decoder) Decode(r *http.Request, input interface{}, validator rest.Vali
 	for i, decode := range d.decoders {
 		err := decode(r, input, validator)
 		if err != nil {
-			// nolint:errorlint // Error is not wrapped, type assertion is more performant.
+			//nolint:errorlint // Error is not wrapped, type assertion is more performant.
 			if de, ok := err.(form.DecodeErrors); ok {
 				errs := make(rest.RequestErrors, len(de))
 				for name, e := range de {

@@ -164,7 +164,7 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 			  },
 			  {
 				"name":"in_cookie","in":"cookie",
-				"schema":{"type":"string","format":"date-time"}
+				"schema":{"type":"string","format":"date-time","nullable":true}
 			  },
 			  {
 				"name":"X-In-Header","in":"header",
@@ -193,7 +193,7 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 			  },
 			  {
 				"name":"in_cookie","in":"cookie",
-				"schema":{"type":"string","format":"date-time"}
+				"schema":{"type":"string","format":"date-time","nullable":true}
 			  },
 			  {
 				"name":"X-In-Header","in":"header",

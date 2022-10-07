@@ -30,7 +30,8 @@ const (
 // Each item is a map with struct field name as key and decoded field name as value.
 //
 // Example:
-//   map[rest.ParamIn]map[string]string{rest.ParamInQuery:map[string]string{"ID": "id", "FirstName": "first-name"}}
+//
+//	map[rest.ParamIn]map[string]string{rest.ParamInQuery:map[string]string{"ID": "id", "FirstName": "first-name"}}
 type RequestMapping map[ParamIn]map[string]string
 
 // RequestErrors is a list of validation or decoding errors.

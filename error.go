@@ -34,7 +34,8 @@ type ErrWithCanonicalStatus interface {
 // Err creates HTTP status code and ErrResponse for error.
 //
 // You can use it with use case status code:
-//   rest.Err(status.NotFound)
+//
+//	rest.Err(status.NotFound)
 func Err(err error) (int, ErrResponse) {
 	if err == nil {
 		panic("nil error received")

@@ -131,12 +131,14 @@ func (s *Service) Trace(pattern string, uc usecase.Interactor, options ...func(h
 // Docs adds the route `pattern` that serves API documentation with Swagger UI.
 //
 // Swagger UI should be provided by `swgui` handler constructor, you can use one of these functions
-//   github.com/swaggest/swgui/v4emb.New
-//   github.com/swaggest/swgui/v4cdn.New
-//   github.com/swaggest/swgui/v4.New
-//   github.com/swaggest/swgui/v3emb.New
-//   github.com/swaggest/swgui/v3cdn.New
-//   github.com/swaggest/swgui/v3.New
+//
+//	github.com/swaggest/swgui/v4emb.New
+//	github.com/swaggest/swgui/v4cdn.New
+//	github.com/swaggest/swgui/v4.New
+//	github.com/swaggest/swgui/v3emb.New
+//	github.com/swaggest/swgui/v3cdn.New
+//	github.com/swaggest/swgui/v3.New
+//
 // or create your own.
 func (s *Service) Docs(pattern string, swgui func(title, schemaURL, basePath string) http.Handler) {
 	pattern = strings.TrimRight(pattern, "/")
