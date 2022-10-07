@@ -3,7 +3,6 @@ package request_test
 import (
 	"encoding/json"
 	"net/http"
-	"net/url"
 	"strings"
 	"testing"
 
@@ -16,7 +15,7 @@ import (
 
 func TestDecoderFactory_SetDecoderFunc(t *testing.T) {
 	df := request.NewDecoderFactory()
-	df.SetDecoderFunc("jwt", func(rc *fasthttp.RequestCtx, params url.Values) error {
+	df.SetDecoderFunc("jwt", func(rc *fasthttp.RequestCtx, params map[string]string) error {
 		ah := string(rc.Request.Header.Peek("Authorization"))
 		if ah == "" || len(ah) < 8 || strings.ToLower(ah[0:7]) != "bearer " {
 			return nil
@@ -32,7 +31,7 @@ func TestDecoderFactory_SetDecoderFunc(t *testing.T) {
 			if len(v) > 2 && v[0] == '"' && v[len(v)-1] == '"' {
 				v = v[1 : len(v)-1]
 			}
-			params[k] = []string{string(v)}
+			params[k] = string(v)
 		}
 
 		return err
@@ -63,7 +62,7 @@ func TestDecoderFactory_SetDecoderFunc(t *testing.T) {
 // BenchmarkDecoderFactory_SetDecoderFunc-4   	  577378	      1994 ns/op	    1024 B/op	      16 allocs/op.
 func BenchmarkDecoderFactory_SetDecoderFunc(b *testing.B) {
 	df := request.NewDecoderFactory()
-	df.SetDecoderFunc("jwt", func(r *fasthttp.RequestCtx, params url.Values) error {
+	df.SetDecoderFunc("jwt", func(r *fasthttp.RequestCtx, params map[string]string) error {
 		ah := string(r.Request.Header.Peek("Authorization"))
 		if ah == "" || len(ah) < 8 || strings.ToLower(ah[0:7]) != "bearer " {
 			return nil
@@ -80,7 +79,7 @@ func BenchmarkDecoderFactory_SetDecoderFunc(b *testing.B) {
 			if len(v) > 2 && v[0] == '"' && v[len(v)-1] == '"' {
 				v = v[1 : len(v)-1]
 			}
-			params[k] = []string{string(v)}
+			params[k] = string(v)
 		}
 
 		return nil

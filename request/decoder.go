@@ -1,7 +1,6 @@
 package request
 
 import (
-	"net/url"
 	"reflect"
 	"sync"
 	"unsafe"
@@ -20,7 +19,7 @@ type (
 		LoadFromFastHTTPRequest(rc *fasthttp.RequestCtx) error
 	}
 
-	decoderFunc      func(rc *fasthttp.RequestCtx, v url.Values) error
+	decoderFunc      func(rc *fasthttp.RequestCtx, v map[string]string) error
 	valueDecoderFunc func(rc *fasthttp.RequestCtx, v interface{}, validator rest.Validator) error
 )
 
@@ -35,7 +34,7 @@ func b2s(b []byte) string {
 	return s
 }
 
-func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamIn, val rest.Validator) error {
+func decodeValidate(d *form.Decoder, v interface{}, p map[string]string, in rest.ParamIn, val rest.Validator) error {
 	goValues := make(map[string]interface{}, len(p))
 
 	err := d.Decode(v, p, goValues)
@@ -64,13 +63,13 @@ func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamI
 
 var valuesPool = &sync.Pool{
 	New: func() interface{} {
-		return make(url.Values)
+		return make(map[string]string)
 	},
 }
 
 func makeDecoder(in rest.ParamIn, formDecoder *form.Decoder, decoderFunc decoderFunc) valueDecoderFunc {
 	return func(rc *fasthttp.RequestCtx, v interface{}, validator rest.Validator) error {
-		values := valuesPool.Get().(url.Values) // nolint:errcheck
+		values := valuesPool.Get().(map[string]string) // nolint:errcheck
 		for k := range values {
 			delete(values, k)
 		}
@@ -126,7 +125,7 @@ func (d *decoder) Decode(rc *fasthttp.RequestCtx, input interface{}, validator r
 	return nil
 }
 
-func formDataToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
+func formDataToURLValues(rc *fasthttp.RequestCtx, params map[string]string) error {
 	args := rc.Request.PostArgs()
 
 	if args.Len() == 0 {
@@ -135,46 +134,46 @@ func formDataToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
 
 	args.VisitAll(func(key, value []byte) {
 		if params == nil {
-			params = make(url.Values, 1)
+			params = make(map[string]string, 1)
 		}
 
-		params[b2s(key)] = []string{b2s(value)}
+		params[b2s(key)] = b2s(value)
 	})
 
 	return nil
 }
 
-func headerToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
+func headerToURLValues(rc *fasthttp.RequestCtx, params map[string]string) error {
 	rc.Request.Header.VisitAll(func(key, value []byte) {
 		//if params == nil {
-		//	params = make(url.Values, 1)
+		//	params = make(map[string]string, 1)
 		//}
 
-		params[b2s(key)] = []string{b2s(value)}
+		params[b2s(key)] = b2s(value)
 	})
 
 	return nil
 }
 
-func queryToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
+func queryToURLValues(rc *fasthttp.RequestCtx, params map[string]string) error {
 	rc.Request.URI().QueryArgs().VisitAll(func(key, value []byte) {
 		//if params == nil {
-		//	params = make(url.Values, 1)
+		//	params = make(map[string]string, 1)
 		//}
 
-		params[b2s(key)] = []string{b2s(value)}
+		params[b2s(key)] = b2s(value)
 	})
 
 	return nil
 }
 
-func cookiesToURLValues(rc *fasthttp.RequestCtx, params url.Values) error {
+func cookiesToURLValues(rc *fasthttp.RequestCtx, params map[string]string) error {
 	rc.Request.Header.VisitAllCookie(func(key, value []byte) {
 		if params == nil {
-			params = make(url.Values, 1)
+			params = make(map[string]string, 1)
 		}
 
-		params[b2s(key)] = []string{b2s(value)}
+		params[b2s(key)] = b2s(value)
 	})
 
 	return nil

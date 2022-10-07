@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"net/url"
 	"reflect"
 	"sort"
 	"strings"
@@ -69,7 +68,7 @@ func NewDecoderFactory() *DecoderFactory {
 }
 
 // SetDecoderFunc adds custom decoder function for values of particular field tag name.
-func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(rc *fasthttp.RequestCtx, v url.Values) error) {
+func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(rc *fasthttp.RequestCtx, v map[string]string) error) {
 	if df.decoderFunctions == nil {
 		df.decoderFunctions = make(map[rest.ParamIn]decoderFunc)
 	}
@@ -231,10 +230,10 @@ func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn,
 }
 
 func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
-	defaults := url.Values{}
+	defaults := map[string]string{}
 
 	refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
-		defaults[sf.Name] = []string{tag}
+		defaults[sf.Name] = tag
 	}, defaultTag)
 
 	dec := df.defaultValDecoder

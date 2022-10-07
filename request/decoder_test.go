@@ -88,9 +88,9 @@ func TestDecoder_Decode(t *testing.T) {
 	rc.Request.Header.SetCookie("in_cookie", "jkl")
 
 	df := request.NewDecoderFactory()
-	df.SetDecoderFunc(rest.ParamInPath, func(r *fasthttp.RequestCtx, params url.Values) error {
+	df.SetDecoderFunc(rest.ParamInPath, func(r *fasthttp.RequestCtx, params map[string]string) error {
 		assert.Equal(t, rc, r)
-		params["in_path"] = []string{"mno"}
+		params["in_path"] = "mno"
 
 		return nil
 	})
@@ -135,8 +135,8 @@ func BenchmarkDecoderFunc_Decode(b *testing.B) {
 	rc.Request.Header.SetCookie("in_cookie", "jkl")
 
 	df := request.NewDecoderFactory()
-	df.SetDecoderFunc(rest.ParamInPath, func(r *fasthttp.RequestCtx, params url.Values) error {
-		params["in_path"] = []string{"mno"}
+	df.SetDecoderFunc(rest.ParamInPath, func(r *fasthttp.RequestCtx, params map[string]string) error {
+		params["in_path"] = "mno"
 
 		return nil
 	})
