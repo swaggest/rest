@@ -4,9 +4,9 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -28,10 +28,10 @@ func TestNewRouter(t *testing.T) {
 	actualSchema, err := assertjson.MarshalIndentCompact(json.RawMessage(rw.Body.Bytes()), "", "  ", 120)
 	require.NoError(t, err)
 
-	expectedSchema, err := ioutil.ReadFile("_testdata/openapi.json")
+	expectedSchema, err := os.ReadFile("_testdata/openapi.json")
 	require.NoError(t, err)
 
 	if !assertjson.Equal(t, expectedSchema, rw.Body.Bytes(), string(actualSchema)) {
-		require.NoError(t, ioutil.WriteFile("_testdata/openapi_last_run.json", actualSchema, 0o600))
+		require.NoError(t, os.WriteFile("_testdata/openapi_last_run.json", actualSchema, 0o600))
 	}
 }

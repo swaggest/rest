@@ -286,7 +286,7 @@
                 "schema":{"type":"string","description":"Sample response header."}
               }
             },
-            "content":{"text/csv":{"schema":{}}}
+            "content":{"text/csv":{"schema":{"type":"string"}}}
           },
           "500":{
             "description":"Internal Server Error",
