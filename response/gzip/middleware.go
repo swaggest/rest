@@ -55,7 +55,7 @@ func getGzipWriter(w io.Writer) *gzip.Writer {
 		return zw
 	}
 
-	// nolint:errcheck // OK to panic here.
+	//nolint:errcheck // OK to panic here.
 	zw := v.(*gzip.Writer)
 
 	zw.Reset(w)
@@ -69,7 +69,7 @@ func getBufWriter(w io.Writer) *bufio.Writer {
 		return bufio.NewWriterSize(w, defaultBufferSize)
 	}
 
-	// nolint:errcheck // OK to panic here.
+	//nolint:errcheck // OK to panic here.
 	bw := v.(*bufio.Writer)
 
 	bw.Reset(w)

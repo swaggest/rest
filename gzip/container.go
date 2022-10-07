@@ -39,7 +39,7 @@ func WriteCompressedBytes(compressed []byte, w io.Writer) (int, error) {
 		return 0, err
 	}
 
-	n, err := io.Copy(w, gr) // nolint:gosec // The origin of compressed data supposed to be app itself, safe to copy.
+	n, err := io.Copy(w, gr) //nolint:gosec // The origin of compressed data supposed to be app itself, safe to copy.
 
 	return int(n), err
 }

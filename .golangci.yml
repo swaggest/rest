@@ -41,10 +41,20 @@ linters:
     - ireturn
     - exhaustruct
     - nonamedreturns
+    - nosnakecase
+    - structcheck
+    - varcheck
+    - deadcode
+    - testableexamples
+    - dupword
 
 issues:
   exclude-use-default: false
   exclude-rules:
+    - linters:
+        - staticcheck
+      path: ".go"
+      text: "\"io/ioutil\" has been deprecated since Go 1.16" # Keeping backwards compatibility with go1.13.
     - linters:
         - gomnd
         - goconst
@@ -54,8 +64,11 @@ issues:
         - dupl
         - structcheck
         - unused
+        - unparam
+        - nosnakecase
       path: "_test.go"
     - linters:
-        - staticcheck
-      path: ".go"
-      text: "package io/ioutil is deprecated"
+        - errcheck # Error checking omitted for brevity.
+        - gosec
+      path: "example_"
+

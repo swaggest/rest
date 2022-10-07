@@ -154,7 +154,8 @@ func (tr *Task) Create(ctx context.Context, value task.Value) (task.Entity, erro
 }
 
 // FinishExpired closes expired tasks.
-//   nolint:unused // False positive.
+//
+//	nolint:unused // False positive.
 func (tr *Task) FinishExpired(_ context.Context) error {
 	tr.mu.Lock()
 	defer tr.mu.Unlock()
