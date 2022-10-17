@@ -117,6 +117,19 @@
         "x-forbid-unknown-query":true
       }
     },
+    "/html-response/{id}":{
+      "get":{
+        "summary":"Request With HTML Response","description":"Request with templated HTML response.",
+        "operationId":"_examples/advanced-generic.htmlResponse",
+        "parameters":[
+          {"name":"filter","in":"query","schema":{"type":"string"}},
+          {"name":"id","in":"path","required":true,"schema":{"type":"integer"}},
+          {"name":"X-Header","in":"header","schema":{"type":"boolean"}}
+        ],
+        "responses":{"200":{"description":"OK","headers":{"X-Anti-Header":{"style":"simple","schema":{"type":"boolean"}}}}},
+        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+      }
+    },
     "/json-body-manual/{in-path}":{
       "post":{
         "summary":"Request With JSON Body and manual decoder",
