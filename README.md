@@ -107,6 +107,34 @@ If input structure implements [`request.Loader`](https://pkg.go.dev/github.com/s
 then `LoadFromHTTPRequest(r *http.Request) error` method will be invoked to populate input structure instead 
 of automatic decoding. This allows low level control for cases that need it.
 
+<details>
+<summary>Request decoder can be used standalone, in already existing `ServeHTTP`.</summary>
+
+```go
+type MyRequest struct {
+    Foo int    `header:"X-Foo"`
+    Bar string `formData:"bar"`
+    Baz bool   `query:"baz"`
+}
+
+// A decoder for particular structure, can be reused for multiple HTTP requests.
+myDecoder := request.NewDecoderFactory().MakeDecoder(http.MethodPost, new(MyRequest), nil)
+
+// Request and response writer from ServeHTTP.
+var (
+    rw  http.ResponseWriter
+    req *http.Request
+)
+
+// This code would presumably live in ServeHTTP.
+var myReq MyRequest
+
+if err := myDecoder.Decode(req, &myReq, nil); err != nil {
+    http.Error(rw, err.Error(), http.StatusBadRequest)
+}
+```
+</details>
+
 ### Response Encoder
 
 Go struct with field tags defines output port.
