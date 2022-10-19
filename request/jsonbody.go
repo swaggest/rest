@@ -23,17 +23,16 @@ func readJSON(rd io.Reader, v interface{}) error {
 	return d.Decode(v)
 }
 
-func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error) valueDecoderFunc {
+func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error, tolerateFormData bool) valueDecoderFunc {
 	return func(r *http.Request, input interface{}, validator rest.Validator) error {
 		if r.ContentLength == 0 {
 			return ErrMissingRequestBody
 		}
 
-		contentType := r.Header.Get("Content-Type")
-		if contentType != "" {
-			if len(contentType) < 16 || contentType[0:16] != "application/json" { // allow 'application/json;charset=UTF-8'
-				return fmt.Errorf("%w, received: %s", ErrJSONExpected, contentType)
-			}
+		if ret, err := checkJSONBodyContentType(r.Header.Get("Content-Type"), tolerateFormData); err != nil {
+			return err
+		} else if ret {
+			return nil
 		}
 
 		var (
@@ -65,4 +64,20 @@ func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error) valueDecod
 
 		return nil
 	}
+}
+
+func checkJSONBodyContentType(contentType string, tolerateFormData bool) (ret bool, err error) {
+	if contentType == "" {
+		return false, nil
+	}
+
+	if len(contentType) < 16 || contentType[0:16] != "application/json" { // allow 'application/json;charset=UTF-8'
+		if tolerateFormData && (contentType == "application/x-www-form-urlencoded" || contentType == "multipart/form-data") {
+			return true, nil
+		}
+
+		return true, fmt.Errorf("%w, received: %s", ErrJSONExpected, contentType)
+	}
+
+	return false, nil
 }
