@@ -130,13 +130,15 @@ func (df *DecoderFactory) MakeDecoder(
 		return &m
 	}
 
+	hasFormData := refl.HasTaggedFields(input, formDataTag)
+
 	// Checking for body tags.
 	if refl.HasTaggedFields(input, jsonTag) || refl.FindEmbeddedSliceOrMap(input) != nil ||
 		refl.IsSliceOrMap(input) || refl.IsScalar(input) {
 		if df.JSONReader != nil {
-			m.decoders = append(m.decoders, decodeJSONBody(df.JSONReader))
+			m.decoders = append(m.decoders, decodeJSONBody(df.JSONReader, hasFormData))
 		} else {
-			m.decoders = append(m.decoders, decodeJSONBody(readJSON))
+			m.decoders = append(m.decoders, decodeJSONBody(readJSON, hasFormData))
 		}
 
 		m.in = append(m.in, rest.ParamInBody)
