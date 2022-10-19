@@ -97,3 +97,23 @@ func Test_decodeJSONBody_validateFailed(t *testing.T) {
 	err = decodeJSONBody(readJSON, false)(req, &i, vl)
 	assert.EqualError(t, err, "failed")
 }
+
+func Test_decodeJSONBody_tolerateFormData(t *testing.T) {
+	createBody := bytes.NewReader(
+		[]byte(`amount=123&customerId=248df4b7-aa70-47b8-a036-33ac447e668d&type=withdraw`))
+	createReq, err := http.NewRequest(http.MethodPost, "/US/order/348df4b7-aa70-47b8-a036-33ac447e668d", createBody)
+	createReq.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	assert.NoError(t, err)
+
+	type Input struct {
+		Amount     int    `json:"amount" formData:"amount"`
+		CustomerID string `json:"customerId" formData:"customerId"`
+		Type       string `json:"type" formData:"type"`
+	}
+
+	i := Input{}
+	assert.NoError(t, decodeJSONBody(readJSON, true)(createReq, &i, nil))
+	assert.Empty(t, i.Amount)
+	assert.Empty(t, i.CustomerID)
+	assert.Empty(t, i.Type)
+}
