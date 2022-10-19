@@ -29,8 +29,10 @@ func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error, tolerateFo
 			return ErrMissingRequestBody
 		}
 
-		if err := checkJSONBodyContentType(r.Header.Get("Content-Type"), tolerateFormData); err != nil {
+		if ret, err := checkJSONBodyContentType(r.Header.Get("Content-Type"), tolerateFormData); err != nil {
 			return err
+		} else if ret {
+			return nil
 		}
 
 		var (
@@ -64,18 +66,18 @@ func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error, tolerateFo
 	}
 }
 
-func checkJSONBodyContentType(contentType string, tolerateFormData bool) error {
+func checkJSONBodyContentType(contentType string, tolerateFormData bool) (ret bool, err error) {
 	if contentType == "" {
-		return nil
+		return false, nil
 	}
 
 	if len(contentType) < 16 || contentType[0:16] != "application/json" { // allow 'application/json;charset=UTF-8'
 		if tolerateFormData && (contentType == "application/x-www-form-urlencoded" || contentType == "multipart/form-data") {
-			return nil
+			return true, nil
 		}
 
-		return fmt.Errorf("%w, received: %s", ErrJSONExpected, contentType)
+		return true, fmt.Errorf("%w, received: %s", ErrJSONExpected, contentType)
 	}
 
-	return nil
+	return false, nil
 }
