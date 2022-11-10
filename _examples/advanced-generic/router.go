@@ -9,6 +9,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/google/uuid"
 	"github.com/rs/cors"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
@@ -52,6 +53,13 @@ func NewRouter() http.Handler {
 			return stop, nil
 		}
 	})
+
+	// Create custom schema mapping for 3rd party type.
+	uuidDef := jsonschema.Schema{}
+	uuidDef.AddType(jsonschema.String)
+	uuidDef.WithFormat("uuid")
+	uuidDef.WithExamples("248df4b7-aa70-47b8-a036-33ac447e668d")
+	s.OpenAPICollector.Reflector().AddTypeMapping(uuid.UUID{}, uuidDef)
 
 	// When multiple structures can be returned with the same HTTP status code, it is possible to combine them into a
 	// single schema with such configuration.

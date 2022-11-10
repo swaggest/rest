@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/google/uuid"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
@@ -45,6 +46,13 @@ func NewRouter() http.Handler {
 			return stop, nil
 		}
 	})
+
+	// Create custom schema mapping for 3rd party type.
+	uuidDef := jsonschema.Schema{}
+	uuidDef.AddType(jsonschema.String)
+	uuidDef.WithFormat("uuid")
+	uuidDef.WithExamples("248df4b7-aa70-47b8-a036-33ac447e668d")
+	s.OpenAPICollector.Reflector().AddTypeMapping(uuid.UUID{}, uuidDef)
 
 	s.OpenAPICollector.CombineErrors = "anyOf"
 

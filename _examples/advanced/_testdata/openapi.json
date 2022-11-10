@@ -216,6 +216,10 @@
             "schema":{"type":"string","description":"Simple scalar value in path"}
           },
           {
+            "name":"in_cookie","in":"cookie","description":"UUID in cookie.",
+            "schema":{"$ref":"#/components/schemas/UuidUUID"}
+          },
+          {
             "name":"X-Header","in":"header","description":"Simple scalar value in header.",
             "schema":{"type":"string","description":"Simple scalar value in header."}
           }
@@ -226,7 +230,7 @@
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSON"}}}
           }
         },
-        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+        "x-forbid-unknown-cookie":true,"x-forbid-unknown-path":true,"x-forbid-unknown-query":true
       }
     },
     "/json-slice-body":{
@@ -550,7 +554,8 @@
       },
       "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
       "FormDataMultipartFileHeader":{"type":"string","format":"binary","nullable":true},
-      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}},"nullable":true}
+      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}},"nullable":true},
+      "UuidUUID":{"type":"string","format":"uuid","example":"248df4b7-aa70-47b8-a036-33ac447e668d"}
     }
   }
 }
