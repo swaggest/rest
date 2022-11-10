@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 
+	"github.com/google/uuid"
 	"github.com/swaggest/usecase"
 )
 
@@ -16,6 +17,7 @@ func jsonParam() usecase.Interactor {
 		Header   string      `header:"X-Header" description:"Simple scalar value in header."`
 		Query    int         `query:"in_query" description:"Simple scalar value in query."`
 		Path     string      `path:"in-path" description:"Simple scalar value in path"`
+		Cookie   uuid.UUID   `cookie:"in_cookie" description:"UUID in cookie."`
 		Identity JSONPayload `query:"identity" description:"JSON value in query"`
 	}
 
