@@ -11,6 +11,10 @@ import (
 // OpenAPIMiddleware reads info and adds validation to handler.
 func OpenAPIMiddleware(s *openapi.Collector) func(http.Handler) http.Handler {
 	return func(h http.Handler) http.Handler {
+		if IsWrapperChecker(h) {
+			return h
+		}
+
 		var (
 			withRoute rest.HandlerWithRoute
 			handler   *Handler

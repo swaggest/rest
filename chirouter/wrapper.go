@@ -53,26 +53,34 @@ func (r *Wrapper) Wrap(wraps ...func(handler http.Handler) http.Handler) {
 
 // Use appends one of more middlewares onto the Router stack.
 func (r *Wrapper) Use(middlewares ...func(http.Handler) http.Handler) {
-	r.Router.Use(middlewares...)
-	r.middlewares = append(r.middlewares, middlewares...)
+	var mws []func(http.Handler) http.Handler
 
 	for _, mw := range middlewares {
 		if nethttp.MiddlewareIsWrapper(mw) {
 			r.wraps = append(r.wraps, mw)
+		} else {
+			mws = append(mws, mw)
 		}
 	}
+
+	r.Router.Use(mws...)
+	r.middlewares = append(r.middlewares, mws...)
 }
 
 // With adds inline middlewares for an endpoint handler.
 func (r Wrapper) With(middlewares ...func(http.Handler) http.Handler) chi.Router {
-	c := r.copy(r.Router.With(middlewares...), "")
-	c.middlewares = append(c.middlewares, middlewares...)
+	var mws, ws []func(http.Handler) http.Handler
 
 	for _, mw := range middlewares {
 		if nethttp.MiddlewareIsWrapper(mw) {
-			c.wraps = append(c.wraps, mw)
+			ws = append(ws, mw)
+		} else {
+			mws = append(mws, mw)
 		}
 	}
+
+	c := r.copy(r.Router.With(mws...), "")
+	c.wraps = append(c.wraps, ws...)
 
 	return c
 }

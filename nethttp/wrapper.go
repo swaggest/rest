@@ -15,6 +15,8 @@ func (*wrapperChecker) ServeHTTP(w http.ResponseWriter, r *http.Request) {}
 func IsWrapperChecker(h http.Handler) bool {
 	if wm, ok := h.(*wrapperChecker); ok {
 		wm.found = true
+
+		return true
 	}
 
 	return false
