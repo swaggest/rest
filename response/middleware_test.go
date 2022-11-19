@@ -38,8 +38,10 @@ func TestEncoderMiddleware(t *testing.T) {
 	r, err := http.NewRequest(http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	response.EncoderMiddleware(h).ServeHTTP(w, r)
+	em := response.EncoderMiddleware
+	em(h).ServeHTTP(w, r)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, `{"items":["one","two","three"]}`+"\n", w.Body.String())
 	assert.Equal(t, "Jane", w.Header().Get("X-Name"))
+	assert.True(t, nethttp.MiddlewareIsWrapper(em))
 }

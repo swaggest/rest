@@ -14,6 +14,10 @@ type responseEncoderSetter interface {
 
 // EncoderMiddleware instruments qualifying http.Handler with Encoder.
 func EncoderMiddleware(handler http.Handler) http.Handler {
+	if nethttp.IsWrapperChecker(handler) {
+		return handler
+	}
+
 	var (
 		withUseCase        rest.HandlerWithUseCase
 		setResponseEncoder responseEncoderSetter
