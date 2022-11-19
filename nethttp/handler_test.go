@@ -86,13 +86,16 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	assert.Equal(t, u, h.UseCase())
 
 	umwCalled := false
-	hh := nethttp.UseCaseMiddlewares(usecase.MiddlewareFunc(func(next usecase.Interactor) usecase.Interactor {
+	w := nethttp.UseCaseMiddlewares(usecase.MiddlewareFunc(func(next usecase.Interactor) usecase.Interactor {
 		return usecase.Interact(func(ctx context.Context, input, output interface{}) error {
 			umwCalled = true
 
 			return next.Interact(ctx, input, output)
 		})
-	}))(h)
+	}))
+	hh := w(h)
+
+	assert.True(t, nethttp.MiddlewareIsWrapper(w))
 
 	rw := httptest.NewRecorder()
 	hh.ServeHTTP(rw, req)
@@ -283,11 +286,17 @@ func TestHandler_ServeHTTP_customMapping(t *testing.T) {
 		rest.ParamInQuery: map[string]string{"ID": "ident"},
 	}
 
-	h := nethttp.WrapHandler(uh,
+	ws := []func(handler http.Handler) http.Handler{
 		request.DecoderMiddleware(request.NewDecoderFactory()),
 		nethttp.HandlerWithRouteMiddleware(http.MethodGet, "/test"),
 		response.EncoderMiddleware,
-	)
+	}
+
+	h := nethttp.WrapHandler(uh, ws...)
+
+	for i, w := range ws {
+		assert.True(t, nethttp.MiddlewareIsWrapper(w), i)
+	}
 
 	req, err := http.NewRequest(http.MethodGet, "/test?ident=123", nil)
 	require.NoError(t, err)

@@ -124,7 +124,7 @@ func TestNewWrapper(t *testing.T) {
 	}
 
 	assert.Equal(t, 14, handlersCnt)
-	assert.Equal(t, 20, totalCnt)
+	assert.Equal(t, 21, totalCnt)
 }
 
 func TestWrapper_Use_precedence(t *testing.T) {
@@ -355,4 +355,37 @@ func TestWrapper_Mount(t *testing.T) {
 		"securitySchemes":{"Admin":{"type":"http","scheme":"basic","description":"Admin access"}}
 	  }
 	}`), service.OpenAPI)
+}
+
+func TestWrapper_With(t *testing.T) {
+	wrapperCalled := 0
+	wrapperFound := 0
+	wrapper := func(handler http.Handler) http.Handler {
+		if nethttp.IsWrapperChecker(handler) {
+			wrapperFound++
+
+			return handler
+		}
+
+		wrapperCalled++
+
+		return handler
+	}
+
+	notWrapperCalled := 0
+	notWrapper := func(handler http.Handler) http.Handler {
+		notWrapperCalled++
+
+		return handler
+	}
+
+	cw := chirouter.NewWrapper(chi.NewRouter())
+
+	cw.Use(wrapper, notWrapper)
+	cw.With(wrapper, notWrapper).Method(http.MethodGet, "/",
+		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+
+	assert.Equal(t, 2, wrapperCalled)
+	assert.Equal(t, 2, wrapperFound)
+	assert.Equal(t, 5, notWrapperCalled) // 2 wrapper checks, 2 chi chains, 1 capture handler.
 }

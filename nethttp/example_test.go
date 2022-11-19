@@ -2,9 +2,11 @@ package nethttp_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/swaggest/assertjson"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest/chirouter"
 	"github.com/swaggest/rest/nethttp"
@@ -19,7 +21,7 @@ func ExampleSecurityMiddleware() {
 	// Init API documentation schema.
 	apiSchema := &openapi.Collector{}
 
-	// Setup middlewares (non-documentary middlewares omitted for brevity).
+	// Setup middlewares (non-documentation middlewares omitted for brevity).
 	r.Wrap(
 		nethttp.OpenAPIMiddleware(apiSchema), // Documentation collector.
 	)
@@ -54,4 +56,40 @@ func ExampleSecurityMiddleware() {
 	r.
 		With(serviceTokenAuth, serviceTokenDoc). // Apply a pair of middlewares: actual security and documentation.
 		Method(http.MethodGet, "/foo", nethttp.NewHandler(u))
+
+	schema, _ := assertjson.MarshalIndentCompact(apiSchema.Reflector().Spec, "", " ", 120)
+	fmt.Println(string(schema))
+
+	// Output:
+	// {
+	//  "openapi":"3.0.3","info":{"title":"","version":""},
+	//  "paths":{
+	//   "/foo":{
+	//    "get":{
+	//     "summary":"Example Security Middleware","operationId":"rest/nethttp_test.ExampleSecurityMiddleware",
+	//     "responses":{
+	//      "204":{"description":"No Content"},
+	//      "401":{
+	//       "description":"Unauthorized",
+	//       "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
+	//      }
+	//     },
+	//     "security":[{"serviceToken":[]}]
+	//    }
+	//   }
+	//  },
+	//  "components":{
+	//   "schemas":{
+	//    "RestErrResponse":{
+	//     "type":"object",
+	//     "properties":{
+	//      "code":{"type":"integer","description":"Application-specific error code."},
+	//      "context":{"type":"object","additionalProperties":{},"description":"Application context."},
+	//      "error":{"type":"string","description":"Error message."},"status":{"type":"string","description":"Status text."}
+	//     }
+	//    }
+	//   },
+	//   "securitySchemes":{"serviceToken":{"type":"apiKey","name":"Authorization","in":"header"}}
+	//  }
+	// }
 }

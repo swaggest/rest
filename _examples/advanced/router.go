@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go/openapi3"
@@ -140,6 +141,37 @@ func NewRouter() http.Handler {
 	s.Head("/gzip-pass-through", directGzip())
 
 	s.Get("/error-response", errorResponse())
+
+	// Security middlewares.
+	//  - sessMW is the actual request-level processor,
+	//  - sessDoc is a handler-level wrapper to expose docs.
+	sessMW := func(handler http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if c, err := r.Cookie("sessid"); err == nil {
+				r = r.WithContext(context.WithValue(r.Context(), "sessionID", c.Value))
+			}
+		})
+	}
+
+	sessDoc := nethttp.SecurityMiddleware(s.OpenAPICollector, "User", openapi3.SecurityScheme{
+		APIKeySecurityScheme: &openapi3.APIKeySecurityScheme{
+			In:   "cookie",
+			Name: "sessid",
+		},
+	})
+
+	// Security schema is configured for a single top-level route.
+	s.With(sessMW, sessDoc).Method(http.MethodGet, "/root-with-session", nethttp.NewHandler(dummy()))
+
+	// Security schema is configured on a sub-router.
+	s.Route("/deeper-with-session", func(r chi.Router) {
+		r.Group(func(r chi.Router) {
+			r.Use(sessMW, sessDoc)
+
+			r.Method(http.MethodGet, "/one", nethttp.NewHandler(dummy()))
+			r.Method(http.MethodGet, "/two", nethttp.NewHandler(dummy()))
+		})
+	})
 
 	// Swagger UI endpoint at /docs.
 	s.Docs("/docs", swgui.New)

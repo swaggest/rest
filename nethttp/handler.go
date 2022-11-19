@@ -229,6 +229,10 @@ func (h handlerWithRoute) RoutePattern() string {
 // HandlerWithRouteMiddleware wraps handler with routing information.
 func HandlerWithRouteMiddleware(method, pathPattern string) func(http.Handler) http.Handler {
 	return func(handler http.Handler) http.Handler {
+		if IsWrapperChecker(handler) {
+			return handler
+		}
+
 		return handlerWithRoute{
 			Handler:     handler,
 			pathPattern: pathPattern,

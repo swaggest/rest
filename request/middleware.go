@@ -19,6 +19,10 @@ type requestMapping interface {
 // DecoderMiddleware sets up request decoder in suitable handlers.
 func DecoderMiddleware(factory DecoderMaker) func(http.Handler) http.Handler {
 	return func(handler http.Handler) http.Handler {
+		if nethttp.IsWrapperChecker(handler) {
+			return handler
+		}
+
 		var (
 			withRoute          rest.HandlerWithRoute
 			withUseCase        rest.HandlerWithUseCase
@@ -57,6 +61,10 @@ type withRestHandler interface {
 // ValidatorMiddleware sets up request validator in suitable handlers.
 func ValidatorMiddleware(factory rest.RequestValidatorFactory) func(http.Handler) http.Handler {
 	return func(handler http.Handler) http.Handler {
+		if nethttp.IsWrapperChecker(handler) {
+			return handler
+		}
+
 		var (
 			withRoute        rest.HandlerWithRoute
 			withUseCase      rest.HandlerWithUseCase

@@ -41,12 +41,18 @@ func TestMapper_Decode_fileUploadTag(t *testing.T) {
 
 	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
-	r.Wrap(
+	ws := []func(handler http.Handler) http.Handler{
 		nethttp.OpenAPIMiddleware(&apiSchema),
 		request.DecoderMiddleware(decoderFactory),
 		request.ValidatorMiddleware(validatorFactory),
 		response.EncoderMiddleware,
-	)
+	}
+
+	r.Wrap(ws...)
+
+	for i, w := range ws {
+		assert.True(t, nethttp.MiddlewareIsWrapper(w), i)
+	}
 
 	u := struct {
 		usecase.Interactor

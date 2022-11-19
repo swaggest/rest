@@ -2,6 +2,32 @@
   "openapi":"3.0.3",
   "info":{"title":"Advanced Example","description":"This app showcases a variety of features.","version":"v1.2.3"},
   "paths":{
+    "/deeper-with-session/one":{
+      "get":{
+        "summary":"Dummy","operationId":"_examples/advanced.dummy2",
+        "responses":{
+          "204":{"description":"No Content"},
+          "401":{
+            "description":"Unauthorized",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
+          }
+        },
+        "security":[{"User":[]}]
+      }
+    },
+    "/deeper-with-session/two":{
+      "get":{
+        "summary":"Dummy","operationId":"_examples/advanced.dummy3",
+        "responses":{
+          "204":{"description":"No Content"},
+          "401":{
+            "description":"Unauthorized",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
+          }
+        },
+        "security":[{"User":[]}]
+      }
+    },
     "/error-response":{
       "get":{
         "summary":"Declare Expected Errors",
@@ -380,6 +406,19 @@
         }
       }
     },
+    "/root-with-session":{
+      "get":{
+        "summary":"Dummy","operationId":"_examples/advanced.dummy",
+        "responses":{
+          "204":{"description":"No Content"},
+          "401":{
+            "description":"Unauthorized",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
+          }
+        },
+        "security":[{"User":[]}]
+      }
+    },
     "/validation":{
       "post":{
         "summary":"Validation","description":"Input/Output with validation. Custom annotation.",
@@ -554,8 +593,18 @@
       },
       "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
       "FormDataMultipartFileHeader":{"type":"string","format":"binary","nullable":true},
+      "RestErrResponse":{
+        "type":"object",
+        "properties":{
+          "code":{"type":"integer","description":"Application-specific error code."},
+          "context":{"type":"object","additionalProperties":{},"description":"Application context."},
+          "error":{"type":"string","description":"Error message."},
+          "status":{"type":"string","description":"Status text."}
+        }
+      },
       "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}},"nullable":true},
       "UuidUUID":{"type":"string","format":"uuid","example":"248df4b7-aa70-47b8-a036-33ac447e668d"}
-    }
+    },
+    "securitySchemes":{"User":{"type":"apiKey","name":"sessid","in":"cookie"}}
   }
 }

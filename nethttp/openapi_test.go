@@ -51,7 +51,7 @@ func TestOpenAPIMiddleware(t *testing.T) {
 
 	c := openapi.Collector{}
 
-	_ = nethttp.WrapHandler(uh,
+	ws := []func(handler http.Handler) http.Handler{
 		nethttp.OpenAPIMiddleware(&c),
 		nethttp.HTTPBasicSecurityMiddleware(&c, "admin", "Admin Area."),
 		nethttp.HTTPBearerSecurityMiddleware(&c, "api", "API Security.", "JWT",
@@ -59,7 +59,13 @@ func TestOpenAPIMiddleware(t *testing.T) {
 				Error string `json:"error"`
 			}), http.StatusForbidden)),
 		nethttp.HandlerWithRouteMiddleware(http.MethodGet, "/test"),
-	)
+	}
+
+	_ = nethttp.WrapHandler(uh, ws...)
+
+	for i, w := range ws {
+		assert.True(t, nethttp.MiddlewareIsWrapper(w), i)
+	}
 
 	sp, err := assertjson.MarshalIndentCompact(c.Reflector().Spec, "", " ", 100)
 	require.NoError(t, err)
