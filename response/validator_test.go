@@ -47,6 +47,8 @@ func TestValidatorMiddleware(t *testing.T) {
 	validatorFactory := jsonschema.NewFactory(apiSchema, apiSchema)
 	wh := nethttp.WrapHandler(h, response.EncoderMiddleware, response.ValidatorMiddleware(validatorFactory))
 
+	assert.True(t, nethttp.MiddlewareIsWrapper(response.ValidatorMiddleware(validatorFactory)))
+
 	w := httptest.NewRecorder()
 	r, err := http.NewRequest(http.MethodGet, "/", nil)
 	require.NoError(t, err)
