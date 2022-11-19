@@ -124,7 +124,7 @@ func TestNewWrapper(t *testing.T) {
 	}
 
 	assert.Equal(t, 14, handlersCnt)
-	assert.Equal(t, 20, totalCnt)
+	assert.Equal(t, 21, totalCnt)
 }
 
 func TestWrapper_Use_precedence(t *testing.T) {

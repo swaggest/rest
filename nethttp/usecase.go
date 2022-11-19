@@ -10,6 +10,10 @@ import (
 // UseCaseMiddlewares applies use case middlewares to Handler.
 func UseCaseMiddlewares(mw ...usecase.Middleware) func(http.Handler) http.Handler {
 	return func(handler http.Handler) http.Handler {
+		if IsWrapperChecker(handler) {
+			return handler
+		}
+
 		var uh *Handler
 		if !HandlerAs(handler, &uh) {
 			return handler

@@ -55,12 +55,24 @@ func (r *Wrapper) Wrap(wraps ...func(handler http.Handler) http.Handler) {
 func (r *Wrapper) Use(middlewares ...func(http.Handler) http.Handler) {
 	r.Router.Use(middlewares...)
 	r.middlewares = append(r.middlewares, middlewares...)
+
+	for _, mw := range middlewares {
+		if nethttp.MiddlewareIsWrapper(mw) {
+			r.wraps = append(r.wraps, mw)
+		}
+	}
 }
 
 // With adds inline middlewares for an endpoint handler.
 func (r Wrapper) With(middlewares ...func(http.Handler) http.Handler) chi.Router {
 	c := r.copy(r.Router.With(middlewares...), "")
 	c.middlewares = append(c.middlewares, middlewares...)
+
+	for _, mw := range middlewares {
+		if nethttp.MiddlewareIsWrapper(mw) {
+			c.wraps = append(c.wraps, mw)
+		}
+	}
 
 	return c
 }
