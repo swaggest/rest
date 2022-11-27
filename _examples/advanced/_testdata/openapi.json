@@ -510,7 +510,7 @@
         "type":"object","properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}},
         "additionalProperties":false
       },
-      "AdvancedJSONMapPayload":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
+      "AdvancedJSONMapPayload":{"type":"object","additionalProperties":{"type":"number"}},
       "AdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONPayloadType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONSlicePayload":{"type":"array","items":{"type":"integer"},"nullable":true},
@@ -602,7 +602,7 @@
           "status":{"type":"string","description":"Status text."}
         }
       },
-      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}},"nullable":true},
+      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}},
       "UuidUUID":{"type":"string","format":"uuid","example":"248df4b7-aa70-47b8-a036-33ac447e668d"}
     },
     "securitySchemes":{"User":{"type":"apiKey","name":"sessid","in":"cookie"}}

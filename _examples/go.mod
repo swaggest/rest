@@ -14,8 +14,8 @@ require (
 	github.com/rs/cors v1.8.2
 	github.com/stretchr/testify v1.8.1
 	github.com/swaggest/assertjson v1.7.0
-	github.com/swaggest/jsonschema-go v0.3.41
-	github.com/swaggest/openapi-go v0.2.25
+	github.com/swaggest/jsonschema-go v0.3.43
+	github.com/swaggest/openapi-go v0.2.26
 	github.com/swaggest/swgui v1.5.1
 	github.com/swaggest/usecase v1.2.0
 	github.com/valyala/fasthttp v1.41.0
