@@ -43,18 +43,7 @@ func addressable(output interface{}) interface{} {
 	return output
 }
 
-// SetupOutput configures encoder with and instance of use case output.
-func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
-	h.outputBufferType = reflect.TypeOf(output)
-	h.outputHeadersEncoder = nil
-	h.skipRendering = true
-
-	if output == nil {
-		return
-	}
-
-	output = addressable(output)
-
+func (h *Encoder) setupHeadersEncoder(output interface{}, ht *rest.HandlerTrait) {
 	// Enable dynamic headers check in interface mode.
 	if h.unwrapInterface = reflect.ValueOf(output).Elem().Kind() == reflect.Interface; h.unwrapInterface {
 		enc := form.NewEncoder()
@@ -77,11 +66,30 @@ func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
 		enc := form.NewEncoder()
 		enc.SetMode(form.ModeExplicit)
 		enc.RegisterTagNameFunc(func(field reflect.StructField) string {
-			return respHeaderMapping[field.Name]
+			if name, ok := respHeaderMapping[field.Name]; ok {
+				return name
+			}
+
+			return "-"
 		})
 
 		h.outputHeadersEncoder = enc
 	}
+}
+
+// SetupOutput configures encoder with and instance of use case output.
+func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
+	h.outputBufferType = reflect.TypeOf(output)
+	h.outputHeadersEncoder = nil
+	h.skipRendering = true
+
+	if output == nil {
+		return
+	}
+
+	output = addressable(output)
+
+	h.setupHeadersEncoder(output, ht)
 
 	if h.outputBufferType.Kind() == reflect.Ptr {
 		h.outputBufferType = h.outputBufferType.Elem()

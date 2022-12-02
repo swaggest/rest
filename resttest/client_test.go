@@ -102,5 +102,5 @@ func TestNewClient_failedExpectation(t *testing.T) {
 
 	c.WithURI("/")
 	assert.EqualError(t, c.ExpectResponseBody([]byte(`{"foo":"bar}"`)),
-		"unexpected body, expected: {\"foo\":\"bar}\", received: {\"bar\":\"foo\"}")
+		"unexpected body, expected: \"{\\\"foo\\\":\\\"bar}\\\"\", received: \"{\\\"bar\\\":\\\"foo\\\"}\"")
 }
