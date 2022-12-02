@@ -7,7 +7,7 @@ replace github.com/swaggest/rest => ../
 require (
 	github.com/bool64/ctxd v1.2.0
 	github.com/bool64/dev v0.2.22
-	github.com/bool64/httpmock v0.1.7
+	github.com/bool64/httpmock v0.1.8
 	github.com/bool64/httptestbench v0.1.4
 	github.com/go-chi/chi/v5 v5.0.7
 	github.com/kelseyhightower/envconfig v1.4.0

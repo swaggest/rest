@@ -4,7 +4,7 @@ go 1.17
 
 require (
 	github.com/bool64/dev v0.2.22
-	github.com/bool64/httpmock v0.1.7
+	github.com/bool64/httpmock v0.1.8
 	github.com/bool64/shared v0.1.5
 	github.com/cespare/xxhash/v2 v2.1.2
 	github.com/go-chi/chi/v5 v5.0.7

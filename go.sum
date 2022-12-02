@@ -6,8 +6,8 @@ github.com/bool64/dev v0.2.20/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8
 github.com/bool64/dev v0.2.21/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8ACg=
 github.com/bool64/dev v0.2.22 h1:YJFKBRKplkt+0Emq/5Xk1Z5QRmMNzc1UOJkR3rxJksA=
 github.com/bool64/dev v0.2.22/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8ACg=
-github.com/bool64/httpmock v0.1.7 h1:w2LY/1N68AkwhY7ODDYs7DPJsgPO9W6rLLo9p/J70Rc=
-github.com/bool64/httpmock v0.1.7/go.mod h1:3T4cLULWI5qlTx+tSF6YaiAWq4IZ1aP//klpumgPj1s=
+github.com/bool64/httpmock v0.1.8 h1:plNJylRdMGjNDV8kCuapKTJJS8p6zbvWbR8NG+Z6qAA=
+github.com/bool64/httpmock v0.1.8/go.mod h1:3T4cLULWI5qlTx+tSF6YaiAWq4IZ1aP//klpumgPj1s=
 github.com/bool64/shared v0.1.4/go.mod h1:ryGjsnQFh6BnEXClfVlEJrzjwzat7CmA8PNS5E+jPp0=
 github.com/bool64/shared v0.1.5 h1:fp3eUhBsrSjNCQPcSdQqZxxh9bBwrYiZ+zOKFkM0/2E=
 github.com/bool64/shared v0.1.5/go.mod h1:081yz68YC9jeFB3+Bbmno2RFWvGKv1lPKkMP6MHJlPs=
