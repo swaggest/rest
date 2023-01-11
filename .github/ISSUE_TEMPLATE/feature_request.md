@@ -7,4 +7,4 @@ assignees: ''
 
 ---
 
-Please use [discussions](https://github.com/swaggest/rest/discussions/categories/ideas) to share feature ideas.
+Please use discussions: https://github.com/swaggest/rest/discussions/categories/ideas to share feature ideas.
