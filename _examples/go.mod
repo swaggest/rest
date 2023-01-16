@@ -6,10 +6,10 @@ replace github.com/swaggest/rest => ../
 
 require (
 	github.com/bool64/ctxd v1.2.0
-	github.com/bool64/dev v0.2.22
+	github.com/bool64/dev v0.2.24
 	github.com/bool64/httpmock v0.1.8
 	github.com/bool64/httptestbench v0.1.4
-	github.com/go-chi/chi/v5 v5.0.7
+	github.com/go-chi/chi/v5 v5.0.8
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/rs/cors v1.8.2
 	github.com/stretchr/testify v1.8.1
@@ -29,7 +29,7 @@ require (
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
 	github.com/bool64/shared v0.1.5 // indirect
-	github.com/cespare/xxhash/v2 v2.1.2 // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
