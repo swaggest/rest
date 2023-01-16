@@ -82,7 +82,7 @@ jobs:
           go tool cover -func=./unit.coverprofile > unit.txt
           TOTAL=$(grep 'total:' unit.txt)
           echo "${TOTAL}"
-          echo "::set-output name=total::$TOTAL"
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
 
       - name: Annotate missing test coverage
         id: annotate
@@ -94,16 +94,14 @@ jobs:
           git fetch origin master ${{ github.event.pull_request.base.sha }}
           REP=$(./gocovdiff -cov unit.coverprofile -gha-annotations gha-unit.txt -delta-cov-file delta-cov-unit.txt -target-delta-cov ${TARGET_DELTA_COV})
           echo "${REP}"
-          REP="${REP//$'\n'/%0A}"
           cat gha-unit.txt
           DIFF=$(test -e unit-base.txt && ./gocovdiff -func-cov unit.txt -func-base-cov unit-base.txt || echo "Missing base coverage file")
-          DIFF="${DIFF//$'\n'/%0A}"
           TOTAL=$(cat delta-cov-unit.txt)
-          echo "::set-output name=rep::$REP"
-          echo "::set-output name=diff::$DIFF"
-          echo "::set-output name=total::$TOTAL"
+          echo "rep<<EOF" >> $GITHUB_OUTPUT && echo "$REP" >> $GITHUB_OUTPUT && echo "EOF" >> $GITHUB_OUTPUT
+          echo "diff<<EOF" >> $GITHUB_OUTPUT && echo "$DIFF" >> $GITHUB_OUTPUT && echo "EOF" >> $GITHUB_OUTPUT
+          echo "total<<EOF" >> $GITHUB_OUTPUT && echo "$TOTAL" >> $GITHUB_OUTPUT && echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Comment Test Coverage
+      - name: Comment test coverage
         continue-on-error: true
         if: matrix.go-version == env.COV_GO_VERSION && github.event.pull_request.base.sha != ''
         uses: marocchino/sticky-pull-request-comment@v2

@@ -31,6 +31,7 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ env.GO_VERSION }}
+
       - name: Install Go tip
         if: env.GO_VERSION == 'tip'
         run: |
@@ -40,10 +41,12 @@ jobs:
           tar -C ~/sdk/gotip -xzf gotip.tar.gz
           ~/sdk/gotip/bin/go version
           echo "PATH=$HOME/go/bin:$HOME/sdk/gotip/bin/:$PATH" >> $GITHUB_ENV
+
       - name: Checkout code
         uses: actions/checkout@v2
         with:
           ref: ${{ (github.event.inputs.new != '') && github.event.inputs.new || github.event.ref }}
+
       - name: Go cache
         uses: actions/cache@v2
         with:
@@ -56,14 +59,16 @@ jobs:
           key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-cache
+
       - name: Restore benchstat
         uses: actions/cache@v2
         with:
           path: ~/go/bin/benchstat
-          key: ${{ runner.os }}-benchstat
+          key: ${{ runner.os }}-benchstat-legacy
+
       - name: Restore base benchmark result
+        id: base-benchmark
         if: env.CACHE_BENCHMARK == 'on'
-        id: benchmark-base
         uses: actions/cache@v2
         with:
           path: |
@@ -71,32 +76,40 @@ jobs:
             bench-main.txt
           # Use base sha for PR or new commit hash for master/main push in benchmark result key.
           key: ${{ runner.os }}-bench-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
-      - name: Checkout base code
-        if: env.RUN_BASE_BENCHMARK == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && (github.event.pull_request.base.sha != '' || github.event.inputs.old != '')
-        uses: actions/checkout@v2
-        with:
-          ref: ${{ (github.event.pull_request.base.sha != '' ) && github.event.pull_request.base.sha || github.event.inputs.old }}
-          path: __base
-      - name: Run base benchmark
-        if: env.RUN_BASE_BENCHMARK == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && (github.event.pull_request.base.sha != '' || github.event.inputs.old != '')
+
+      - name: Run benchmark
         run: |
+          export REF_NAME=new
+          make bench
+          OUTPUT=$(make bench-stat-diff)
+          echo "${OUTPUT}"
+          echo "diff<<EOF" >> $GITHUB_OUTPUT && echo "$OUTPUT" >> $GITHUB_OUTPUT && echo "EOF" >> $GITHUB_OUTPUT
+          OUTPUT=$(make bench-stat)
+          echo "${OUTPUT}"
+          echo "result<<EOF" >> $GITHUB_OUTPUT && echo "$OUTPUT" >> $GITHUB_OUTPUT && echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run benchmark for base code
+        if: env.RUN_BASE_BENCHMARK == 'on' && steps.base-benchmark.outputs.cache-hit != 'true' && (github.event.pull_request.base.sha != '' || github.event.inputs.old != '')
+        run: |
+          git fetch origin master ${{ github.event.pull_request.base.sha }}
+          HEAD=$(git rev-parse HEAD)
+          git reset --hard ${{ github.event.pull_request.base.sha }}
           export REF_NAME=master
-          cd __base
-          make | grep bench-run && (BENCH_COUNT=5 make bench-run bench-stat && cp bench-master.txt ../bench-master.txt) || echo "No benchmarks in base"
-      - name: Benchmark
+          make bench-run bench-stat
+          git reset --hard $HEAD
+
+      - name: Benchmark stats
         id: bench
         run: |
           export REF_NAME=new
-          BENCH_COUNT=5 make bench
           OUTPUT=$(make bench-stat-diff)
           echo "${OUTPUT}"
-          OUTPUT="${OUTPUT//$'\n'/%0A}"
-          echo "::set-output name=diff::$OUTPUT"
+          echo "diff<<EOF" >> $GITHUB_OUTPUT && echo "$OUTPUT" >> $GITHUB_OUTPUT && echo "EOF" >> $GITHUB_OUTPUT
           OUTPUT=$(make bench-stat)
           echo "${OUTPUT}"
-          OUTPUT="${OUTPUT//$'\n'/%0A}"
-          echo "::set-output name=result::$OUTPUT"
-      - name: Comment Benchmark Result
+          echo "result<<EOF" >> $GITHUB_OUTPUT && echo "$OUTPUT" >> $GITHUB_OUTPUT && echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Comment benchmark result
         continue-on-error: true
         uses: marocchino/sticky-pull-request-comment@v2
         with:
