@@ -24,7 +24,7 @@ func BenchmarkRequestValidator_ValidateRequestData(b *testing.B) {
 	b.ResetTimer()
 	b.ReportAllocs()
 
-	value := map[string]interface{}{
+	value := map[string]any{
 		"in_cookie": "abc",
 	}
 
@@ -47,27 +47,27 @@ func TestRequestValidator_ValidateData(t *testing.T) {
 			rest.ParamInFormData: map[string]string{"FormData": "inFormData"},
 		})
 
-	err := validator.ValidateData(rest.ParamInCookie, map[string]interface{}{"in_cookie": 123})
+	err := validator.ValidateData(rest.ParamInCookie, map[string]any{"in_cookie": 123})
 	assert.Equal(t, err, rest.ValidationErrors{"cookie:in_cookie": []string{"#: expected string, but got number"}})
 
-	err = validator.ValidateData(rest.ParamInCookie, map[string]interface{}{})
+	err = validator.ValidateData(rest.ParamInCookie, map[string]any{})
 	assert.Equal(t, err, rest.ValidationErrors{"cookie:in_cookie": []string{"missing value"}})
 
-	err = validator.ValidateData(rest.ParamInQuery, map[string]interface{}{"in_query": 123})
+	err = validator.ValidateData(rest.ParamInQuery, map[string]any{"in_query": 123})
 	assert.Equal(t, err, rest.ValidationErrors{"query:in_query": []string{"#: expected string, but got number"}})
 
-	err = validator.ValidateData(rest.ParamInQuery, map[string]interface{}{"in_query": "ab"})
+	err = validator.ValidateData(rest.ParamInQuery, map[string]any{"in_query": "ab"})
 	assert.Equal(t, err, rest.ValidationErrors{"query:in_query": []string{"#: length must be >= 3, but got 2"}})
 
-	assert.NoError(t, validator.ValidateData(rest.ParamInQuery, map[string]interface{}{}))
-	assert.NoError(t, validator.ValidateData(rest.ParamInQuery, map[string]interface{}{"unknown": 123}))
-	assert.NoError(t, validator.ValidateData(rest.ParamInQuery, map[string]interface{}{"in_query_ignored": 123}))
-	assert.NoError(t, validator.ValidateData("unknown", map[string]interface{}{}))
-	assert.NoError(t, validator.ValidateData(rest.ParamInCookie, map[string]interface{}{"in_cookie": "abc"}))
+	assert.NoError(t, validator.ValidateData(rest.ParamInQuery, map[string]any{}))
+	assert.NoError(t, validator.ValidateData(rest.ParamInQuery, map[string]any{"unknown": 123}))
+	assert.NoError(t, validator.ValidateData(rest.ParamInQuery, map[string]any{"in_query_ignored": 123}))
+	assert.NoError(t, validator.ValidateData("unknown", map[string]any{}))
+	assert.NoError(t, validator.ValidateData(rest.ParamInCookie, map[string]any{"in_cookie": "abc"}))
 
-	assert.NoError(t, validator.ValidateData(rest.ParamInFormData, map[string]interface{}{"inFormData": "abc"}))
+	assert.NoError(t, validator.ValidateData(rest.ParamInFormData, map[string]any{"inFormData": "abc"}))
 
-	err = validator.ValidateData(rest.ParamInFormData, map[string]interface{}{"inFormData": "ab"})
+	err = validator.ValidateData(rest.ParamInFormData, map[string]any{"inFormData": "ab"})
 	assert.Equal(t, err, rest.ValidationErrors{"formData:inFormData": []string{"#: length must be >= 3, but got 2"}})
 }
 
@@ -82,21 +82,21 @@ func TestFactory_MakeResponseValidator(t *testing.T) {
 
 	assert.NoError(t, validator.ValidateJSONBody([]byte(`{"name":"John"}`)))
 	assert.Error(t, validator.ValidateJSONBody([]byte(`{"name":""}`))) // minLength:"1" violated.
-	assert.NoError(t, validator.ValidateData(rest.ParamInHeader, map[string]interface{}{
+	assert.NoError(t, validator.ValidateData(rest.ParamInHeader, map[string]any{
 		"X-Trace": "abc",
 	}))
-	assert.Error(t, validator.ValidateData(rest.ParamInHeader, map[string]interface{}{
+	assert.Error(t, validator.ValidateData(rest.ParamInHeader, map[string]any{
 		"X-Trace": "abcd", // maxLength:"3" violated.
 	}))
 }
 
 func TestNullableTime(t *testing.T) {
-	type request struct {
+	type req struct {
 		ExpiryDate *time.Time `json:"expiryDate"`
 	}
 
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
-		MakeRequestValidator(http.MethodPost, new(request), nil)
+		MakeRequestValidator(http.MethodPost, new(req), nil)
 	err := validator.ValidateJSONBody([]byte(`{"expiryDate":null}`))
 
 	assert.NoError(t, err, "%+v", err)

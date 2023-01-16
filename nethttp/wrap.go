@@ -36,7 +36,7 @@ func WrapHandler(h http.Handler, mw ...func(http.Handler) http.Handler) http.Han
 //
 // HandlerAs will panic if target is not a non-nil pointer to either a type that implements
 // http.Handler, or to any interface type.
-func HandlerAs(handler http.Handler, target interface{}) bool {
+func HandlerAs(handler http.Handler, target any) bool {
 	if target == nil {
 		panic("target cannot be nil")
 	}

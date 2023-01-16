@@ -19,11 +19,11 @@ type (
 	}
 
 	decoderFunc      func(r *http.Request) (url.Values, error)
-	valueDecoderFunc func(r *http.Request, v interface{}, validator rest.Validator) error
+	valueDecoderFunc func(r *http.Request, v any, validator rest.Validator) error
 )
 
-func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamIn, val rest.Validator) error {
-	goValues := make(map[string]interface{}, len(p))
+func decodeValidate(d *form.Decoder, v any, p url.Values, in rest.ParamIn, val rest.Validator) error {
+	goValues := make(map[string]any, len(p))
 
 	err := d.Decode(v, p, goValues)
 	if err != nil {
@@ -50,7 +50,7 @@ func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamI
 }
 
 func makeDecoder(in rest.ParamIn, formDecoder *form.Decoder, decoderFunc decoderFunc) valueDecoderFunc {
-	return func(r *http.Request, v interface{}, validator rest.Validator) error {
+	return func(r *http.Request, v any, validator rest.Validator) error {
 		values, err := decoderFunc(r)
 		if err != nil {
 			return err
@@ -73,7 +73,7 @@ type decoder struct {
 var _ nethttp.RequestDecoder = &decoder{}
 
 // Decode populates and validates input with data from http request.
-func (d *decoder) Decode(r *http.Request, input interface{}, validator rest.Validator) error {
+func (d *decoder) Decode(r *http.Request, input any, validator rest.Validator) error {
 	if i, ok := input.(Loader); ok {
 		return i.LoadFromHTTPRequest(r)
 	}

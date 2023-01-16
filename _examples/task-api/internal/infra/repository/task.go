@@ -130,7 +130,7 @@ func (tr *Task) Create(ctx context.Context, value task.Value) (task.Entity, erro
 		if t.Value.Goal == value.Goal {
 			return task.Entity{}, usecase.Error{
 				StatusCode: status.AlreadyExists,
-				Context: map[string]interface{}{
+				Context: map[string]any{
 					"task": t,
 				},
 				Value: errors.New("task with same goal already exists"),

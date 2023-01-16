@@ -23,7 +23,7 @@ func validation() usecase.Interactor {
 		} `json:"data" required:"true"`
 	}
 
-	u := usecase.NewIOI(new(inputPort), new(outputPort), func(ctx context.Context, input, output interface{}) (err error) {
+	u := usecase.NewIOI(new(inputPort), new(outputPort), func(ctx context.Context, input, output any) (err error) {
 		in := input.(*inputPort)
 		out := output.(*outputPort)
 

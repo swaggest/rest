@@ -91,14 +91,14 @@ func ValidatorMiddleware(factory rest.RequestValidatorFactory) func(http.Handler
 var _ nethttp.RequestDecoder = DecoderFunc(nil)
 
 // DecoderFunc implements RequestDecoder with a func.
-type DecoderFunc func(r *http.Request, input interface{}, validator rest.Validator) error
+type DecoderFunc func(r *http.Request, input any, validator rest.Validator) error
 
 // Decode implements RequestDecoder.
-func (df DecoderFunc) Decode(r *http.Request, input interface{}, validator rest.Validator) error {
+func (df DecoderFunc) Decode(r *http.Request, input any, validator rest.Validator) error {
 	return df(r, input, validator)
 }
 
 // DecoderMaker creates request decoder for particular structured Go input value.
 type DecoderMaker interface {
-	MakeDecoder(method string, input interface{}, customMapping rest.RequestMapping) nethttp.RequestDecoder
+	MakeDecoder(method string, input any, customMapping rest.RequestMapping) nethttp.RequestDecoder
 }

@@ -13,5 +13,5 @@ func TestRequestErrors_Error(t *testing.T) {
 	}
 
 	assert.EqualError(t, err, "bad request")
-	assert.Equal(t, map[string]interface{}{"foo": []string{"bar"}}, err.Fields())
+	assert.Equal(t, map[string]any{"foo": []string{"bar"}}, err.Fields())
 }

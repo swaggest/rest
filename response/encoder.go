@@ -18,7 +18,7 @@ import (
 
 // Encoder prepares and writes http response.
 type Encoder struct {
-	JSONWriter func(v interface{})
+	JSONWriter func(v any)
 
 	outputBufferType     reflect.Type
 	outputHeadersEncoder *form.Encoder
@@ -32,7 +32,7 @@ type noContent interface {
 }
 
 // addressable makes a pointer from a non-pointer values.
-func addressable(output interface{}) interface{} {
+func addressable(output any) any {
 	if reflect.ValueOf(output).Kind() != reflect.Ptr {
 		o := reflect.New(reflect.TypeOf(output))
 		o.Elem().Set(reflect.ValueOf(output))
@@ -43,7 +43,7 @@ func addressable(output interface{}) interface{} {
 	return output
 }
 
-func (h *Encoder) setupHeadersEncoder(output interface{}, ht *rest.HandlerTrait) {
+func (h *Encoder) setupHeadersEncoder(output any, ht *rest.HandlerTrait) {
 	// Enable dynamic headers check in interface mode.
 	if h.unwrapInterface = reflect.ValueOf(output).Elem().Kind() == reflect.Interface; h.unwrapInterface {
 		enc := form.NewEncoder()
@@ -78,7 +78,7 @@ func (h *Encoder) setupHeadersEncoder(output interface{}, ht *rest.HandlerTrait)
 }
 
 // SetupOutput configures encoder with and instance of use case output.
-func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
+func (h *Encoder) SetupOutput(output any, ht *rest.HandlerTrait) {
 	h.outputBufferType = reflect.TypeOf(output)
 	h.outputHeadersEncoder = nil
 	h.skipRendering = true
@@ -121,7 +121,7 @@ type jsonEncoder struct {
 }
 
 var jsonEncoderPool = sync.Pool{
-	New: func() interface{} {
+	New: func() any {
 		buf := bytes.NewBuffer(nil)
 		enc := json.NewEncoder(buf)
 		enc.SetEscapeHTML(false)
@@ -136,7 +136,7 @@ var jsonEncoderPool = sync.Pool{
 func (h *Encoder) writeJSONResponse(
 	w http.ResponseWriter,
 	r *http.Request,
-	v interface{},
+	v any,
 	ht rest.HandlerTrait,
 ) {
 	if ht.SuccessContentType == "" {
@@ -195,7 +195,7 @@ func (h *Encoder) writeJSONResponse(
 }
 
 // WriteErrResponse encodes and writes error to response.
-func (h *Encoder) WriteErrResponse(w http.ResponseWriter, r *http.Request, statusCode int, response interface{}) {
+func (h *Encoder) WriteErrResponse(w http.ResponseWriter, r *http.Request, statusCode int, response any) {
 	contentType := "application/json; charset=utf-8"
 
 	e := jsonEncoderPool.Get().(*jsonEncoder) //nolint:errcheck
@@ -230,7 +230,7 @@ func (h *Encoder) WriteErrResponse(w http.ResponseWriter, r *http.Request, statu
 func (h *Encoder) WriteSuccessfulResponse(
 	w http.ResponseWriter,
 	r *http.Request,
-	output interface{},
+	output any,
 	ht rest.HandlerTrait,
 ) {
 	if h.unwrapInterface {
@@ -273,10 +273,10 @@ func (h *Encoder) WriteSuccessfulResponse(
 	h.writeJSONResponse(w, r, output, ht)
 }
 
-func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output interface{}, ht rest.HandlerTrait) bool {
-	var headerValues map[string]interface{}
+func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output any, ht rest.HandlerTrait) bool {
+	var headerValues map[string]any
 	if ht.RespValidator != nil {
-		headerValues = make(map[string]interface{})
+		headerValues = make(map[string]any)
 	}
 
 	headers, err := h.outputHeadersEncoder.Encode(output, headerValues)
@@ -307,7 +307,7 @@ func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output int
 }
 
 // MakeOutput instantiates a value for use case output port.
-func (h *Encoder) MakeOutput(w http.ResponseWriter, ht rest.HandlerTrait) interface{} {
+func (h *Encoder) MakeOutput(w http.ResponseWriter, ht rest.HandlerTrait) any {
 	if h.outputBufferType == nil {
 		return nil
 	}
@@ -337,7 +337,7 @@ type writerWithHeaders struct {
 
 	responseWriter *Encoder
 	trait          rest.HandlerTrait
-	output         interface{}
+	output         any
 	headersSet     bool
 }
 

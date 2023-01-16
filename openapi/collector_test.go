@@ -25,13 +25,13 @@ import (
 var _ rest.JSONSchemaValidator = validatorMock{}
 
 type validatorMock struct {
-	ValidateDataFunc     func(in rest.ParamIn, namedData map[string]interface{}) error
+	ValidateDataFunc     func(in rest.ParamIn, namedData map[string]any) error
 	ValidateJSONBodyFunc func(jsonBody []byte) error
 	HasConstraintsFunc   func(in rest.ParamIn) bool
 	AddSchemaFunc        func(in rest.ParamIn, name string, schemaData []byte, required bool) error
 }
 
-func (v validatorMock) ValidateData(in rest.ParamIn, namedData map[string]interface{}) error {
+func (v validatorMock) ValidateData(in rest.ParamIn, namedData map[string]any) error {
 	return v.ValidateDataFunc(in, namedData)
 }
 
@@ -250,7 +250,7 @@ func TestCollector_Collect_CombineErrors(t *testing.T) {
 	u.SetExpectedErrors(status.InvalidArgument, anotherErr{}, status.FailedPrecondition, status.AlreadyExists)
 
 	h := rest.HandlerTrait{}
-	h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
+	h.MakeErrResp = func(ctx context.Context, err error) (int, any) {
 		code, er := rest.Err(err)
 
 		var ae anotherErr

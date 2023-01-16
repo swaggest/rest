@@ -34,12 +34,12 @@ func TestErr(t *testing.T) {
 	err := usecase.Error{
 		StatusCode: status.InvalidArgument,
 		Value:      errors.New("failed"),
-		Context:    map[string]interface{}{"hello": "world"},
+		Context:    map[string]any{"hello": "world"},
 	}
 	code, er := rest.Err(err)
 
 	assert.Equal(t, http.StatusBadRequest, code)
-	assert.Equal(t, map[string]interface{}{"hello": "world"}, er.Context)
+	assert.Equal(t, map[string]any{"hello": "world"}, er.Context)
 	assert.Equal(t, "invalid argument: failed", er.Error())
 	assert.Equal(t, "INVALID_ARGUMENT", er.StatusText)
 	assert.Equal(t, 0, er.AppCode)

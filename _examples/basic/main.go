@@ -46,7 +46,7 @@ func main() {
 	}
 
 	// Create use case interactor with references to input/output types and interaction function.
-	u := usecase.NewIOI(new(helloInput), new(helloOutput), func(ctx context.Context, input, output interface{}) error {
+	u := usecase.NewIOI(new(helloInput), new(helloOutput), func(ctx context.Context, input, output any) error {
 		var (
 			in  = input.(*helloInput)
 			out = output.(*helloOutput)

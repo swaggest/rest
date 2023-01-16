@@ -26,7 +26,7 @@ func jsonSliceBody() usecase.Interactor {
 		Data   JSONSlicePayload `json:"data"`
 	}
 
-	u := usecase.NewIOI(new(jsonSliceReq), new(jsonOutput), func(ctx context.Context, input, output interface{}) (err error) {
+	u := usecase.NewIOI(new(jsonSliceReq), new(jsonOutput), func(ctx context.Context, input, output any) (err error) {
 		var (
 			in  = input.(*jsonSliceReq)
 			out = output.(*jsonOutput)

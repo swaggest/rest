@@ -23,7 +23,7 @@ func outputHeaders() usecase.Interactor {
 
 	u.Output = new(headerOutput)
 
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) (err error) {
+	u.Interactor = usecase.Interact(func(ctx context.Context, input, output any) (err error) {
 		out := output.(*headerOutput)
 
 		out.Header = "abc"

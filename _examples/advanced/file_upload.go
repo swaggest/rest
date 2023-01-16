@@ -26,7 +26,7 @@ func fileUploader() usecase.Interactor {
 		Query       int                  `json:"inQuery"`
 	}
 
-	u := usecase.NewIOI(new(upload), new(info), func(ctx context.Context, input, output interface{}) (err error) {
+	u := usecase.NewIOI(new(upload), new(info), func(ctx context.Context, input, output any) (err error) {
 		var (
 			in  = input.(*upload)
 			out = output.(*info)

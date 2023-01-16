@@ -3,7 +3,6 @@ package resttest_test
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"sync"
@@ -38,7 +37,7 @@ func assertRoundTrip(t *testing.T, baseURL string, expectation httpmock.Expectat
 	resp, err := http.DefaultTransport.RoundTrip(req)
 	require.NoError(t, err)
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, resp.Body.Close())
 	require.NoError(t, err)
 
@@ -161,7 +160,7 @@ func TestServerMock_ServeHTTP_error(t *testing.T) {
 	resp, err := http.DefaultTransport.RoundTrip(req)
 	require.NoError(t, err)
 
-	respBody, err := ioutil.ReadAll(resp.Body)
+	respBody, err := io.ReadAll(resp.Body)
 	require.NoError(t, resp.Body.Close())
 	require.NoError(t, err)
 
@@ -176,7 +175,7 @@ func TestServerMock_ServeHTTP_error(t *testing.T) {
 	resp, err = http.DefaultTransport.RoundTrip(req)
 	require.NoError(t, err)
 
-	respBody, err = ioutil.ReadAll(resp.Body)
+	respBody, err = io.ReadAll(resp.Body)
 	require.NoError(t, resp.Body.Close())
 	require.NoError(t, err)
 
@@ -191,7 +190,7 @@ func TestServerMock_ServeHTTP_error(t *testing.T) {
 	resp, err = http.DefaultTransport.RoundTrip(req)
 	require.NoError(t, err)
 
-	respBody, err = ioutil.ReadAll(resp.Body)
+	respBody, err = io.ReadAll(resp.Body)
 	require.NoError(t, resp.Body.Close())
 	require.NoError(t, err)
 
@@ -206,7 +205,7 @@ func TestServerMock_ServeHTTP_error(t *testing.T) {
 	resp, err = http.DefaultTransport.RoundTrip(req)
 	require.NoError(t, err)
 
-	respBody, err = ioutil.ReadAll(resp.Body)
+	respBody, err = io.ReadAll(resp.Body)
 	require.NoError(t, resp.Body.Close())
 	require.NoError(t, err)
 
@@ -250,7 +249,7 @@ func TestServerMock_ServeHTTP_concurrency(t *testing.T) {
 			resp, err := http.DefaultTransport.RoundTrip(req)
 			require.NoError(t, err)
 
-			respBody, err := ioutil.ReadAll(resp.Body)
+			respBody, err := io.ReadAll(resp.Body)
 			require.NoError(t, resp.Body.Close())
 			require.NoError(t, err)
 
@@ -301,7 +300,7 @@ func TestServerMock_vars(t *testing.T) {
 	resp, err := http.DefaultTransport.RoundTrip(req)
 	require.NoError(t, err)
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
 	require.NoError(t, resp.Body.Close())
@@ -340,7 +339,7 @@ func TestServerMock_ExpectAsync(t *testing.T) {
 		resp, err := http.DefaultTransport.RoundTrip(req)
 		require.NoError(t, err)
 
-		body, err := ioutil.ReadAll(resp.Body)
+		body, err := io.ReadAll(resp.Body)
 		require.NoError(t, err)
 
 		require.NoError(t, resp.Body.Close())
@@ -357,7 +356,7 @@ func TestServerMock_ExpectAsync(t *testing.T) {
 			resp, err := http.DefaultTransport.RoundTrip(req)
 			require.NoError(t, err)
 
-			body, err := ioutil.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
 			require.NoError(t, err)
 
 			require.NoError(t, resp.Body.Close())
@@ -371,7 +370,7 @@ func TestServerMock_ExpectAsync(t *testing.T) {
 	resp, err := http.DefaultTransport.RoundTrip(req)
 	require.NoError(t, err)
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	require.NoError(t, err)
 
 	require.NoError(t, resp.Body.Close())

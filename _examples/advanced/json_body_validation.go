@@ -34,7 +34,7 @@ func jsonBodyValidation() usecase.Interactor {
 	u.Input = new(inputWithJSON)
 	u.Output = new(outputWithJSON)
 
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) (err error) {
+	u.Interactor = usecase.Interact(func(ctx context.Context, input, output any) (err error) {
 		var (
 			in  = input.(*inputWithJSON)
 			out = output.(*outputWithJSON)

@@ -26,7 +26,7 @@ func jsonMapBody() usecase.Interactor {
 		Data   JSONMapPayload `json:"data"`
 	}
 
-	u := usecase.NewIOI(new(jsonMapReq), new(jsonOutput), func(ctx context.Context, input, output interface{}) (err error) {
+	u := usecase.NewIOI(new(jsonMapReq), new(jsonOutput), func(ctx context.Context, input, output any) (err error) {
 		var (
 			in  = input.(*jsonMapReq)
 			out = output.(*jsonOutput)

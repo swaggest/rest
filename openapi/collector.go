@@ -249,7 +249,7 @@ func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor,
 
 func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Interactor, h rest.HandlerTrait) error {
 	var (
-		errsByCode        = map[int][]interface{}{}
+		errsByCode        = map[int][]any{}
 		statusCodes       []int
 		hasExpectedErrors usecase.HasExpectedErrors
 	)
@@ -260,7 +260,7 @@ func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Inte
 
 	for _, e := range hasExpectedErrors.ExpectedErrors() {
 		var (
-			errResp    interface{}
+			errResp    any
 			statusCode int
 		)
 
@@ -362,7 +362,7 @@ func (c *Collector) provideParametersJSONSchemas(op openapi3.Operation, validato
 // ProvideRequestJSONSchemas provides JSON Schemas for request structure.
 func (c *Collector) ProvideRequestJSONSchemas(
 	method string,
-	input interface{},
+	input any,
 	mapping rest.RequestMapping,
 	validator rest.JSONSchemaValidator,
 ) error {
@@ -490,7 +490,7 @@ func (c *Collector) provideHeaderSchemas(resp *openapi3.Response, validator rest
 func (c *Collector) ProvideResponseJSONSchemas(
 	statusCode int,
 	contentType string,
-	output interface{},
+	output any,
 	headerMapping map[string]string,
 	validator rest.JSONSchemaValidator,
 ) error {

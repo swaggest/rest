@@ -15,7 +15,7 @@ var _ rest.Validator = &Validator{}
 // Validator is a JSON Schema based validator.
 type Validator struct {
 	// JSONMarshal controls custom marshaler, nil value enables "encoding/json".
-	JSONMarshal func(interface{}) ([]byte, error)
+	JSONMarshal func(any) ([]byte, error)
 
 	inNamedSchemas map[rest.ParamIn]map[string]*jsonschema.Schema
 	inRequired     map[rest.ParamIn][]string
@@ -38,7 +38,7 @@ func NewFactory(
 // Please use NewFactory to create an instance.
 type Factory struct {
 	// JSONMarshal controls custom marshaler, nil value enables "encoding/json".
-	JSONMarshal func(interface{}) ([]byte, error)
+	JSONMarshal func(any) ([]byte, error)
 
 	requestSchemas  rest.RequestJSONSchemaProvider
 	responseSchemas rest.ResponseJSONSchemaProvider
@@ -47,7 +47,7 @@ type Factory struct {
 // MakeRequestValidator creates request validator for HTTP method and input structure.
 func (f Factory) MakeRequestValidator(
 	method string,
-	input interface{},
+	input any,
 	mapping rest.RequestMapping,
 ) rest.Validator {
 	v := Validator{
@@ -68,7 +68,7 @@ func (f Factory) MakeRequestValidator(
 func (f Factory) MakeResponseValidator(
 	statusCode int,
 	contentType string,
-	output interface{},
+	output any,
 	headerMapping map[string]string,
 ) rest.Validator {
 	v := Validator{
@@ -139,7 +139,7 @@ func (v *Validator) AddSchema(in rest.ParamIn, name string, jsonSchema []byte, r
 	return nil
 }
 
-func (v *Validator) checkRequired(in rest.ParamIn, namedData map[string]interface{}) []string {
+func (v *Validator) checkRequired(in rest.ParamIn, namedData map[string]any) []string {
 	required := v.inRequired[in]
 
 	if len(required) == 0 {
@@ -189,7 +189,7 @@ func (v *Validator) HasConstraints(in rest.ParamIn) bool {
 }
 
 // ValidateData performs validation of a mapped request data.
-func (v *Validator) ValidateData(in rest.ParamIn, namedData map[string]interface{}) error {
+func (v *Validator) ValidateData(in rest.ParamIn, namedData map[string]any) error {
 	var errs rest.ValidationErrors
 
 	missing := v.checkRequired(in, namedData)

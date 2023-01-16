@@ -19,7 +19,7 @@ func UpdateTask(
 		TaskUpdater() task.Updater
 	},
 ) usecase.Interactor {
-	u := usecase.NewIOI(new(updateTask), nil, func(ctx context.Context, input, _ interface{}) error {
+	u := usecase.NewIOI(new(updateTask), nil, func(ctx context.Context, input, _ any) error {
 		var (
 			in  = input.(*updateTask)
 			err error

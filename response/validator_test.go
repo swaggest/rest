@@ -32,7 +32,7 @@ func TestValidatorMiddleware(t *testing.T) {
 	}
 
 	u.Output = new(outputPort)
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+	u.Interactor = usecase.Interact(func(ctx context.Context, input, output any) error {
 		out, ok := output.(*outputPort)
 		require.True(t, ok)
 

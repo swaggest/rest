@@ -47,7 +47,7 @@ func ExampleSecurityMiddleware() {
 		},
 	})
 
-	u := usecase.NewIOI(nil, nil, func(ctx context.Context, input, output interface{}) error {
+	u := usecase.NewIOI(nil, nil, func(ctx context.Context, input, output any) error {
 		// Do something.
 		return nil
 	})

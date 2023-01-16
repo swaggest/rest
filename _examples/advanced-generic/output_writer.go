@@ -16,7 +16,7 @@ func outputCSVWriter() usecase.Interactor {
 		usecase.OutputWithEmbeddedWriter
 	}
 
-	u := usecase.NewInteractor(func(ctx context.Context, _ interface{}, out *writerOutput) (err error) {
+	u := usecase.NewInteractor(func(ctx context.Context, _ any, out *writerOutput) (err error) {
 		out.Header = "abc"
 
 		c := csv.NewWriter(out)

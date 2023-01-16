@@ -3,7 +3,7 @@ package gzip_test
 import (
 	"bytes"
 	gz "compress/gzip"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -242,7 +242,7 @@ func gzipDecode(t *testing.T, data []byte) []byte {
 	r, err := gz.NewReader(b)
 	require.NoError(t, err)
 
-	j, err := ioutil.ReadAll(r)
+	j, err := io.ReadAll(r)
 	require.NoError(t, err)
 
 	require.NoError(t, r.Close())

@@ -185,7 +185,7 @@ It can provide information about itself that will be exposed in generated docume
 
 ```go
 // Create use case interactor with references to input/output types and interaction function.
-u := usecase.NewIOI(new(helloInput), new(helloOutput), func(ctx context.Context, input, output interface{}) error {
+u := usecase.NewIOI(new(helloInput), new(helloOutput), func(ctx context.Context, input, output any) error {
     var (
         in  = input.(*helloInput)
         out = output.(*helloOutput)
@@ -220,7 +220,7 @@ u.SetTitle("Greeter")
 u.SetDescription("Greeter greets you.")
 u.Input = new(helloInput)
 u.Output = new(helloOutput)
-u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+u.Interactor = usecase.Interact(func(ctx context.Context, input, output any) error {
     // Do something about input to prepare output.
     return nil
 })

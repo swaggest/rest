@@ -25,7 +25,7 @@ func TestEncoderMiddleware(t *testing.T) {
 	}
 
 	u.Output = new(outputPort)
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+	u.Interactor = usecase.Interact(func(ctx context.Context, input, output any) error {
 		output.(*outputPort).Name = "Jane"
 		output.(*outputPort).Items = []string{"one", "two", "three"}
 

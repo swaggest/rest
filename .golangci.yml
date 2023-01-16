@@ -12,6 +12,8 @@ linters-settings:
     threshold: 100
   misspell:
     locale: US
+  nlreturn:
+    block-size: 2
   unused:
     check-exported: false
   unparam:

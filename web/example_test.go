@@ -21,7 +21,7 @@ type album struct {
 }
 
 func postAlbums() usecase.Interactor {
-	u := usecase.NewIOI(new(album), new(album), func(ctx context.Context, input, output interface{}) error {
+	u := usecase.NewIOI(new(album), new(album), func(ctx context.Context, input, output any) error {
 		log.Println("Creating album")
 
 		return nil
@@ -54,6 +54,7 @@ func ExampleDefaultService() {
 
 	log.Println("Starting service at http://localhost:8080")
 
+	//#nosec:G114
 	if err := http.ListenAndServe("localhost:8080", service); err != nil {
 		log.Fatal(err)
 	}

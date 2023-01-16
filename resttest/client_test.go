@@ -1,7 +1,7 @@
 package resttest_test
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"sync/atomic"
@@ -16,7 +16,7 @@ func TestNewClient(t *testing.T) {
 	cnt := int64(0)
 	srv := httptest.NewServer(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		assert.Equal(t, "/foo?q=1", r.URL.String())
-		b, err := ioutil.ReadAll(r.Body)
+		b, err := io.ReadAll(r.Body)
 		assert.NoError(t, err)
 		assert.Equal(t, `{"foo":"bar"}`, string(b))
 		assert.Equal(t, "application/json", r.Header.Get("Content-Type"))

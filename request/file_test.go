@@ -3,7 +3,7 @@ package request_test
 import (
 	"bytes"
 	"context"
-	"io/ioutil"
+	"io"
 	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
@@ -60,14 +60,14 @@ func TestMapper_Decode_fileUploadTag(t *testing.T) {
 	}{}
 
 	u.Input = new(fileReqTest)
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+	u.Interactor = usecase.Interact(func(ctx context.Context, input, output any) error {
 		in, ok := input.(*fileReqTest)
 		assert.True(t, ok)
 		assert.NotNil(t, in.Upload)
 		assert.NotNil(t, in.UploadHeader)
 		assert.Equal(t, "my.csv", in.UploadHeader.Filename)
 		assert.Equal(t, int64(6), in.UploadHeader.Size)
-		content, err := ioutil.ReadAll(in.Upload)
+		content, err := io.ReadAll(in.Upload)
 		assert.NoError(t, err)
 		assert.NoError(t, in.Upload.Close())
 		assert.Equal(t, "Hello!", string(content))
@@ -79,12 +79,12 @@ func TestMapper_Decode_fileUploadTag(t *testing.T) {
 		assert.Equal(t, "my2.csv", in.UploadsHeaders[1].Filename)
 		assert.Equal(t, int64(7), in.UploadsHeaders[1].Size)
 
-		content, err = ioutil.ReadAll(in.Uploads[0])
+		content, err = io.ReadAll(in.Uploads[0])
 		assert.NoError(t, err)
 		assert.NoError(t, in.Uploads[0].Close())
 		assert.Equal(t, "Hello1!", string(content))
 
-		content, err = ioutil.ReadAll(in.Uploads[1])
+		content, err = io.ReadAll(in.Uploads[1])
 		assert.NoError(t, err)
 		assert.NoError(t, in.Uploads[1].Close())
 		assert.Equal(t, "Hello2!", string(content))

@@ -16,7 +16,7 @@ type ErrWithHTTPStatus interface {
 // ErrWithFields exposes structured context of error.
 type ErrWithFields interface {
 	error
-	Fields() map[string]interface{}
+	Fields() map[string]any
 }
 
 // ErrWithAppCode exposes application error code.
@@ -81,10 +81,10 @@ func Err(err error) (int, ErrResponse) {
 
 // ErrResponse is HTTP error response body.
 type ErrResponse struct {
-	StatusText string                 `json:"status,omitempty" description:"Status text."`
-	AppCode    int                    `json:"code,omitempty" description:"Application-specific error code."`
-	ErrorText  string                 `json:"error,omitempty" description:"Error message."`
-	Context    map[string]interface{} `json:"context,omitempty" description:"Application context."`
+	StatusText string         `json:"status,omitempty"  description:"Status text."`
+	AppCode    int            `json:"code,omitempty"    description:"Application-specific error code."`
+	ErrorText  string         `json:"error,omitempty"   description:"Error message."`
+	Context    map[string]any `json:"context,omitempty" description:"Application context."`
 
 	err            error // Original error.
 	httpStatusCode int   // HTTP response status code.

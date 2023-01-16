@@ -3,6 +3,7 @@
 package main
 
 import (
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -41,7 +42,7 @@ func Test_outputHeaders(t *testing.T) {
 
 	assert.Equal(t, resp.StatusCode, http.StatusOK)
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	assert.NoError(t, err)
 	assert.NoError(t, resp.Body.Close())
 

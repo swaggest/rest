@@ -17,7 +17,7 @@ func reqRespMapping() usecase.Interactor {
 		Val2 int    `json:"-" description:"Simple scalar value with sample validation." required:"true" minimum:"3"`
 	}
 
-	u := usecase.NewIOI(new(inputPort), new(outputPort), func(ctx context.Context, input, output interface{}) (err error) {
+	u := usecase.NewIOI(new(inputPort), new(outputPort), func(ctx context.Context, input, output any) (err error) {
 		var (
 			in  = input.(*inputPort)
 			out = output.(*outputPort)

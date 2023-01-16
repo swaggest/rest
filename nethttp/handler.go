@@ -64,6 +64,9 @@ type Handler struct {
 
 	useCase usecase.Interactor
 
+	// useCaseInteractorHooks run before and after the Interactor is executed.
+	useCaseInteractorHooks []UseCaseHook
+
 	inputBufferType reflect.Type
 	inputIsPtr      bool
 
@@ -82,7 +85,7 @@ func (h *Handler) SetRequestDecoder(requestDecoder RequestDecoder) {
 	h.requestDecoder = requestDecoder
 }
 
-func (h *Handler) decodeRequest(r *http.Request) (interface{}, error) {
+func (h *Handler) decodeRequest(r *http.Request) (any, error) {
 	if h.requestDecoder == nil {
 		panic("request decoder is not initialized, please use SetRequestDecoder")
 	}
@@ -100,7 +103,7 @@ func (h *Handler) decodeRequest(r *http.Request) (interface{}, error) {
 // ServeHTTP serves http inputPort with use case interactor.
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var (
-		input, output interface{}
+		input, output any
 		err           error
 	)
 
@@ -119,26 +122,44 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		if err != nil {
 			h.handleDecodeError(w, r, err, input, output)
-
 			return
 		}
 	}
 
-	err = h.useCase.Interact(r.Context(), input, output)
-
-	if err != nil {
+	// pre interactor hooks
+	if err := h.executeHooks(r.Context(), input, output, true); err != nil {
 		h.handleErrResponse(w, r, err)
+		return
+	}
 
+	if err = h.useCase.Interact(r.Context(), input, output); err != nil {
+		h.handleErrResponse(w, r, err)
+		return
+	}
+
+	// post interactor hooks
+	if err := h.executeHooks(r.Context(), input, output, false); err != nil {
+		h.handleErrResponse(w, r, err)
 		return
 	}
 
 	h.responseEncoder.WriteSuccessfulResponse(w, r, output, h.HandlerTrait)
 }
 
+func (h *Handler) executeHooks(ctx context.Context, input, output any, beforeInteract bool) error {
+	for _, hook := range h.useCaseInteractorHooks {
+		if err := hook(ctx, input, output, beforeInteract); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func (h *Handler) handleErrResponseDefault(w http.ResponseWriter, r *http.Request, err error) {
 	var (
 		code int
-		er   interface{}
+		er   any
 	)
 
 	if h.MakeErrResp != nil {
@@ -168,7 +189,7 @@ func closeMultipartForm(r *http.Request) {
 
 type decodeErrCtxKey struct{}
 
-func (h *Handler) handleDecodeError(w http.ResponseWriter, r *http.Request, err error, input, output interface{}) {
+func (h *Handler) handleDecodeError(w http.ResponseWriter, r *http.Request, err error, input, output any) {
 	err = status.Wrap(err, status.InvalidArgument)
 
 	if h.failingUseCase != nil {
@@ -198,7 +219,7 @@ func (h *Handler) setupInputBuffer() {
 func (h *Handler) setupOutputBuffer() {
 	var (
 		withOutput usecase.HasOutputPort
-		output     interface{}
+		output     any
 	)
 
 	if usecase.As(h.useCase, &withOutput) && reflect.TypeOf(withOutput.OutputPort()) != nil {
@@ -243,18 +264,26 @@ func HandlerWithRouteMiddleware(method, pathPattern string) func(http.Handler) h
 
 // RequestDecoder maps data from http.Request into structured Go input value.
 type RequestDecoder interface {
-	Decode(r *http.Request, input interface{}, validator rest.Validator) error
+	Decode(r *http.Request, input any, validator rest.Validator) error
 }
 
 // ResponseEncoder writes data from use case output/error into http.ResponseWriter.
 type ResponseEncoder interface {
-	WriteErrResponse(w http.ResponseWriter, r *http.Request, statusCode int, response interface{})
+	WriteErrResponse(w http.ResponseWriter, r *http.Request, statusCode int, response any)
 	WriteSuccessfulResponse(
 		w http.ResponseWriter,
 		r *http.Request,
-		output interface{},
+		output any,
 		ht rest.HandlerTrait,
 	)
-	SetupOutput(output interface{}, ht *rest.HandlerTrait)
-	MakeOutput(w http.ResponseWriter, ht rest.HandlerTrait) interface{}
+	SetupOutput(output any, ht *rest.HandlerTrait)
+	MakeOutput(w http.ResponseWriter, ht rest.HandlerTrait) any
+}
+
+// UseCaseHook is a function that runs around the usecase interact execution.
+type UseCaseHook func(ctx context.Context, input, output any, beforeInteract bool) error
+
+// SetUseCaseInteractorHooks sets usecase interactor hooks.
+func (h *Handler) SetUseCaseInteractorHooks(hooks ...UseCaseHook) {
+	h.useCaseInteractorHooks = hooks
 }

@@ -46,11 +46,11 @@ func TestWriteJSON(t *testing.T) {
 		usecase.WithOutput
 	}{}
 
-	var ur interface{} = cont
+	var ur any = cont
 
-	u.Output = new(interface{})
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
-		*output.(*interface{}) = ur
+	u.Output = new(any)
+	u.Interactor = usecase.Interact(func(ctx context.Context, input, output any) error {
+		*output.(*any) = ur
 
 		return nil
 	})

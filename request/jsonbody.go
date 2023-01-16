@@ -12,19 +12,19 @@ import (
 )
 
 var bufPool = sync.Pool{
-	New: func() interface{} {
+	New: func() any {
 		return bytes.NewBuffer(nil)
 	},
 }
 
-func readJSON(rd io.Reader, v interface{}) error {
+func readJSON(rd io.Reader, v any) error {
 	d := json.NewDecoder(rd)
 
 	return d.Decode(v)
 }
 
-func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error, tolerateFormData bool) valueDecoderFunc {
-	return func(r *http.Request, input interface{}, validator rest.Validator) error {
+func decodeJSONBody(readJSON func(rd io.Reader, v any) error, tolerateFormData bool) valueDecoderFunc {
+	return func(r *http.Request, input any, validator rest.Validator) error {
 		if r.ContentLength == 0 {
 			return ErrMissingRequestBody
 		}

@@ -26,7 +26,7 @@ func outputCSVWriter() usecase.Interactor {
 
 	u.Output = new(writerOutput)
 
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) (err error) {
+	u.Interactor = usecase.Interact(func(ctx context.Context, input, output any) (err error) {
 		out := output.(*writerOutput)
 
 		out.Header = "abc"
