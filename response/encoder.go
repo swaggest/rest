@@ -171,8 +171,7 @@ func (h *Encoder) writeJSONResponse(
 	if ht.RespValidator != nil {
 		err = ht.RespValidator.ValidateJSONBody(e.buf.Bytes())
 		if err != nil {
-			code, er := rest.Err(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal))
-			h.WriteErrResponse(w, r, code, er)
+			h.writeError(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal), w, r, ht)
 
 			return
 		}
@@ -273,6 +272,16 @@ func (h *Encoder) WriteSuccessfulResponse(
 	h.writeJSONResponse(w, r, output, ht)
 }
 
+func (h *Encoder) writeError(err error, w http.ResponseWriter, r *http.Request, ht rest.HandlerTrait) {
+	if ht.MakeErrResp != nil {
+		code, er := ht.MakeErrResp(r.Context(), err)
+		h.WriteErrResponse(w, r, code, er)
+	} else {
+		code, er := rest.Err(err)
+		h.WriteErrResponse(w, r, code, er)
+	}
+}
+
 func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output interface{}, ht rest.HandlerTrait) bool {
 	var headerValues map[string]interface{}
 	if ht.RespValidator != nil {
@@ -281,8 +290,7 @@ func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output int
 
 	headers, err := h.outputHeadersEncoder.Encode(output, headerValues)
 	if err != nil {
-		code, er := rest.Err(err)
-		h.WriteErrResponse(w, r, code, er)
+		h.writeError(err, w, r, ht)
 
 		return false
 	}
@@ -290,8 +298,7 @@ func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output int
 	if ht.RespValidator != nil {
 		err = ht.RespValidator.ValidateData(rest.ParamInHeader, headerValues)
 		if err != nil {
-			code, er := rest.Err(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal))
-			h.WriteErrResponse(w, r, code, er)
+			h.writeError(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal), w, r, ht)
 
 			return false
 		}
