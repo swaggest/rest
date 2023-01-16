@@ -1,11 +1,16 @@
 package main
 
 import (
+	"bytes"
+	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/bool64/httptestbench"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+	"github.com/swaggest/assertjson"
 	"github.com/valyala/fasthttp"
 )
 
@@ -42,5 +47,84 @@ func Benchmark_noValidation(b *testing.B) {
 		req.SetBody([]byte(`{"data":{"value":"abc"}}`))
 	}, func(i int, resp *fasthttp.Response) bool {
 		return resp.StatusCode() == http.StatusOK
+	})
+}
+
+func TestNewRouter_validation(t *testing.T) {
+	r := NewRouter()
+
+	t.Run("invalid_request_headers", func(t *testing.T) {
+		// Invalid response header.
+		req, err := http.NewRequest(http.MethodPost, "/validation",
+			bytes.NewReader([]byte(`{"data":{"value":"valid"}}`)))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Input", "5")
+
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		assert.Equal(t, "application/json; charset=utf-8", rw.Header().Get("Content-Type"))
+		assertjson.EqualMarshal(t, []byte(`{
+		  "msg":"invalid argument: validation failed",
+		  "details":{"header:X-Input":["#: must be \u003e= 10/1 but found 5"]}
+		}`), json.RawMessage(rw.Body.Bytes()))
+	})
+
+	t.Run("invalid_request_body", func(t *testing.T) {
+		// Invalid response header.
+		req, err := http.NewRequest(http.MethodPost, "/validation",
+			bytes.NewReader([]byte(`{"data":{"value":"a"}}`)))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Input", "15")
+
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusBadRequest, rw.Code)
+		assert.Equal(t, "application/json; charset=utf-8", rw.Header().Get("Content-Type"))
+		assertjson.EqualMarshal(t, []byte(`{
+		  "msg":"invalid argument: validation failed",
+		  "details":{"body":["#/data/value: length must be \u003e= 3, but got 1"]}
+		}`), json.RawMessage(rw.Body.Bytes()))
+	})
+
+	t.Run("invalid_response_headers", func(t *testing.T) {
+		// Invalid response header.
+		req, err := http.NewRequest(http.MethodPost, "/validation",
+			bytes.NewReader([]byte(`{"data":{"value":"foo"}}`)))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Input", "45")
+
+		rw := httptest.NewRecorder()
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rw.Code)
+		assert.Equal(t, "application/json; charset=utf-8", rw.Header().Get("Content-Type"))
+		assertjson.EqualMarshal(t, []byte(`{
+		  "msg":"internal: bad response: validation failed",
+		  "details":{"header:X-Output":["#: must be \u003c= 20/1 but found 45"]}
+		}`), json.RawMessage(rw.Body.Bytes()))
+	})
+
+	t.Run("invalid_response_body", func(t *testing.T) {
+		rw := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodPost, "/validation",
+			bytes.NewReader([]byte(`{"data":{"value":"toooo long"}}`)))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Input", "15")
+
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusInternalServerError, rw.Code)
+		assert.Equal(t, "application/json; charset=utf-8", rw.Header().Get("Content-Type"))
+		assertjson.EqualMarshal(t, []byte(`{
+		  "msg":"internal: bad response: validation failed",
+		  "details":{"body":["#/data/value: length must be \u003c= 7, but got 10"]}
+		}`), json.RawMessage(rw.Body.Bytes()))
 	})
 }
