@@ -101,6 +101,26 @@
         "x-forbid-unknown-query":true
       }
     },
+    "/form":{
+      "post":{
+        "summary":"Request With Form",
+        "description":"The `form` field tag acts as `query` and `formData`, with priority on `formData`.\n\nIt is decoded with `http.Request.Form` values.",
+        "operationId":"_examples/advanced-generic.form",
+        "parameters":[
+          {"name":"id","in":"query","schema":{"type":"integer"}},
+          {"name":"name","in":"query","schema":{"type":"string"}}
+        ],
+        "requestBody":{
+          "content":{"application/x-www-form-urlencoded":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedForm"}}}
+        },
+        "responses":{
+          "200":{
+            "description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutput"}}}
+          }
+        },
+        "x-forbid-unknown-query":true
+      }
+    },
     "/gzip-pass-through":{
       "get":{
         "summary":"Direct Gzip","operationId":"_examples/advanced-generic.directGzip",
@@ -587,6 +607,7 @@
       },
       "AdvancedJsonSliceReq":{"type":"array","items":{"type":"integer"}},
       "AdvancedOkResp":{"type":"object","properties":{"status":{"type":"string"}}},
+      "AdvancedOutput":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}}},
       "AdvancedOutputPortType2":{
         "required":["data"],"type":"object",
         "properties":{"data":{"type":"object","properties":{"value":{"maxLength":7,"type":"string"}}}}
@@ -625,6 +646,7 @@
           "name":{"minLength":3,"type":"string"}
         }
       },
+      "FormDataAdvancedForm":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "FormDataAdvancedInputPort":{
         "required":["val2"],"type":"object",
         "properties":{"val2":{"minimum":3,"type":"integer","description":"Simple scalar value with sample validation."}},

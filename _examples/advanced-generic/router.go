@@ -120,6 +120,7 @@ func NewRouter() http.Handler {
 	})
 
 	s.Get("/query-object", queryObject())
+	s.Post("/form", form())
 
 	s.Post("/file-upload", fileUploader())
 	s.Post("/file-multi-upload", fileMultiUploader())

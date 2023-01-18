@@ -125,6 +125,19 @@ func queryToURLValues(r *http.Request) (url.Values, error) {
 	return r.URL.Query(), nil
 }
 
+func formToURLValues(r *http.Request) (url.Values, error) {
+	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+		err := r.ParseMultipartForm(defaultMaxMemory)
+		if err != nil {
+			return nil, err
+		}
+	} else if err := r.ParseForm(); err != nil {
+		return nil, err
+	}
+
+	return r.Form, nil
+}
+
 func cookiesToURLValues(r *http.Request) (url.Values, error) {
 	cookies := r.Cookies()
 	params := make(url.Values, len(cookies))
