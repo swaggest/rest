@@ -33,11 +33,11 @@ type noContent interface {
 
 // DefaultSuccessResponseContentType is a package-level variable set to
 // default success response content type.
-var DefaultSuccessResponseContentType string = "application/json; charset=utf-8"
+var DefaultSuccessResponseContentType = "application/json; charset=utf-8"
 
 // DefaultErrorResponseContentType is a package-level variable set to
 // default error response content type.
-var DefaultErrorResponseContentType string = "application/json; charset=utf-8"
+var DefaultErrorResponseContentType = "application/json; charset=utf-8"
 
 // addressable makes a pointer from a non-pointer values.
 func addressable(output interface{}) interface{} {
