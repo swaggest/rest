@@ -31,6 +31,14 @@ type noContent interface {
 	NoContent() bool
 }
 
+// DefaultSuccessResponseContentType is a package-level variable set to
+// default success response content type.
+var DefaultSuccessResponseContentType = "application/json; charset=utf-8"
+
+// DefaultErrorResponseContentType is a package-level variable set to
+// default error response content type.
+var DefaultErrorResponseContentType = "application/json; charset=utf-8"
+
 // addressable makes a pointer from a non-pointer values.
 func addressable(output interface{}) interface{} {
 	if reflect.ValueOf(output).Kind() != reflect.Ptr {
@@ -140,7 +148,7 @@ func (h *Encoder) writeJSONResponse(
 	ht rest.HandlerTrait,
 ) {
 	if ht.SuccessContentType == "" {
-		ht.SuccessContentType = "application/json; charset=utf-8"
+		ht.SuccessContentType = DefaultSuccessResponseContentType
 	}
 
 	if jw, ok := v.(rest.JSONWriterTo); ok {
@@ -195,7 +203,7 @@ func (h *Encoder) writeJSONResponse(
 
 // WriteErrResponse encodes and writes error to response.
 func (h *Encoder) WriteErrResponse(w http.ResponseWriter, r *http.Request, statusCode int, response interface{}) {
-	contentType := "application/json; charset=utf-8"
+	contentType := DefaultErrorResponseContentType
 
 	e := jsonEncoderPool.Get().(*jsonEncoder) //nolint:errcheck
 
