@@ -68,6 +68,7 @@ Input data can be located in:
 * `path` parameter in request URI, e.g. `/users/{name}`,
 * `query` parameter in request URI, e.g. `/users?locale=en-US`,
 * `formData` parameter in request body with `application/x-www-form-urlencoded` or `multipart/form-data` content,
+* `form` parameter acts as `formData` or `query`,
 * `json` parameter in request body with `application/json` content,
 * `cookie` parameter in request cookie,
 * `header` parameter in request header.

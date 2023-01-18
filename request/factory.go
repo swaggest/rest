@@ -56,6 +56,7 @@ func NewDecoderFactory() *DecoderFactory {
 	df.SetDecoderFunc(rest.ParamInFormData, formDataToURLValues)
 	df.SetDecoderFunc(rest.ParamInHeader, headerToURLValues)
 	df.SetDecoderFunc(rest.ParamInQuery, queryToURLValues)
+	df.SetDecoderFunc("form", formToURLValues)
 
 	defaultValDecoder := form.NewDecoder()
 	defaultValDecoder.RegisterTagNameFunc(func(field reflect.StructField) string {
