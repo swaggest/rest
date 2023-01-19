@@ -6,6 +6,7 @@ import (
 	"compress/gzip"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 	"sync"
@@ -26,9 +27,9 @@ const (
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w = maybeGzipResponseWriter(w, r)
-		if grw, ok := w.(*gzipResponseWriter); ok {
+		if closer, ok := w.(io.Closer); ok {
 			defer func() {
-				err := grw.Close()
+				err := closer.Close()
 				if err != nil {
 					panic(fmt.Sprintf("BUG: cannot close gzip writer: %s", err))
 				}
@@ -89,6 +90,17 @@ func maybeGzipResponseWriter(w http.ResponseWriter, r *http.Request) http.Respon
 		return w
 	}
 
+	if hj, ok := w.(http.Hijacker); ok {
+		zrw := &gzipResponseWriterHijacker{
+			gzipResponseWriter: gzipResponseWriter{
+				ResponseWriter: w,
+			},
+			hijacker: hj,
+		}
+
+		return zrw
+	}
+
 	zrw := &gzipResponseWriter{
 		ResponseWriter: w,
 	}
@@ -106,7 +118,27 @@ type gzipResponseWriter struct {
 	disableCompression    bool
 }
 
-var _ gz.Writer = &gzipResponseWriter{}
+type gzipResponseWriterHijacker struct {
+	gzipResponseWriter
+	hijacker http.Hijacker
+}
+
+func (rw *gzipResponseWriterHijacker) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return rw.hijacker.Hijack()
+}
+
+var (
+	_ gz.Writer = &gzipResponseWriter{}
+	_ gz.Writer = &gzipResponseWriterHijacker{}
+
+	_ http.ResponseWriter = &gzipResponseWriter{}
+	_ http.ResponseWriter = &gzipResponseWriterHijacker{}
+
+	_ http.Flusher = &gzipResponseWriter{}
+	_ http.Flusher = &gzipResponseWriterHijacker{}
+
+	_ http.Hijacker = &gzipResponseWriterHijacker{}
+)
 
 func (rw *gzipResponseWriter) GzipWrite(data []byte) (int, error) {
 	if rw.headersWritten {
