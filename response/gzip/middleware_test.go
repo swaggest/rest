@@ -3,7 +3,6 @@ package gzip_test
 import (
 	"bytes"
 	gz "compress/gzip"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -272,7 +271,7 @@ func TestMiddleware_hijacker(t *testing.T) {
 	resp, err := http.DefaultTransport.RoundTrip(r)
 	require.NoError(t, err)
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 
 	require.NoError(t, resp.Body.Close())
