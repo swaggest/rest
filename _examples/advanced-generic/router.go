@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"errors"
+	"log"
 	"net/http"
 	"reflect"
 	"strings"
@@ -20,6 +21,7 @@ import (
 	"github.com/swaggest/rest/response/gzip"
 	"github.com/swaggest/rest/web"
 	swgui "github.com/swaggest/swgui/v4emb"
+	"github.com/swaggest/usecase"
 )
 
 func NewRouter() http.Handler {
@@ -31,6 +33,27 @@ func NewRouter() http.Handler {
 	s.OpenAPICollector.Reflector().InterceptDefName(func(t reflect.Type, defaultDefName string) string {
 		return strings.ReplaceAll(defaultDefName, "Generic", "")
 	})
+
+	// Usecase middlewares can be added to web.Service or chirouter.Wrapper.
+	s.Wrap(nethttp.UseCaseMiddlewares(usecase.MiddlewareFunc(func(next usecase.Interactor) usecase.Interactor {
+		var (
+			hasName usecase.HasName
+			name    = "unknown"
+		)
+
+		if usecase.As(next, &hasName) {
+			name = hasName.Name()
+		}
+
+		return usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+			err := next.Interact(ctx, input, output)
+			if err != nil {
+				log.Printf("usecase %s request (%v) failed: %v\n", name, input, err)
+			}
+
+			return err
+		})
+	})))
 
 	// An example of global schema override to disable additionalProperties for all object schemas.
 	s.OpenAPICollector.Reflector().DefaultOptions = append(s.OpenAPICollector.Reflector().DefaultOptions, func(rc *jsonschema.ReflectContext) {

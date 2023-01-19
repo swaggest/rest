@@ -249,3 +249,34 @@ func gzipDecode(t *testing.T, data []byte) []byte {
 
 	return j
 }
+
+func TestMiddleware_hijacker(t *testing.T) {
+	rb := []byte(strings.Repeat("A", 10000) + "!!!")
+	h := gzip.Middleware(http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+		_, ok := rw.(http.Hijacker)
+		require.True(t, ok)
+
+		_, err := rw.Write(rb)
+		assert.NoError(t, err)
+	}))
+
+	srv := httptest.NewServer(h)
+	defer srv.Close()
+
+	r, err := http.NewRequest(http.MethodGet, srv.URL+"/", nil)
+
+	require.NoError(t, err)
+	r.Header.Set("Accept-Encoding", "gzip, deflate, br")
+
+	resp, err := http.DefaultTransport.RoundTrip(r)
+	require.NoError(t, err)
+
+	body, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, err)
+
+	require.NoError(t, resp.Body.Close())
+
+	assert.Equal(t, "gzip", resp.Header.Get("Content-Encoding"))
+	assert.Less(t, len(body), len(rb)) // Response is compressed.
+	assert.Equal(t, rb, gzipDecode(t, body))
+}
