@@ -61,7 +61,7 @@ func TestEncoder_SetupOutput(t *testing.T) {
 		ErrorText: "failed",
 	})
 	assert.Equal(t, http.StatusExpectationFailed, w.Code)
-	assert.Equal(t, "application/json; charset=utf-8", w.Header().Get("Content-Type"))
+	assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 	assert.Equal(t, "19", w.Header().Get("Content-Length"))
 	assert.Equal(t, `{"error":"failed"}`+"\n", w.Body.String())
 
@@ -70,7 +70,7 @@ func TestEncoder_SetupOutput(t *testing.T) {
 	e.WriteSuccessfulResponse(w, r, output, ht)
 	assert.Equal(t, http.StatusInternalServerError, w.Code)
 	assert.Equal(t, "", w.Header().Get("X-Name"))
-	assert.Equal(t, "application/json; charset=utf-8", w.Header().Get("Content-Type"))
+	assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 	assert.Equal(t, "140", w.Header().Get("Content-Length"))
 	assert.Equal(t, `{"status":"INTERNAL","error":"internal: bad response: validation failed",`+
 		`"context":{"header:X-Name":["#: length must be >= 3, but got 2"]}}`+"\n", w.Body.String())
