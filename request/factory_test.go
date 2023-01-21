@@ -212,6 +212,7 @@ func TestDecoderFactory_MakeDecoder_customMapping(t *testing.T) {
 
 func TestDecoderFactory_MakeDecoder_header_case_sensitivity(t *testing.T) {
 	df := request.NewDecoderFactory()
+
 	type input struct {
 		A string `header:"x-one-two-three" required:"true"`
 		B string `header:"X-One-Two-Three"`
@@ -230,6 +231,7 @@ func TestDecoderFactory_MakeDecoder_header_case_sensitivity(t *testing.T) {
 
 	require.NoError(t, d.Decode(req, &v, rest.ValidatorFunc(func(in rest.ParamIn, namedData map[string]interface{}) error {
 		fmt.Printf("%+v", namedData)
+
 		return nil
 	})))
 	assert.Equal(t, "hello!", v.A)
