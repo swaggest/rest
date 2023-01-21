@@ -174,7 +174,21 @@ func TestDecoder_Decode_required(t *testing.T) {
 		MakeRequestValidator(http.MethodPost, input, nil)
 
 	err = dec.Decode(req, input, validator)
-	assert.Equal(t, rest.ValidationErrors{"header:X-In-HeAdEr": []string{"missing value"}}, err)
+	assert.Equal(t, rest.ValidationErrors{"header:X-In-Header": []string{"missing value"}}, err)
+}
+
+func TestDecoder_Decode_required_header_case(t *testing.T) {
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost, "/", nil)
+	req.Header.Set("x-In-heAdEr", "123")
+	assert.NoError(t, err)
+
+	input := new(reqTest)
+	dec := request.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
+	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
+		MakeRequestValidator(http.MethodPost, input, nil)
+
+	err = dec.Decode(req, input, validator)
+	assert.NoError(t, err)
 }
 
 func TestDecoder_Decode_json(t *testing.T) {

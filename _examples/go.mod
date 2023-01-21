@@ -14,11 +14,11 @@ require (
 	github.com/rs/cors v1.8.2
 	github.com/stretchr/testify v1.8.1
 	github.com/swaggest/assertjson v1.7.0
-	github.com/swaggest/jsonschema-go v0.3.45
+	github.com/swaggest/jsonschema-go v0.3.47
 	github.com/swaggest/openapi-go v0.2.28
 	github.com/swaggest/swgui v1.5.1
 	github.com/swaggest/usecase v1.2.0
-	github.com/valyala/fasthttp v1.41.0
+	github.com/valyala/fasthttp v1.44.0
 )
 
 require (
@@ -33,7 +33,7 @@ require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
-	github.com/klauspost/compress v1.15.12 // indirect
+	github.com/klauspost/compress v1.15.14 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v3 v3.1.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
