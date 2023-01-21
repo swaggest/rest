@@ -65,7 +65,7 @@ func TestNewRouter_validation(t *testing.T) {
 		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
-		assert.Equal(t, "application/json; charset=utf-8", rw.Header().Get("Content-Type"))
+		assert.Equal(t, "application/json", rw.Header().Get("Content-Type"))
 		assertjson.EqualMarshal(t, []byte(`{
 		  "msg":"invalid argument: validation failed",
 		  "details":{"header:X-Input":["#: must be \u003e= 10/1 but found 5"]}
@@ -84,7 +84,7 @@ func TestNewRouter_validation(t *testing.T) {
 		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
-		assert.Equal(t, "application/json; charset=utf-8", rw.Header().Get("Content-Type"))
+		assert.Equal(t, "application/json", rw.Header().Get("Content-Type"))
 		assertjson.EqualMarshal(t, []byte(`{
 		  "msg":"invalid argument: validation failed",
 		  "details":{"body":["#/data/value: length must be \u003e= 3, but got 1"]}
@@ -103,7 +103,7 @@ func TestNewRouter_validation(t *testing.T) {
 		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
-		assert.Equal(t, "application/json; charset=utf-8", rw.Header().Get("Content-Type"))
+		assert.Equal(t, "application/json", rw.Header().Get("Content-Type"))
 		assertjson.EqualMarshal(t, []byte(`{
 		  "msg":"internal: bad response: validation failed",
 		  "details":{"header:X-Output":["#: must be \u003c= 20/1 but found 45"]}
@@ -121,7 +121,7 @@ func TestNewRouter_validation(t *testing.T) {
 		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
-		assert.Equal(t, "application/json; charset=utf-8", rw.Header().Get("Content-Type"))
+		assert.Equal(t, "application/json", rw.Header().Get("Content-Type"))
 		assertjson.EqualMarshal(t, []byte(`{
 		  "msg":"internal: bad response: validation failed",
 		  "details":{"body":["#/data/value: length must be \u003c= 7, but got 10"]}

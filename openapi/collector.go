@@ -546,7 +546,7 @@ func (c *Collector) ServeHTTP(rw http.ResponseWriter, _ *http.Request) {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 	}
 
-	rw.Header().Set("Content-Type", "application/json; charset=utf8")
+	rw.Header().Set("Content-Type", "application/json")
 
 	_, err = rw.Write(document)
 	if err != nil {
