@@ -2,6 +2,7 @@ package request_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
@@ -207,4 +208,34 @@ func TestDecoderFactory_MakeDecoder_customMapping(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "bar", i.Name)
 	assert.Equal(t, 321, i.ID)
+}
+
+func TestDecoderFactory_MakeDecoder_header_case_sensitivity(t *testing.T) {
+	df := request.NewDecoderFactory()
+
+	type input struct {
+		A string `header:"x-one-two-three" required:"true"`
+		B string `header:"X-One-Two-Three"`
+		C string `header:"X-One-two-three"`
+		D string `header:"x-one-two-three"`
+	}
+
+	d := df.MakeDecoder(http.MethodGet, input{}, nil)
+
+	var v input
+
+	req, err := http.NewRequest(http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	req.Header.Set("x-One-Two-threE", "hello!")
+
+	require.NoError(t, d.Decode(req, &v, rest.ValidatorFunc(func(in rest.ParamIn, namedData map[string]interface{}) error {
+		fmt.Printf("%+v", namedData)
+
+		return nil
+	})))
+	assert.Equal(t, "hello!", v.A)
+	assert.Equal(t, "hello!", v.B)
+	assert.Equal(t, "hello!", v.C)
+	assert.Equal(t, "hello!", v.D)
 }

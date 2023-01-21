@@ -1,6 +1,6 @@
 # REST with Clean Architecture for Go
 
-[![Build Status](https://github.com/swaggest/rest/workflows/test/badge.svg)](https://github.com/swaggest/rest/actions?query=branch%3Amaster+workflow%3Atest)
+[![Build Status](https://github.com/swaggest/rest/workflows/test-unit/badge.svg)](https://github.com/swaggest/rest/actions?query=branch%3Amaster+workflow%3Atest-unit)
 [![Coverage Status](https://codecov.io/gh/swaggest/rest/branch/master/graph/badge.svg)](https://codecov.io/gh/swaggest/rest)
 [![GoDevDoc](https://img.shields.io/badge/dev-doc-00ADD8?logo=go)](https://pkg.go.dev/github.com/swaggest/rest)
 [![Time Tracker](https://wakatime.com/badge/github/swaggest/rest.svg)](https://wakatime.com/badge/github/swaggest/rest)

@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 
 	"github.com/santhosh-tekuri/jsonschema/v3"
 	"github.com/swaggest/rest"
@@ -113,6 +114,10 @@ func (v *Validator) AddSchema(in rest.ParamIn, name string, jsonSchema []byte, r
 	}
 
 	if required {
+		if in == rest.ParamInHeader {
+			name = http.CanonicalHeaderKey(name)
+		}
+
 		v.inRequired[in] = append(v.inRequired[in], name)
 	}
 
