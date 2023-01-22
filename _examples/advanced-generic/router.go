@@ -163,7 +163,7 @@ func NewRouter() http.Handler {
 			return nil
 		}))
 
-	s.Get("/html-response/{id}", htmlResponse())
+	s.Get("/html-response/{id}", htmlResponse(), nethttp.SuccessfulResponseContentType("text/html"))
 
 	s.Get("/output-headers", outputHeaders())
 	s.Head("/output-headers", outputHeaders())

@@ -172,7 +172,12 @@
           {"name":"id","in":"path","required":true,"schema":{"type":"integer"}},
           {"name":"X-Header","in":"header","schema":{"type":"boolean"}}
         ],
-        "responses":{"200":{"description":"OK","headers":{"X-Anti-Header":{"style":"simple","schema":{"type":"boolean"}}}}},
+        "responses":{
+          "200":{
+            "description":"OK","headers":{"X-Anti-Header":{"style":"simple","schema":{"type":"boolean"}}},
+            "content":{"text/html":{"schema":{"type":"string"}}}
+          }
+        },
         "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
       }
     },

@@ -65,7 +65,7 @@ func TestNewRouter_validation(t *testing.T) {
 		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
-		assert.Equal(t, "application/json", rw.Header().Get("Content-Type"))
+		assert.Equal(t, "application/problem+json", rw.Header().Get("Content-Type"))
 		assertjson.EqualMarshal(t, []byte(`{
 		  "msg":"invalid argument: validation failed",
 		  "details":{"header:X-Input":["#: must be \u003e= 10/1 but found 5"]}
@@ -84,7 +84,7 @@ func TestNewRouter_validation(t *testing.T) {
 		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusBadRequest, rw.Code)
-		assert.Equal(t, "application/json", rw.Header().Get("Content-Type"))
+		assert.Equal(t, "application/problem+json", rw.Header().Get("Content-Type"))
 		assertjson.EqualMarshal(t, []byte(`{
 		  "msg":"invalid argument: validation failed",
 		  "details":{"body":["#/data/value: length must be \u003e= 3, but got 1"]}
@@ -103,7 +103,7 @@ func TestNewRouter_validation(t *testing.T) {
 		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
-		assert.Equal(t, "application/json", rw.Header().Get("Content-Type"))
+		assert.Equal(t, "application/problem+json", rw.Header().Get("Content-Type"))
 		assertjson.EqualMarshal(t, []byte(`{
 		  "msg":"internal: bad response: validation failed",
 		  "details":{"header:X-Output":["#: must be \u003c= 20/1 but found 45"]}
@@ -121,10 +121,25 @@ func TestNewRouter_validation(t *testing.T) {
 		r.ServeHTTP(rw, req)
 
 		assert.Equal(t, http.StatusInternalServerError, rw.Code)
-		assert.Equal(t, "application/json", rw.Header().Get("Content-Type"))
+		assert.Equal(t, "application/problem+json", rw.Header().Get("Content-Type"))
 		assertjson.EqualMarshal(t, []byte(`{
 		  "msg":"internal: bad response: validation failed",
 		  "details":{"body":["#/data/value: length must be \u003c= 7, but got 10"]}
 		}`), json.RawMessage(rw.Body.Bytes()))
+	})
+
+	t.Run("invalid_response_body", func(t *testing.T) {
+		rw := httptest.NewRecorder()
+		req, err := http.NewRequest(http.MethodPost, "/validation",
+			bytes.NewReader([]byte(`{"data":{"value":"good"}}`)))
+		require.NoError(t, err)
+		req.Header.Set("Content-Type", "application/json")
+		req.Header.Set("X-Input", "15")
+
+		r.ServeHTTP(rw, req)
+
+		assert.Equal(t, http.StatusOK, rw.Code)
+		assert.Equal(t, "application/dummy+json", rw.Header().Get("Content-Type"))
+		assertjson.EqualMarshal(t, []byte(`{"data":{"value":"good"}}`), json.RawMessage(rw.Body.Bytes()))
 	})
 }

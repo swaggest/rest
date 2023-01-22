@@ -34,7 +34,12 @@ func DefaultService(options ...func(s *Service, initialized bool)) *Service {
 
 	// Init API documentation schema.
 	if s.OpenAPICollector == nil {
-		s.OpenAPICollector = &openapi.Collector{}
+		c := &openapi.Collector{}
+
+		c.DefaultSuccessResponseContentType = response.DefaultSuccessResponseContentType
+		c.DefaultErrorResponseContentType = response.DefaultErrorResponseContentType
+
+		s.OpenAPICollector = c
 		s.OpenAPICollector.Reflector().Spec = s.OpenAPI
 	}
 

@@ -41,12 +41,13 @@
         ],
         "responses":{
           "200":{
-            "description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOkResp"}}}
+            "description":"OK",
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedOkResp"}}}
           },
           "400":{
             "description":"Bad Request",
             "content":{
-              "application/json":{
+              "application/problem+json":{
                 "schema":{
                   "anyOf":[
                     {"$ref":"#/components/schemas/AdvancedCustomErr"},
@@ -59,7 +60,7 @@
           },
           "409":{
             "description":"Conflict",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+            "content":{"application/problem+json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
           }
         },
         "x-forbid-unknown-query":true
@@ -78,7 +79,7 @@
         "responses":{
           "200":{
             "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInfoType2"}}}
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedInfoType2"}}}
           }
         },
         "x-forbid-unknown-query":true
@@ -95,7 +96,10 @@
         ],
         "requestBody":{"content":{"multipart/form-data":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedUpload"}}}},
         "responses":{
-          "200":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInfo"}}}}
+          "200":{
+            "description":"OK",
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedInfo"}}}
+          }
         },
         "x-forbid-unknown-query":true
       }
@@ -116,7 +120,7 @@
         "responses":{
           "200":{
             "description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}},
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedGzipPassThroughStruct"}}}
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedGzipPassThroughStruct"}}}
           }
         },
         "x-forbid-unknown-query":true
@@ -136,7 +140,7 @@
         "responses":{
           "200":{
             "description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}},
-            "content":{"application/json":{}}
+            "content":{"application/dummy+json":{}}
           }
         },
         "x-forbid-unknown-query":true
@@ -164,7 +168,7 @@
         "responses":{
           "200":{
             "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType3"}}}
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType3"}}}
           }
         },
         "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
@@ -193,7 +197,7 @@
         "responses":{
           "201":{
             "description":"Created",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType2"}}}
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType2"}}}
           }
         },
         "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
@@ -217,7 +221,7 @@
         "responses":{
           "200":{
             "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonOutputType2"}}}
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonOutputType2"}}}
           }
         },
         "x-forbid-unknown-query":true
@@ -253,7 +257,7 @@
         "responses":{
           "200":{
             "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSON"}}}
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSON"}}}
           }
         },
         "x-forbid-unknown-cookie":true,"x-forbid-unknown-path":true,"x-forbid-unknown-query":true
@@ -276,7 +280,7 @@
         "responses":{
           "200":{
             "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonOutput"}}}
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonOutput"}}}
           }
         },
         "x-forbid-unknown-query":true
@@ -298,7 +302,7 @@
               "X-Output":{"style":"simple","schema":{"type":"integer"}},
               "X-Query":{"style":"simple","schema":{"type":"boolean"}}
             },
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType3"}}}
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType3"}}}
           }
         },
         "x-forbid-unknown-query":true
@@ -320,7 +324,7 @@
           },
           "500":{
             "description":"Internal Server Error",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+            "content":{"application/problem+json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
           }
         }
       }
@@ -337,7 +341,7 @@
                 "schema":{"type":"string","description":"Sample response header."}
               }
             },
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedHeaderOutput"}}}
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedHeaderOutput"}}}
           }
         }
       },
@@ -352,7 +356,7 @@
                 "schema":{"type":"string","description":"Sample response header."}
               }
             },
-            "content":{"application/json":{}}
+            "content":{"application/dummy+json":{}}
           }
         }
       }
@@ -369,7 +373,7 @@
         "responses":{
           "200":{
             "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputQueryObject"}}}
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputQueryObject"}}}
           }
         },
         "x-forbid-unknown-query":true
@@ -448,7 +452,7 @@
                 "schema":{"type":"boolean","description":"This header bypasses validation as it does not have constraints."}
               }
             },
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType2"}}}
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType2"}}}
           }
         },
         "x-forbid-unknown-query":true
