@@ -59,7 +59,7 @@ func TestEncoder_SetupOutput(t *testing.T) {
 	assert.Equal(t, []string{
 		"coo=123; Path=/foo; HttpOnly",
 		"coo2=true; Path=/foo; Max-Age=86400; HttpOnly; Secure; SameSite=Lax",
-	}, w.Header().Values("Set-Cookie"))
+	}, w.Header()["Set-Cookie"])
 	assert.Equal(t, "application/x-vnd-json", w.Header().Get("Content-Type"))
 	assert.Equal(t, "32", w.Header().Get("Content-Length"))
 	assert.Equal(t, `{"items":["one","two","three"]}`+"\n", w.Body.String())
