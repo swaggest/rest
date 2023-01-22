@@ -12,11 +12,13 @@ func outputHeaders() usecase.Interactor {
 	type headerOutput struct {
 		Header string `header:"X-Header" json:"-" description:"Sample response header."`
 		InBody string `json:"inBody" deprecated:"true"`
+		Cookie int    `cookie:"coo,httponly,path:/foo" json:"-"`
 	}
 
 	u := usecase.NewInteractor(func(ctx context.Context, _ struct{}, out *headerOutput) (err error) {
 		out.Header = "abc"
 		out.InBody = "def"
+		out.Cookie = 123
 
 		return nil
 	})
