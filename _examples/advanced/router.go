@@ -19,6 +19,9 @@ import (
 )
 
 func NewRouter() http.Handler {
+	response.DefaultErrorResponseContentType = "application/problem+json"
+	response.DefaultSuccessResponseContentType = "application/dummy+json"
+
 	s := web.DefaultService()
 
 	s.OpenAPI.Info.Title = "Advanced Example"

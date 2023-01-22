@@ -27,6 +27,14 @@ type Collector struct {
 	// of multiple responses with same HTTP status code.
 	CombineErrors string
 
+	// DefaultSuccessResponseContentType is a default success response content type.
+	// If empty, "application/json" is used.
+	DefaultSuccessResponseContentType string
+
+	// DefaultErrorResponseContentType is a default error response content type.
+	// If empty, "application/json" is used.
+	DefaultErrorResponseContentType string
+
 	gen          *openapi3.Reflector
 	annotations  map[string][]func(*openapi3.Operation) error
 	operationIDs map[string]bool
@@ -119,6 +127,7 @@ func (c *Collector) setupOutput(oc *openapi3.OperationContext, u usecase.Interac
 	var (
 		hasOutput usecase.HasOutputPort
 		status    = http.StatusOK
+		noContent bool
 	)
 
 	if usecase.As(u, &hasOutput) {
@@ -126,13 +135,19 @@ func (c *Collector) setupOutput(oc *openapi3.OperationContext, u usecase.Interac
 
 		if rest.OutputHasNoContent(oc.Output) {
 			status = http.StatusNoContent
+			noContent = true
 		}
 	} else {
 		status = http.StatusNoContent
+		noContent = true
 	}
 
 	if oc.HTTPStatus == 0 {
 		oc.HTTPStatus = status
+	}
+
+	if !noContent && oc.RespContentType == "" {
+		oc.RespContentType = c.DefaultSuccessResponseContentType
 	}
 
 	err := c.Reflector().SetupResponse(*oc)
@@ -247,6 +262,16 @@ func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor,
 	return c.processExpectedErrors(op, u, h)
 }
 
+func (c *Collector) setJSONResponse(op *openapi3.Operation, output interface{}, statusCode int) error {
+	oc := openapi3.OperationContext{}
+	oc.Operation = op
+	oc.Output = output
+	oc.HTTPStatus = statusCode
+	oc.RespContentType = c.DefaultErrorResponseContentType
+
+	return c.Reflector().SetupResponse(oc)
+}
+
 func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Interactor, h rest.HandlerTrait) error {
 	var (
 		errsByCode        = map[int][]interface{}{}
@@ -276,8 +301,7 @@ func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Inte
 
 		errsByCode[statusCode] = append(errsByCode[statusCode], errResp)
 
-		err := c.Reflector().SetJSONResponse(op, errResp, statusCode)
-		if err != nil {
+		if err := c.setJSONResponse(op, errResp, statusCode); err != nil {
 			return err
 		}
 	}
@@ -289,13 +313,13 @@ func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Inte
 		)
 
 		if len(errResps) == 1 || c.CombineErrors == "" {
-			err = c.Reflector().SetJSONResponse(op, errResps[0], statusCode)
+			err = c.setJSONResponse(op, errResps[0], statusCode)
 		} else {
 			switch c.CombineErrors {
 			case "oneOf":
-				err = c.Reflector().SetJSONResponse(op, jsonschema.OneOf(errResps...), statusCode)
+				err = c.setJSONResponse(op, jsonschema.OneOf(errResps...), statusCode)
 			case "anyOf":
-				err = c.Reflector().SetJSONResponse(op, jsonschema.AnyOf(errResps...), statusCode)
+				err = c.setJSONResponse(op, jsonschema.AnyOf(errResps...), statusCode)
 			default:
 				return errors.New("oneOf/anyOf expected for openapi.Collector.CombineErrors, " +
 					c.CombineErrors + " received")
@@ -501,6 +525,10 @@ func (c *Collector) ProvideResponseJSONSchemas(
 		Output:            output,
 		RespHeaderMapping: headerMapping,
 		RespContentType:   contentType,
+	}
+
+	if oc.RespContentType == "" {
+		oc.RespContentType = c.DefaultSuccessResponseContentType
 	}
 
 	if err := c.Reflector().SetupResponse(oc); err != nil {
