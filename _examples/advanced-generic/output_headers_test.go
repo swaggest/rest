@@ -46,5 +46,6 @@ func Test_outputHeaders(t *testing.T) {
 	assert.NoError(t, resp.Body.Close())
 
 	assert.Equal(t, "abc", resp.Header.Get("X-Header"))
+	assert.Equal(t, []string{"coo=123; HttpOnly"}, resp.Header.Values("Set-Cookie"))
 	assertjson.Equal(t, []byte(`{"inBody":"def"}`), body)
 }

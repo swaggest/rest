@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"reflect"
 	"strconv"
+	"strings"
 	"sync"
 
 	"github.com/swaggest/form/v5"
@@ -22,6 +23,8 @@ type Encoder struct {
 
 	outputBufferType     reflect.Type
 	outputHeadersEncoder *form.Encoder
+	outputCookiesEncoder *form.Encoder
+	outputCookieBase     []http.Cookie
 	skipRendering        bool
 	outputWithWriter     bool
 	unwrapInterface      bool
@@ -59,6 +62,8 @@ func (h *Encoder) setupHeadersEncoder(output interface{}, ht *rest.HandlerTrait)
 		enc.SetTagName(string(rest.ParamInHeader))
 
 		h.outputHeadersEncoder = enc
+
+		return
 	}
 
 	respHeaderMapping := ht.RespHeaderMapping
@@ -85,6 +90,61 @@ func (h *Encoder) setupHeadersEncoder(output interface{}, ht *rest.HandlerTrait)
 	}
 }
 
+func (h *Encoder) setupCookiesEncoder(output interface{}, ht *rest.HandlerTrait) {
+	// Enable dynamic headers check in interface mode.
+	if h.unwrapInterface = reflect.ValueOf(output).Elem().Kind() == reflect.Interface; h.unwrapInterface {
+		enc := form.NewEncoder()
+		enc.SetMode(form.ModeExplicit)
+		enc.SetTagName(string(rest.ParamInCookie))
+
+		h.outputCookiesEncoder = enc
+
+		return
+	}
+
+	respCookieMapping := ht.RespCookieMapping
+	if len(respCookieMapping) == 0 && refl.HasTaggedFields(output, string(rest.ParamInCookie)) {
+		respCookieMapping = make(map[string]http.Cookie)
+		h.outputCookieBase = make([]http.Cookie, 0)
+
+		refl.WalkTaggedFields(reflect.ValueOf(output), func(v reflect.Value, sf reflect.StructField, tag string) {
+			c := http.Cookie{
+				Name: tag,
+			}
+
+			options := strings.Split(sf.Tag.Get("cookie"), ",")[1:]
+			if len(options) > 0 {
+				resp := http.Response{}
+				resp.Header = make(http.Header)
+				resp.Header.Add("Set-Cookie", tag+"=x;"+strings.Join(options, ";"))
+				cc := resp.Cookies()
+				if len(cc) == 1 {
+					c = *cc[0]
+				}
+			}
+			c.Value = ""
+			c.Raw = ""
+
+			h.outputCookieBase = append(h.outputCookieBase, c)
+			respCookieMapping[sf.Name] = c
+		}, string(rest.ParamInCookie))
+	}
+
+	if len(respCookieMapping) > 0 {
+		enc := form.NewEncoder()
+		enc.SetMode(form.ModeExplicit)
+		enc.RegisterTagNameFunc(func(field reflect.StructField) string {
+			if c, ok := respCookieMapping[field.Name]; ok {
+				return c.Name
+			}
+
+			return "-"
+		})
+
+		h.outputCookiesEncoder = enc
+	}
+}
+
 // SetupOutput configures encoder with and instance of use case output.
 func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
 	h.outputBufferType = reflect.TypeOf(output)
@@ -98,6 +158,7 @@ func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
 	output = addressable(output)
 
 	h.setupHeadersEncoder(output, ht)
+	h.setupCookiesEncoder(output, ht)
 
 	if h.outputBufferType.Kind() == reflect.Ptr {
 		h.outputBufferType = h.outputBufferType.Elem()
@@ -251,7 +312,11 @@ func (h *Encoder) WriteSuccessfulResponse(
 		}
 	}
 
-	if h.outputHeadersEncoder != nil && !h.whiteHeader(w, r, output, ht) {
+	if !h.whiteHeader(w, r, output, ht) {
+		return
+	}
+
+	if !h.writeCookies(w, r, output, ht) {
 		return
 	}
 
@@ -291,12 +356,16 @@ func (h *Encoder) writeError(err error, w http.ResponseWriter, r *http.Request, 
 }
 
 func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output interface{}, ht rest.HandlerTrait) bool {
-	var headerValues map[string]interface{}
-	if ht.RespValidator != nil {
-		headerValues = make(map[string]interface{})
+	if h.outputHeadersEncoder == nil {
+		return true
 	}
 
-	headers, err := h.outputHeadersEncoder.Encode(output, headerValues)
+	var goValues map[string]interface{}
+	if ht.RespValidator != nil {
+		goValues = make(map[string]interface{})
+	}
+
+	headers, err := h.outputHeadersEncoder.Encode(output, goValues)
 	if err != nil {
 		h.writeError(err, w, r, ht)
 
@@ -304,8 +373,7 @@ func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output int
 	}
 
 	if ht.RespValidator != nil {
-		err = ht.RespValidator.ValidateData(rest.ParamInHeader, headerValues)
-		if err != nil {
+		if err := ht.RespValidator.ValidateData(rest.ParamInHeader, goValues); err != nil {
 			h.writeError(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal), w, r, ht)
 
 			return false
@@ -315,6 +383,40 @@ func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output int
 	for header, val := range headers {
 		if len(val) == 1 {
 			w.Header().Set(header, val[0])
+		}
+	}
+
+	return true
+}
+
+func (h *Encoder) writeCookies(w http.ResponseWriter, r *http.Request, output interface{}, ht rest.HandlerTrait) bool {
+	if h.outputCookiesEncoder == nil {
+		return true
+	}
+
+	cookies, err := h.outputCookiesEncoder.Encode(output, nil)
+	if err != nil {
+		h.writeError(err, w, r, ht)
+
+		return false
+	}
+
+	if h.outputCookieBase != nil {
+		for _, c := range h.outputCookieBase {
+			if val, ok := cookies[c.Name]; ok && len(val) == 1 && val[0] != "" {
+				c := c
+				c.Value = val[0]
+
+				http.SetCookie(w, &c)
+			}
+		}
+	} else {
+		for cookie, val := range cookies {
+			c := http.Cookie{}
+			c.Name = cookie
+			c.Value = val[0]
+
+			http.SetCookie(w, &c)
 		}
 	}
 

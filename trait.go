@@ -3,6 +3,7 @@ package rest
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"reflect"
 
 	"github.com/swaggest/openapi-go/openapi3"
@@ -29,6 +30,7 @@ type HandlerTrait struct {
 	ReqMapping RequestMapping
 
 	RespHeaderMapping map[string]string
+	RespCookieMapping map[string]http.Cookie
 
 	// ReqValidator validates decoded request data.
 	ReqValidator Validator

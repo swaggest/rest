@@ -17,8 +17,10 @@ func TestEncoder_SetupOutput(t *testing.T) {
 	e := response.Encoder{}
 
 	type outputPort struct {
-		Name  string   `header:"X-Name" json:"-"`
-		Items []string `json:"items"`
+		Name    string   `header:"X-Name" json:"-"`
+		Items   []string `json:"items"`
+		Cookie  int      `cookie:"coo,httponly,path=/foo" json:"-"`
+		Cookie2 bool     `cookie:"coo2,httponly,secure,samesite=lax,path=/foo,max-age=86400" json:"-"`
 	}
 
 	ht := rest.HandlerTrait{
@@ -35,7 +37,7 @@ func TestEncoder_SetupOutput(t *testing.T) {
 
 	ht.RespValidator = &validator
 
-	e.SetupOutput(new(outputPort), &ht)
+	e.SetupOutput(outputPort{}, &ht)
 
 	r, err := http.NewRequest(http.MethodGet, "/", nil)
 	require.NoError(t, err)
@@ -48,10 +50,16 @@ func TestEncoder_SetupOutput(t *testing.T) {
 
 	out.Name = "Jane"
 	out.Items = []string{"one", "two", "three"}
+	out.Cookie = 123
+	out.Cookie2 = true
 
 	e.WriteSuccessfulResponse(w, r, output, ht)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "Jane", w.Header().Get("X-Name"))
+	assert.Equal(t, []string{
+		"coo=123; Path=/foo; HttpOnly",
+		"coo2=true; Path=/foo; Max-Age=86400; HttpOnly; Secure; SameSite=Lax",
+	}, w.Header()["Set-Cookie"])
 	assert.Equal(t, "application/x-vnd-json", w.Header().Get("Content-Type"))
 	assert.Equal(t, "32", w.Header().Get("Content-Length"))
 	assert.Equal(t, `{"items":["one","two","three"]}`+"\n", w.Body.String())
