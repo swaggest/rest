@@ -146,12 +146,14 @@ Response encoder writes data from output to `http.ResponseWriter` after use case
 type helloOutput struct {
     Now     time.Time `header:"X-Now" json:"-"`
     Message string    `json:"message"`
+	Sess    string    `cookie:"sess,httponly,secure,max-age:86400,samesite:lax"`
 }
 ```
 
 Output data can be located in:
 * `json` for response body with `application/json` content,
-* `header` for values in response header.
+* `header` for values in response header,
+* `cookie` for cookie values, cookie fields can have configuration in field tag (same as in actual cookie, but with comma separation).
 
 For more explicit separation of concerns between use case and transport it is possible to provide response header mapping 
 separately when initializing handler.

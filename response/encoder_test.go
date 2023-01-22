@@ -19,7 +19,7 @@ func TestEncoder_SetupOutput(t *testing.T) {
 	type outputPort struct {
 		Name    string   `header:"X-Name" json:"-"`
 		Items   []string `json:"items"`
-		Cookie  int      `cookie:"coo,httponly,path=/foo" minimum:"123" json:"-"`
+		Cookie  int      `cookie:"coo,httponly,path=/foo" json:"-"`
 		Cookie2 bool     `cookie:"coo2,httponly,secure,samesite=lax,path=/foo,max-age=86400" json:"-"`
 	}
 

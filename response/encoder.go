@@ -312,7 +312,11 @@ func (h *Encoder) WriteSuccessfulResponse(
 		}
 	}
 
-	if (h.outputHeadersEncoder != nil || h.outputCookiesEncoder != nil) && !h.whiteHeader(w, r, output, ht) {
+	if !h.whiteHeader(w, r, output, ht) {
+		return
+	}
+
+	if !h.writeCookies(w, r, output, ht) {
 		return
 	}
 
@@ -352,73 +356,67 @@ func (h *Encoder) writeError(err error, w http.ResponseWriter, r *http.Request, 
 }
 
 func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output interface{}, ht rest.HandlerTrait) bool {
-	var goValues map[string]interface{}
+	if h.outputHeadersEncoder == nil {
+		return true
+	}
 
+	var goValues map[string]interface{}
 	if ht.RespValidator != nil {
 		goValues = make(map[string]interface{})
 	}
 
-	if h.outputHeadersEncoder != nil {
-		headers, err := h.outputHeadersEncoder.Encode(output, goValues)
-		if err != nil {
-			h.writeError(err, w, r, ht)
+	headers, err := h.outputHeadersEncoder.Encode(output, goValues)
+	if err != nil {
+		h.writeError(err, w, r, ht)
+
+		return false
+	}
+
+	if ht.RespValidator != nil {
+		if err := ht.RespValidator.ValidateData(rest.ParamInHeader, goValues); err != nil {
+			h.writeError(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal), w, r, ht)
 
 			return false
-		}
-
-		if ht.RespValidator != nil {
-			err := ht.RespValidator.ValidateData(rest.ParamInHeader, goValues)
-			if err != nil {
-				h.writeError(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal), w, r, ht)
-
-				return false
-			}
-		}
-
-		for header, val := range headers {
-			if len(val) == 1 {
-				w.Header().Set(header, val[0])
-			}
 		}
 	}
 
-	if h.outputCookiesEncoder != nil {
-		for k := range goValues {
-			delete(goValues, k)
+	for header, val := range headers {
+		if len(val) == 1 {
+			w.Header().Set(header, val[0])
 		}
+	}
 
-		cookies, err := h.outputCookiesEncoder.Encode(output, goValues)
-		if err != nil {
-			h.writeError(err, w, r, ht)
+	return true
+}
 
-			return false
-		}
+func (h *Encoder) writeCookies(w http.ResponseWriter, r *http.Request, output interface{}, ht rest.HandlerTrait) bool {
+	if h.outputCookiesEncoder == nil {
+		return true
+	}
 
-		if ht.RespValidator != nil {
-			err := ht.RespValidator.ValidateData(rest.ParamInCookie, goValues)
-			if err != nil {
-				h.writeError(status.Wrap(fmt.Errorf("bad response: %w", err), status.Internal), w, r, ht)
+	cookies, err := h.outputCookiesEncoder.Encode(output, nil)
+	if err != nil {
+		h.writeError(err, w, r, ht)
 
-				return false
-			}
-		}
+		return false
+	}
 
-		if h.outputCookieBase != nil {
-			for _, c := range h.outputCookieBase {
-				if val, ok := cookies[c.Name]; ok {
-					c.Value = val[0]
-
-					http.SetCookie(w, &c)
-				}
-			}
-		} else {
-			for cookie, val := range cookies {
-				c := http.Cookie{}
-				c.Name = cookie
+	if h.outputCookieBase != nil {
+		for _, c := range h.outputCookieBase {
+			if val, ok := cookies[c.Name]; ok && len(val) == 1 && val[0] != "" {
+				c := c
 				c.Value = val[0]
 
 				http.SetCookie(w, &c)
 			}
+		}
+	} else {
+		for cookie, val := range cookies {
+			c := http.Cookie{}
+			c.Name = cookie
+			c.Value = val[0]
+
+			http.SetCookie(w, &c)
 		}
 	}
 
