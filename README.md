@@ -146,7 +146,7 @@ Response encoder writes data from output to `http.ResponseWriter` after use case
 type helloOutput struct {
     Now     time.Time `header:"X-Now" json:"-"`
     Message string    `json:"message"`
-    Sess    string    `cookie:"sess,httponly,secure,max-age:86400,samesite:lax"`
+    Sess    string    `cookie:"sess,httponly,secure,max-age=86400,samesite=lax"`
 }
 ```
 
