@@ -162,6 +162,11 @@ func (rw *gzipResponseWriter) writeHeader(statusCode int) {
 	}
 
 	h := rw.Header()
+	ct := h.Get(contentTypeHeader)
+
+	if ct == "image/jpeg" || ct == "image/png" || ct == "image/webp" || ct == "image/gif" {
+		rw.disableCompression = true
+	}
 
 	if h.Get(contentEncodingHeader) != "" || rw.disableCompression {
 		// The request handler disabled gzip encoding.
@@ -177,7 +182,7 @@ func (rw *gzipResponseWriter) writeHeader(statusCode int) {
 
 		h.Del(contentLengthHeader)
 
-		if h.Get(contentTypeHeader) == "" {
+		if ct == "" {
 			// Disable auto-detection of content-type, since it
 			// is incorrectly detected after the compression.
 			h.Set(contentTypeHeader, "text/html")
