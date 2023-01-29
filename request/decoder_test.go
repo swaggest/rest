@@ -432,6 +432,17 @@ func (i *inputWithLoader) LoadFromHTTPRequest(r *http.Request) error {
 	return i.load(r)
 }
 
+type inputWithSetter struct {
+	Time time.Time    `query:"time"`
+	Date jschema.Date `query:"date"`
+
+	r *http.Request
+}
+
+func (i *inputWithSetter) SetRequest(r *http.Request) {
+	i.r = r
+}
+
 func TestDecoder_Decode_manualLoader(t *testing.T) {
 	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet,
 		"/?time=2020-04-04T00:00:00Z&date=2020-04-04", nil)
@@ -456,6 +467,23 @@ func TestDecoder_Decode_manualLoader(t *testing.T) {
 	assert.NoError(t, err, fmt.Sprintf("%v", err))
 	assert.True(t, loadTriggered)
 	assert.True(t, input.Time.IsZero())
+}
+
+func TestDecoder_Decode_setter(t *testing.T) {
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodGet,
+		"/?time=2020-04-04T00:00:00Z&date=2020-04-04", nil)
+	assert.NoError(t, err)
+
+	input := new(inputWithSetter)
+
+	dec := request.NewDecoderFactory().MakeDecoder(http.MethodGet, input, nil)
+	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
+		MakeRequestValidator(http.MethodGet, input, nil)
+
+	err = dec.Decode(req, input, validator)
+	assert.NoError(t, err, fmt.Sprintf("%v", err))
+	assert.False(t, input.Time.IsZero())
+	assert.NotNil(t, input.r)
 }
 
 func TestDecoder_Decode_unknownParams(t *testing.T) {

@@ -18,6 +18,13 @@ type (
 		LoadFromHTTPRequest(r *http.Request) error
 	}
 
+	// Setter captures original http.Request.
+	//
+	// Implement this interface on a pointer to your input structure to get access to http.Request.
+	Setter interface {
+		SetRequest(r *http.Request)
+	}
+
 	decoderFunc      func(r *http.Request) (url.Values, error)
 	valueDecoderFunc func(r *http.Request, v interface{}, validator rest.Validator) error
 )
@@ -74,6 +81,10 @@ var _ nethttp.RequestDecoder = &decoder{}
 
 // Decode populates and validates input with data from http request.
 func (d *decoder) Decode(r *http.Request, input interface{}, validator rest.Validator) error {
+	if i, ok := input.(Setter); ok {
+		i.SetRequest(r)
+	}
+
 	if i, ok := input.(Loader); ok {
 		return i.LoadFromHTTPRequest(r)
 	}
