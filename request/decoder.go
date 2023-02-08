@@ -73,20 +73,26 @@ func makeDecoder(in rest.ParamIn, formDecoder *form.Decoder, decoderFunc decoder
 
 // decoder extracts Go value from *http.Request.
 type decoder struct {
-	decoders []valueDecoderFunc
-	in       []rest.ParamIn
+	decoders    []valueDecoderFunc
+	in          []rest.ParamIn
+	isReqLoader bool
+	isReqSetter bool
 }
 
 var _ nethttp.RequestDecoder = &decoder{}
 
 // Decode populates and validates input with data from http request.
 func (d *decoder) Decode(r *http.Request, input interface{}, validator rest.Validator) error {
-	if i, ok := input.(Setter); ok {
-		i.SetRequest(r)
+	if d.isReqSetter {
+		if i, ok := input.(Setter); ok {
+			i.SetRequest(r)
+		}
 	}
 
-	if i, ok := input.(Loader); ok {
-		return i.LoadFromHTTPRequest(r)
+	if d.isReqLoader {
+		if i, ok := input.(Loader); ok {
+			return i.LoadFromHTTPRequest(r)
+		}
 	}
 
 	for i, decode := range d.decoders {

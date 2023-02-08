@@ -15,7 +15,7 @@ require (
 	github.com/swaggest/jsonschema-go v0.3.47
 	github.com/swaggest/openapi-go v0.2.28
 	github.com/swaggest/refl v1.1.0
-	github.com/swaggest/usecase v1.2.0
+	github.com/swaggest/usecase v1.2.1
 )
 
 require (
