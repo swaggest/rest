@@ -96,19 +96,16 @@ func (df *DecoderFactory) MakeDecoder(
 	input interface{},
 	customMapping rest.RequestMapping,
 ) nethttp.RequestDecoder {
-	m := decoder{
-		decoders: make([]valueDecoderFunc, 0),
-		in:       make([]rest.ParamIn, 0),
-	}
+	d := initDecoder(input)
 
 	if df.ApplyDefaults && refl.HasTaggedFields(input, defaultTag) {
-		df.makeDefaultDecoder(input, &m)
+		df.makeDefaultDecoder(input, &d)
 	}
 
 	cm := df.prepareCustomMapping(input, customMapping)
 
 	if len(cm) > 0 {
-		df.makeCustomMappingDecoder(cm, &m)
+		df.makeCustomMappingDecoder(cm, &d)
 	}
 
 	for in, formDecoder := range df.formDecoders {
@@ -118,8 +115,8 @@ func (df *DecoderFactory) MakeDecoder(
 
 		if refl.HasTaggedFields(input, string(in)) {
 			df.jsonParams(formDecoder, in, input)
-			m.decoders = append(m.decoders, makeDecoder(in, formDecoder, df.decoderFunctions[in]))
-			m.in = append(m.in, in)
+			d.decoders = append(d.decoders, makeDecoder(in, formDecoder, df.decoderFunctions[in]))
+			d.in = append(d.in, in)
 		}
 	}
 
@@ -128,7 +125,7 @@ func (df *DecoderFactory) MakeDecoder(
 	_, forceRequestBody := input.(openapi3.RequestBodyEnforcer)
 
 	if method != http.MethodPost && method != http.MethodPut && method != http.MethodPatch && !forceRequestBody {
-		return &m
+		return &d
 	}
 
 	hasFormData := refl.HasTaggedFields(input, formDataTag)
@@ -137,20 +134,37 @@ func (df *DecoderFactory) MakeDecoder(
 	if refl.HasTaggedFields(input, jsonTag) || refl.FindEmbeddedSliceOrMap(input) != nil ||
 		refl.IsSliceOrMap(input) || refl.IsScalar(input) {
 		if df.JSONReader != nil {
-			m.decoders = append(m.decoders, decodeJSONBody(df.JSONReader, hasFormData))
+			d.decoders = append(d.decoders, decodeJSONBody(df.JSONReader, hasFormData))
 		} else {
-			m.decoders = append(m.decoders, decodeJSONBody(readJSON, hasFormData))
+			d.decoders = append(d.decoders, decodeJSONBody(readJSON, hasFormData))
 		}
 
-		m.in = append(m.in, rest.ParamInBody)
+		d.in = append(d.in, rest.ParamInBody)
 	}
 
 	if hasFileFields(input, fileTag) || hasFileFields(input, formDataTag) {
-		m.decoders = append(m.decoders, decodeFiles)
-		m.in = append(m.in, rest.ParamInFormData)
+		d.decoders = append(d.decoders, decodeFiles)
+		d.in = append(d.in, rest.ParamInFormData)
 	}
 
-	return &m
+	return &d
+}
+
+func initDecoder(input interface{}) decoder {
+	d := decoder{
+		decoders: make([]valueDecoderFunc, 0),
+		in:       make([]rest.ParamIn, 0),
+	}
+
+	if _, ok := input.(Loader); ok {
+		d.isReqLoader = true
+	}
+
+	if _, ok := input.(Setter); ok {
+		d.isReqSetter = true
+	}
+
+	return d
 }
 
 func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping rest.RequestMapping) rest.RequestMapping {
