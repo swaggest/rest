@@ -156,13 +156,13 @@ func initDecoder(input interface{}) decoder {
 		in:       make([]rest.ParamIn, 0),
 	}
 
-	if _, ok := input.(Loader); ok {
-		d.isReqLoader = true
-	}
+	loader := reflect.TypeOf((*Loader)(nil)).Elem()
+	d.isReqLoader = reflect.TypeOf(input).Implements(loader) ||
+		reflect.New(reflect.TypeOf(input)).Type().Implements(loader)
 
-	if _, ok := input.(Setter); ok {
-		d.isReqSetter = true
-	}
+	setter := reflect.TypeOf((*Setter)(nil)).Elem()
+	d.isReqSetter = reflect.TypeOf(input).Implements(setter) ||
+		reflect.New(reflect.TypeOf(input)).Type().Implements(setter)
 
 	return d
 }

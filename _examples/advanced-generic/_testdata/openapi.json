@@ -4,7 +4,7 @@
   "paths":{
     "/deeper-with-session/one":{
       "get":{
-        "summary":"Dummy","operationId":"_examples/advanced-generic.dummy2",
+        "tags":["Other"],"summary":"Dummy","operationId":"_examples/advanced-generic.dummy2",
         "responses":{
           "204":{"description":"No Content"},
           "401":{
@@ -17,7 +17,7 @@
     },
     "/deeper-with-session/two":{
       "get":{
-        "summary":"Dummy","operationId":"_examples/advanced-generic.dummy3",
+        "tags":["Other"],"summary":"Dummy","operationId":"_examples/advanced-generic.dummy3",
         "responses":{
           "204":{"description":"No Content"},
           "401":{
@@ -30,7 +30,7 @@
     },
     "/error-response":{
       "get":{
-        "summary":"Declare Expected Errors",
+        "tags":["Response"],"summary":"Declare Expected Errors",
         "description":"This use case demonstrates documentation of expected errors.",
         "operationId":"_examples/advanced-generic.errorResponse",
         "parameters":[
@@ -67,7 +67,7 @@
     },
     "/file-multi-upload":{
       "post":{
-        "summary":"Files Uploads With 'multipart/form-data'",
+        "tags":["Request"],"summary":"Files Uploads With 'multipart/form-data'",
         "operationId":"_examples/advanced-generic.fileMultiUploader",
         "parameters":[
           {
@@ -87,7 +87,8 @@
     },
     "/file-upload":{
       "post":{
-        "summary":"File Upload With 'multipart/form-data'","operationId":"_examples/advanced-generic.fileUploader",
+        "tags":["Request"],"summary":"File Upload With 'multipart/form-data'",
+        "operationId":"_examples/advanced-generic.fileUploader",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Simple scalar value in query.",
@@ -103,7 +104,7 @@
     },
     "/form":{
       "post":{
-        "summary":"Request With Form",
+        "tags":["Request"],"summary":"Request With Form",
         "description":"The `form` field tag acts as `query` and `formData`, with priority on `formData`.\n\nIt is decoded with `http.Request.Form` values.",
         "operationId":"_examples/advanced-generic.form",
         "parameters":[
@@ -123,7 +124,7 @@
     },
     "/gzip-pass-through":{
       "get":{
-        "summary":"Direct Gzip","operationId":"_examples/advanced-generic.directGzip",
+        "tags":["Response"],"summary":"Direct Gzip","operationId":"_examples/advanced-generic.directGzip",
         "parameters":[
           {
             "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",
@@ -143,7 +144,7 @@
         "x-forbid-unknown-query":true
       },
       "head":{
-        "summary":"Direct Gzip","operationId":"_examples/advanced-generic.directGzip2",
+        "tags":["Response"],"summary":"Direct Gzip","operationId":"_examples/advanced-generic.directGzip2",
         "parameters":[
           {
             "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",
@@ -165,8 +166,8 @@
     },
     "/html-response/{id}":{
       "get":{
-        "summary":"Request With HTML Response","description":"Request with templated HTML response.",
-        "operationId":"_examples/advanced-generic.htmlResponse",
+        "tags":["Response"],"summary":"Request With HTML Response",
+        "description":"Request with templated HTML response.","operationId":"_examples/advanced-generic.htmlResponse",
         "parameters":[
           {"name":"filter","in":"query","schema":{"type":"string"}},
           {"name":"id","in":"path","required":true,"schema":{"type":"integer"}},
@@ -183,7 +184,7 @@
     },
     "/json-body-manual/{in-path}":{
       "post":{
-        "summary":"Request With JSON Body and manual decoder",
+        "tags":["Request"],"summary":"Request With JSON Body and manual decoder",
         "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
         "operationId":"_examples/advanced-generic.jsonBodyManual",
         "parameters":[
@@ -212,7 +213,7 @@
     },
     "/json-body-validation/{in-path}":{
       "post":{
-        "summary":"Request With JSON Body and non-trivial validation",
+        "tags":["Request","Response","Validation"],"summary":"Request With JSON Body and non-trivial validation",
         "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
         "operationId":"_examples/advanced-generic.jsonBodyValidation",
         "parameters":[
@@ -241,7 +242,7 @@
     },
     "/json-body/{in-path}":{
       "post":{
-        "summary":"Request With JSON Body",
+        "tags":["Request"],"summary":"Request With JSON Body",
         "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
         "operationId":"_examples/advanced-generic.jsonBody",
         "parameters":[
@@ -270,8 +271,8 @@
     },
     "/json-map-body":{
       "post":{
-        "summary":"Request With JSON Map In Body","description":"Request with JSON object (map) body.",
-        "operationId":"_examples/advanced-generic.jsonMapBody",
+        "tags":["Request"],"summary":"Request With JSON Map In Body",
+        "description":"Request with JSON object (map) body.","operationId":"_examples/advanced-generic.jsonMapBody",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Simple scalar value in query.",
@@ -294,7 +295,7 @@
     },
     "/json-param/{in-path}":{
       "get":{
-        "summary":"Request With JSON Query Parameter",
+        "tags":["Request"],"summary":"Request With JSON Query Parameter",
         "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
         "operationId":"_examples/advanced-generic.jsonParam",
         "parameters":[
@@ -330,7 +331,8 @@
     },
     "/json-slice-body":{
       "post":{
-        "summary":"Request With JSON Array In Body","operationId":"_examples/advanced-generic.jsonSliceBody",
+        "tags":["Request"],"summary":"Request With JSON Array In Body",
+        "operationId":"_examples/advanced-generic.jsonSliceBody",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Simple scalar value in query.",
@@ -353,7 +355,7 @@
     },
     "/no-validation":{
       "post":{
-        "summary":"No Validation","description":"Input/Output without validation.",
+        "tags":["Request","Response"],"summary":"No Validation","description":"Input/Output without validation.",
         "operationId":"_examples/advanced-generic.noValidation",
         "parameters":[
           {"name":"q","in":"query","schema":{"type":"boolean"}},
@@ -375,7 +377,7 @@
     },
     "/output-csv-writer":{
       "get":{
-        "summary":"Output With Stream Writer","description":"Output with stream writer.",
+        "tags":["Response"],"summary":"Output With Stream Writer","description":"Output with stream writer.",
         "operationId":"_examples/advanced-generic.outputCSVWriter",
         "responses":{
           "200":{
@@ -397,7 +399,7 @@
     },
     "/output-headers":{
       "get":{
-        "summary":"Output With Headers","description":"Output with headers.",
+        "tags":["Response"],"summary":"Output With Headers","description":"Output with headers.",
         "operationId":"_examples/advanced-generic.outputHeaders",
         "responses":{
           "200":{
@@ -413,7 +415,7 @@
         }
       },
       "head":{
-        "summary":"Output With Headers","description":"Output with headers.",
+        "tags":["Response"],"summary":"Output With Headers","description":"Output with headers.",
         "operationId":"_examples/advanced-generic.outputHeaders2",
         "responses":{
           "200":{
@@ -431,7 +433,8 @@
     },
     "/query-object":{
       "get":{
-        "summary":"Request With Object As Query Parameter","operationId":"_examples/advanced-generic.queryObject",
+        "tags":["Request"],"summary":"Request With Object As Query Parameter",
+        "operationId":"_examples/advanced-generic.queryObject",
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Object value in query.","style":"deepObject","explode":true,
@@ -449,7 +452,7 @@
     },
     "/req-resp-mapping":{
       "post":{
-        "summary":"Request Response Mapping",
+        "tags":["Request","Response"],"summary":"Request Response Mapping",
         "description":"This use case has transport concerns fully decoupled with external req/resp mapping.",
         "operationId":"reqRespMapping",
         "parameters":[
@@ -480,7 +483,7 @@
     },
     "/root-with-session":{
       "get":{
-        "summary":"Dummy","operationId":"_examples/advanced-generic.dummy",
+        "tags":["Other"],"summary":"Dummy","operationId":"_examples/advanced-generic.dummy",
         "responses":{
           "204":{"description":"No Content"},
           "401":{
@@ -491,9 +494,48 @@
         "security":[{"User":[]}]
       }
     },
+    "/text-req-body-ptr/{path}":{
+      "post":{
+        "tags":["Request"],"summary":"Request With Text Body (ptr input)",
+        "description":"This usecase allows direct access to original `*http.Request` while keeping automated decoding of parameters.",
+        "operationId":"_examples/advanced-generic.textReqBodyPtr",
+        "parameters":[
+          {"name":"query","in":"query","schema":{"type":"integer"}},
+          {"name":"path","in":"path","required":true,"schema":{"type":"string"}}
+        ],
+        "requestBody":{"content":{"text/csv":{"schema":{"type":"string"}}}},
+        "responses":{
+          "200":{
+            "description":"OK",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputType3"}}}
+          }
+        },
+        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+      }
+    },
+    "/text-req-body/{path}":{
+      "post":{
+        "tags":["Request"],"summary":"Request With Text Body",
+        "description":"This usecase allows direct access to original `*http.Request` while keeping automated decoding of parameters.",
+        "operationId":"_examples/advanced-generic.textReqBody",
+        "parameters":[
+          {"name":"query","in":"query","schema":{"type":"integer"}},
+          {"name":"path","in":"path","required":true,"schema":{"type":"string"}}
+        ],
+        "requestBody":{"content":{"text/csv":{"schema":{"type":"string"}}}},
+        "responses":{
+          "200":{
+            "description":"OK",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputType2"}}}
+          }
+        },
+        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+      }
+    },
     "/validation":{
       "post":{
-        "summary":"Validation","description":"Input/Output with validation. Custom annotation.",
+        "tags":["Request","Response","Validation"],"summary":"Validation",
+        "description":"Input/Output with validation. Custom annotation.",
         "operationId":"_examples/advanced-generic.validation",
         "parameters":[
           {
@@ -622,6 +664,8 @@
         "type":"object",
         "properties":{"inQuery":{"type":"object","additionalProperties":{"type":"number"},"nullable":true}}
       },
+      "AdvancedOutputType2":{"type":"object","properties":{"path":{"type":"string"},"query":{"type":"integer"},"text":{"type":"string"}}},
+      "AdvancedOutputType3":{"type":"object","properties":{"path":{"type":"string"},"query":{"type":"integer"},"text":{"type":"string"}}},
       "AdvancedOutputWithJSON":{
         "type":"object",
         "properties":{

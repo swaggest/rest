@@ -26,6 +26,7 @@ func outputCSVWriter() usecase.Interactor {
 	u.SetTitle("Output With Stream Writer")
 	u.SetDescription("Output with stream writer.")
 	u.SetExpectedErrors(status.Internal)
+	u.SetTags("Response")
 
 	return u
 }

@@ -37,6 +37,7 @@ func jsonMapBody() usecase.Interactor {
 	})
 
 	u.SetTitle("Request With JSON Map In Body")
+	u.SetTags("Request")
 
 	return u
 }

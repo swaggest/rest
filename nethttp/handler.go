@@ -243,6 +243,7 @@ func HandlerWithRouteMiddleware(method, pathPattern string) func(http.Handler) h
 
 // RequestDecoder maps data from http.Request into structured Go input value.
 type RequestDecoder interface {
+	// Decode fills input with data from request, input should be a pointer.
 	Decode(r *http.Request, input interface{}, validator rest.Validator) error
 }
 

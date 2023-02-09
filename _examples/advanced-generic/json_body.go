@@ -41,6 +41,7 @@ func jsonBody() usecase.Interactor {
 
 	u.SetTitle("Request With JSON Body")
 	u.SetDescription("Request with JSON body and query/header/path params, response with JSON body and data from request.")
+	u.SetTags("Request")
 
 	return u
 }

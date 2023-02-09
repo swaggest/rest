@@ -64,6 +64,7 @@ func htmlResponse() usecase.Interactor {
 
 	u.SetTitle("Request With HTML Response")
 	u.SetDescription("Request with templated HTML response.")
+	u.SetTags("Response")
 
 	return u
 }

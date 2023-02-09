@@ -33,6 +33,20 @@ func AnnotateOperation(annotations ...func(operation *openapi3.Operation) error)
 	}
 }
 
+// RequestBodyContent enables string request body with content type (e.g. text/plain).
+func RequestBodyContent(contentType string) func(h *Handler) {
+	return func(h *Handler) {
+		mt := openapi3.MediaType{}
+		mt.SchemaEns().SchemaEns().WithType(openapi3.SchemaTypeString)
+
+		h.OperationAnnotations = append(h.OperationAnnotations, func(op *openapi3.Operation) error {
+			op.RequestBodyEns().RequestBodyEns().WithContentItem(contentType, mt)
+
+			return nil
+		})
+	}
+}
+
 // SuccessfulResponseContentType sets Content-Type of successful response.
 func SuccessfulResponseContentType(contentType string) func(h *Handler) {
 	return func(h *Handler) {

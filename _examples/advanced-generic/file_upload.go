@@ -72,6 +72,7 @@ func fileUploader() usecase.Interactor {
 	})
 
 	u.SetTitle("File Upload With 'multipart/form-data'")
+	u.SetTags("Request")
 
 	return u
 }
