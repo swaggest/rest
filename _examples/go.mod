@@ -6,7 +6,7 @@ replace github.com/swaggest/rest => ../
 
 require (
 	github.com/bool64/ctxd v1.2.1
-	github.com/bool64/dev v0.2.25-0.20230209125915-7892e11b555e
+	github.com/bool64/dev v0.2.25
 	github.com/bool64/httpmock v0.1.8
 	github.com/bool64/httptestbench v0.1.4
 	github.com/go-chi/chi/v5 v5.0.8
