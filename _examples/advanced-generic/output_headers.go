@@ -25,6 +25,7 @@ func outputHeaders() usecase.Interactor {
 
 	u.SetTitle("Output With Headers")
 	u.SetDescription("Output with headers.")
+	u.SetTags("Response")
 
 	return u
 }

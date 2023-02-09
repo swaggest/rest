@@ -37,6 +37,7 @@ func jsonSliceBody() usecase.Interactor {
 	})
 
 	u.SetTitle("Request With JSON Array In Body")
+	u.SetTags("Request")
 
 	return u
 }

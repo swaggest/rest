@@ -29,6 +29,7 @@ func reqRespMapping() usecase.Interactor {
 	u.SetTitle("Request Response Mapping")
 	u.SetName("reqRespMapping")
 	u.SetDescription("This use case has transport concerns fully decoupled with external req/resp mapping.")
+	u.SetTags("Request", "Response")
 
 	return u
 }

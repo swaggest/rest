@@ -35,6 +35,7 @@ func validation() usecase.Interactor {
 
 	u.SetTitle("Validation")
 	u.SetDescription("Input/Output with validation.")
+	u.SetTags("Request", "Response", "Validation")
 
 	return u
 }

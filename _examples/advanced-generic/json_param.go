@@ -41,6 +41,7 @@ func jsonParam() usecase.Interactor {
 
 	u.SetTitle("Request With JSON Query Parameter")
 	u.SetDescription("Request with JSON body and query/header/path params, response with JSON body and data from request.")
+	u.SetTags("Request")
 
 	return u
 }

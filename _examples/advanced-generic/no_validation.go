@@ -35,6 +35,7 @@ func noValidation() usecase.Interactor {
 
 	u.SetTitle("No Validation")
 	u.SetDescription("Input/Output without validation.")
+	u.SetTags("Request", "Response")
 
 	return u
 }

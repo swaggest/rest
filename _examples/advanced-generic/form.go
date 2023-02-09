@@ -29,6 +29,7 @@ func form() usecase.Interactor {
 	u.SetTitle("Request With Form")
 	u.SetDescription("The `form` field tag acts as `query` and `formData`, with priority on `formData`.\n\n" +
 		"It is decoded with `http.Request.Form` values.")
+	u.SetTags("Request")
 
 	return u
 }

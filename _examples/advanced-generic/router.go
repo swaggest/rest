@@ -190,6 +190,8 @@ func NewRouter() http.Handler {
 	s.Head("/gzip-pass-through", directGzip())
 
 	s.Get("/error-response", errorResponse())
+	s.Post("/text-req-body/{path}", textReqBody(), nethttp.RequestBodyContent("text/csv"))
+	s.Post("/text-req-body-ptr/{path}", textReqBodyPtr(), nethttp.RequestBodyContent("text/csv"))
 
 	// Security middlewares.
 	//  - sessMW is the actual request-level processor,

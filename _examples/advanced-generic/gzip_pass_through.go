@@ -85,6 +85,7 @@ func directGzip() usecase.Interactor {
 
 		return nil
 	})
+	u.SetTags("Response")
 
 	return u
 }

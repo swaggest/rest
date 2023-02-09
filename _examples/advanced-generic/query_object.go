@@ -24,6 +24,7 @@ func queryObject() usecase.Interactor {
 	})
 
 	u.SetTitle("Request With Object As Query Parameter")
+	u.SetTags("Request")
 
 	return u
 }
