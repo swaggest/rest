@@ -9,7 +9,12 @@ import (
 )
 
 func outputHeaders() usecase.Interactor {
+	type EmbeddedHeaders struct {
+		Foo int `header:"X-Foo" json:"-"`
+	}
+
 	type headerOutput struct {
+		EmbeddedHeaders
 		Header string `header:"X-Header" json:"-" description:"Sample response header."`
 		InBody string `json:"inBody" deprecated:"true"`
 		Cookie int    `cookie:"coo,httponly,path:/foo" json:"-"`
@@ -19,6 +24,7 @@ func outputHeaders() usecase.Interactor {
 		out.Header = "abc"
 		out.InBody = "def"
 		out.Cookie = 123
+		out.Foo = 321
 
 		return nil
 	})

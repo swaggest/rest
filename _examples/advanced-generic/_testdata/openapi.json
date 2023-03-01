@@ -405,6 +405,7 @@
           "200":{
             "description":"OK",
             "headers":{
+              "X-Foo":{"style":"simple","schema":{"type":"integer"}},
               "X-Header":{
                 "style":"simple","description":"Sample response header.",
                 "schema":{"type":"string","description":"Sample response header."}
@@ -421,6 +422,7 @@
           "200":{
             "description":"OK",
             "headers":{
+              "X-Foo":{"style":"simple","schema":{"type":"integer"}},
               "X-Header":{
                 "style":"simple","description":"Sample response header.",
                 "schema":{"type":"string","description":"Sample response header."}
