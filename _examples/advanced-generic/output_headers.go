@@ -11,14 +11,15 @@ import (
 
 func outputHeaders() usecase.Interactor {
 	type EmbeddedHeaders struct {
-		Foo int `header:"X-foO,omitempty" json:"-" minimum:"10" required:"true"`
+		Foo int `header:"X-foO,omitempty" json:"-" minimum:"10" required:"true" description:"Reduced by 20 in response."`
 	}
 
 	type headerOutput struct {
 		EmbeddedHeaders
-		Header string `header:"x-HeAdEr" json:"-" description:"Sample response header."`
-		InBody string `json:"inBody" deprecated:"true"`
-		Cookie int    `cookie:"coo,httponly,path:/foo" json:"-"`
+		Header    string `header:"x-HeAdEr" json:"-" description:"Sample response header."`
+		OmitEmpty int    `header:"x-omit-empty,omitempty" json:"-" description:"Receives req value of X-Foo reduced by 30."`
+		InBody    string `json:"inBody" deprecated:"true"`
+		Cookie    int    `cookie:"coo,httponly,path:/foo" json:"-"`
 	}
 
 	type headerInput struct {
@@ -30,6 +31,7 @@ func outputHeaders() usecase.Interactor {
 		out.InBody = "def"
 		out.Cookie = 123
 		out.Foo = in.Foo - 20
+		out.OmitEmpty = in.Foo - 30
 
 		return nil
 	})

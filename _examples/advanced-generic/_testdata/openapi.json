@@ -401,15 +401,27 @@
       "get":{
         "tags":["Response"],"summary":"Output With Headers","description":"Output with headers.",
         "operationId":"_examples/advanced-generic.outputHeaders",
-        "parameters":[{"name":"X-foO","in":"header","required":true,"schema":{"minimum":10,"type":"integer"}}],
+        "parameters":[
+          {
+            "name":"X-foO","in":"header","description":"Reduced by 20 in response.","required":true,
+            "schema":{"minimum":10,"type":"integer","description":"Reduced by 20 in response."}
+          }
+        ],
         "responses":{
           "200":{
             "description":"OK",
             "headers":{
-              "X-foO":{"style":"simple","required":true,"schema":{"minimum":10,"type":"integer"}},
+              "X-foO":{
+                "style":"simple","description":"Reduced by 20 in response.","required":true,
+                "schema":{"minimum":10,"type":"integer","description":"Reduced by 20 in response."}
+              },
               "x-HeAdEr":{
                 "style":"simple","description":"Sample response header.",
                 "schema":{"type":"string","description":"Sample response header."}
+              },
+              "x-omit-empty":{
+                "style":"simple","description":"Receives req value of X-Foo reduced by 30.",
+                "schema":{"type":"integer","description":"Receives req value of X-Foo reduced by 30."}
               }
             },
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedHeaderOutput"}}}
@@ -423,15 +435,27 @@
       "head":{
         "tags":["Response"],"summary":"Output With Headers","description":"Output with headers.",
         "operationId":"_examples/advanced-generic.outputHeaders2",
-        "parameters":[{"name":"X-foO","in":"header","required":true,"schema":{"minimum":10,"type":"integer"}}],
+        "parameters":[
+          {
+            "name":"X-foO","in":"header","description":"Reduced by 20 in response.","required":true,
+            "schema":{"minimum":10,"type":"integer","description":"Reduced by 20 in response."}
+          }
+        ],
         "responses":{
           "200":{
             "description":"OK",
             "headers":{
-              "X-foO":{"style":"simple","required":true,"schema":{"minimum":10,"type":"integer"}},
+              "X-foO":{
+                "style":"simple","description":"Reduced by 20 in response.","required":true,
+                "schema":{"minimum":10,"type":"integer","description":"Reduced by 20 in response."}
+              },
               "x-HeAdEr":{
                 "style":"simple","description":"Sample response header.",
                 "schema":{"type":"string","description":"Sample response header."}
+              },
+              "x-omit-empty":{
+                "style":"simple","description":"Receives req value of X-Foo reduced by 30.",
+                "schema":{"type":"integer","description":"Receives req value of X-Foo reduced by 30."}
               }
             },
             "content":{"application/json":{}}
