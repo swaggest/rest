@@ -83,6 +83,10 @@ func (h *Encoder) setupHeadersEncoder(output interface{}, ht *rest.HandlerTrait)
 				return name
 			}
 
+			if field.Anonymous {
+				return ""
+			}
+
 			return "-"
 		})
 
@@ -136,6 +140,10 @@ func (h *Encoder) setupCookiesEncoder(output interface{}, ht *rest.HandlerTrait)
 		enc.RegisterTagNameFunc(func(field reflect.StructField) string {
 			if c, ok := respCookieMapping[field.Name]; ok {
 				return c.Name
+			}
+
+			if field.Anonymous {
+				return ""
 			}
 
 			return "-"

@@ -16,7 +16,13 @@ import (
 func TestEncoder_SetupOutput(t *testing.T) {
 	e := response.Encoder{}
 
+	type EmbeddedHeader struct {
+		Foo int    `header:"X-Foo" json:"-"`
+		Bar string `cookie:"bar" json:"-"`
+	}
+
 	type outputPort struct {
+		EmbeddedHeader
 		Name    string   `header:"X-Name" json:"-"`
 		Items   []string `json:"items"`
 		Cookie  int      `cookie:"coo,httponly,path=/foo" json:"-"`
@@ -48,6 +54,8 @@ func TestEncoder_SetupOutput(t *testing.T) {
 	out, ok := output.(*outputPort)
 	assert.True(t, ok)
 
+	out.Foo = 321
+	out.Bar = "baz"
 	out.Name = "Jane"
 	out.Items = []string{"one", "two", "three"}
 	out.Cookie = 123
@@ -56,7 +64,9 @@ func TestEncoder_SetupOutput(t *testing.T) {
 	e.WriteSuccessfulResponse(w, r, output, ht)
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "Jane", w.Header().Get("X-Name"))
+	assert.Equal(t, "321", w.Header().Get("X-Foo"))
 	assert.Equal(t, []string{
+		"bar=baz",
 		"coo=123; Path=/foo; HttpOnly",
 		"coo2=true; Path=/foo; Max-Age=86400; HttpOnly; Secure; SameSite=Lax",
 	}, w.Header()["Set-Cookie"])
