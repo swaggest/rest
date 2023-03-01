@@ -25,6 +25,7 @@ func Benchmark_outputHeaders(b *testing.B) {
 	httptestbench.RoundTrip(b, 50, func(i int, req *fasthttp.Request) {
 		req.Header.SetMethod(http.MethodGet)
 		req.SetRequestURI(srv.URL + "/output-headers")
+		req.Header.Set("X-Foo", "40")
 	}, func(i int, resp *fasthttp.Response) bool {
 		return resp.StatusCode() == http.StatusOK
 	})
