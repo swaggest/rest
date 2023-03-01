@@ -77,7 +77,7 @@ func TestFactory_MakeResponseValidator(t *testing.T) {
 			Name  string `json:"name" minLength:"1"`
 			Trace string `maxLength:"3"`
 		}), map[string]string{
-			"Trace": "X-Trace",
+			"Trace": "x-TrAcE",
 		})
 
 	assert.NoError(t, validator.ValidateJSONBody([]byte(`{"name":"John"}`)))

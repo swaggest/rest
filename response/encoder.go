@@ -71,7 +71,13 @@ func (h *Encoder) setupHeadersEncoder(output interface{}, ht *rest.HandlerTrait)
 		respHeaderMapping = make(map[string]string)
 
 		refl.WalkTaggedFields(reflect.ValueOf(output), func(v reflect.Value, sf reflect.StructField, tag string) {
-			respHeaderMapping[sf.Name] = tag
+			// Converting name to canonical form, while keeping omitempty and any other options.
+			t := sf.Tag.Get(string(rest.ParamInHeader))
+			parts := strings.Split(t, ",")
+			parts[0] = http.CanonicalHeaderKey(parts[0])
+			t = strings.Join(parts, ",")
+
+			respHeaderMapping[sf.Name] = t
 		}, string(rest.ParamInHeader))
 	}
 
