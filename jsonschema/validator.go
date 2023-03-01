@@ -113,11 +113,11 @@ func (v *Validator) AddSchema(in rest.ParamIn, name string, jsonSchema []byte, r
 		v.inRequired[in] = make([]string, 0)
 	}
 
-	if required {
-		if in == rest.ParamInHeader {
-			name = http.CanonicalHeaderKey(name)
-		}
+	if in == rest.ParamInHeader {
+		name = http.CanonicalHeaderKey(name)
+	}
 
+	if required {
 		v.inRequired[in] = append(v.inRequired[in], name)
 	}
 

@@ -80,7 +80,7 @@ func (h *Encoder) setupHeadersEncoder(output interface{}, ht *rest.HandlerTrait)
 		enc.SetMode(form.ModeExplicit)
 		enc.RegisterTagNameFunc(func(field reflect.StructField) string {
 			if name, ok := respHeaderMapping[field.Name]; ok {
-				return name
+				return http.CanonicalHeaderKey(name)
 			}
 
 			if field.Anonymous {

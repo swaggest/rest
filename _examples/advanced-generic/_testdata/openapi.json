@@ -401,34 +401,44 @@
       "get":{
         "tags":["Response"],"summary":"Output With Headers","description":"Output with headers.",
         "operationId":"_examples/advanced-generic.outputHeaders",
+        "parameters":[{"name":"X-foO","in":"header","required":true,"schema":{"minimum":10,"type":"integer"}}],
         "responses":{
           "200":{
             "description":"OK",
             "headers":{
-              "X-Foo":{"style":"simple","schema":{"type":"integer"}},
-              "X-Header":{
+              "X-foO":{"style":"simple","required":true,"schema":{"minimum":10,"type":"integer"}},
+              "x-HeAdEr":{
                 "style":"simple","description":"Sample response header.",
                 "schema":{"type":"string","description":"Sample response header."}
               }
             },
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedHeaderOutput"}}}
+          },
+          "500":{
+            "description":"Internal Server Error",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
           }
         }
       },
       "head":{
         "tags":["Response"],"summary":"Output With Headers","description":"Output with headers.",
         "operationId":"_examples/advanced-generic.outputHeaders2",
+        "parameters":[{"name":"X-foO","in":"header","required":true,"schema":{"minimum":10,"type":"integer"}}],
         "responses":{
           "200":{
             "description":"OK",
             "headers":{
-              "X-Foo":{"style":"simple","schema":{"type":"integer"}},
-              "X-Header":{
+              "X-foO":{"style":"simple","required":true,"schema":{"minimum":10,"type":"integer"}},
+              "x-HeAdEr":{
                 "style":"simple","description":"Sample response header.",
                 "schema":{"type":"string","description":"Sample response header."}
               }
             },
             "content":{"application/json":{}}
+          },
+          "500":{
+            "description":"Internal Server Error",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
           }
         }
       }
