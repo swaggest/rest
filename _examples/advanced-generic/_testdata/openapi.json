@@ -50,8 +50,7 @@
                 "schema":{
                   "anyOf":[
                     {"$ref":"#/components/schemas/AdvancedCustomErr"},
-                    {"$ref":"#/components/schemas/AdvancedAnotherErr"},
-                    {"$ref":"#/components/schemas/AdvancedCustomErr"}
+                    {"$ref":"#/components/schemas/AdvancedAnotherErr"}
                   ]
                 }
               }
@@ -59,6 +58,10 @@
           },
           "409":{
             "description":"Conflict",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+          },
+          "412":{
+            "description":"Precondition Failed",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
           }
         },
@@ -379,16 +382,29 @@
       "get":{
         "tags":["Response"],"summary":"Output With Stream Writer","description":"Output with stream writer.",
         "operationId":"_examples/advanced-generic.outputCSVWriter",
+        "parameters":[
+          {
+            "name":"If-None-Match","in":"header","description":"Content hash.",
+            "schema":{"type":"string","description":"Content hash."}
+          }
+        ],
         "responses":{
           "200":{
             "description":"OK",
             "headers":{
+              "ETag":{
+                "style":"simple","description":"Content hash.","schema":{"type":"string","description":"Content hash."}
+              },
               "X-Header":{
                 "style":"simple","description":"Sample response header.",
                 "schema":{"type":"string","description":"Sample response header."}
               }
             },
             "content":{"text/csv":{"schema":{"type":"string"}}}
+          },
+          "304":{
+            "description":"Not Modified",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
           },
           "500":{
             "description":"Internal Server Error",

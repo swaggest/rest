@@ -37,7 +37,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v3 v3.1.0 // indirect
 	github.com/sergi/go-diff v1.2.0 // indirect
-	github.com/swaggest/form/v5 v5.0.2 // indirect
+	github.com/swaggest/form/v5 v5.0.4 // indirect
 	github.com/swaggest/refl v1.1.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vearutop/dynhist-go v1.1.0 // indirect

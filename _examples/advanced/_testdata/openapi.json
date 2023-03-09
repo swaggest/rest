@@ -51,8 +51,7 @@
                 "schema":{
                   "anyOf":[
                     {"$ref":"#/components/schemas/AdvancedCustomErr"},
-                    {"$ref":"#/components/schemas/AdvancedAnotherErr"},
-                    {"$ref":"#/components/schemas/AdvancedCustomErr"}
+                    {"$ref":"#/components/schemas/AdvancedAnotherErr"}
                   ]
                 }
               }
@@ -60,6 +59,10 @@
           },
           "409":{
             "description":"Conflict",
+            "content":{"application/problem+json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+          },
+          "412":{
+            "description":"Precondition Failed",
             "content":{"application/problem+json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
           }
         },

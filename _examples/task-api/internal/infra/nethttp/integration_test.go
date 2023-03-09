@@ -92,7 +92,7 @@ func Test_taskLifeSpan(t *testing.T) {
 	assert.NoError(t, rc.ExpectResponseStatus(http.StatusNoContent))
 	assert.NoError(t, rc.ExpectResponseBody(nil))
 
-	assert.NoError(t, rc.ExpectOtherResponsesStatus(http.StatusBadRequest))
+	assert.NoError(t, rc.ExpectOtherResponsesStatus(http.StatusPreconditionFailed))
 	assert.NoError(t, rc.ExpectOtherResponsesBody([]byte(`{"status":"FAILED_PRECONDITION",`+
 		`"error":"failed precondition: task is already closed"}`)))
 

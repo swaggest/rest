@@ -74,8 +74,8 @@ github.com/stretchr/testify v1.8.2 h1:+h33VjcLVPDHtOdpUCuF+7gSuG3yGIftsP1YvFihtJ
 github.com/stretchr/testify v1.8.2/go.mod h1:w2LPCIKwWwSfY2zedu0+kehJoqGctiVI29o6fzry7u4=
 github.com/swaggest/assertjson v1.7.0 h1:SKw5Rn0LQs6UvmGrIdaKQbMR1R3ncXm5KNon+QJ7jtw=
 github.com/swaggest/assertjson v1.7.0/go.mod h1:vxMJMehbSVJd+dDWFCKv3QRZKNTpy/ktZKTz9LOEDng=
-github.com/swaggest/form/v5 v5.0.2 h1:TiimP7UX3q1nSI5ZGg6tGMmxg8UJB0JNpaZjXWH6V2E=
-github.com/swaggest/form/v5 v5.0.2/go.mod h1:Ayta1ggwSnDd4zwzv47jQL4RHk7WOTHp65nzwBc0IhU=
+github.com/swaggest/form/v5 v5.0.4 h1:hTg+gjUEZG0vgsDdXOPi7I0Xu5OowXKoLZIGYZsoddg=
+github.com/swaggest/form/v5 v5.0.4/go.mod h1:X1hraaoONee20PMnGNLQpO32f9zbQ0Czfm7iZThuEKg=
 github.com/swaggest/jsonschema-go v0.3.48 h1:zscQIIh2DlUaPTgCntPOq9s9a5QQTeWcs2QTE6P7nEY=
 github.com/swaggest/jsonschema-go v0.3.48/go.mod h1:67EkOWKuBlpuvfZW1djhCD4ZSGNdXUjrTEWe16S5uEg=
 github.com/swaggest/openapi-go v0.2.29 h1:irfkrid6DPGxncZUdGmDrXbSLqat1QOGwvd5M1OFFbY=

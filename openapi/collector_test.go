@@ -282,8 +282,7 @@ func TestCollector_Collect_CombineErrors(t *testing.T) {
 					"schema":{
 					  "oneOf":[
 						{"$ref":"#/components/schemas/RestErrResponse"},
-						{"$ref":"#/components/schemas/OpenapiTestAnotherErr"},
-						{"$ref":"#/components/schemas/RestErrResponse"}
+						{"$ref":"#/components/schemas/OpenapiTestAnotherErr"}
 					  ]
 					}
 				  }
@@ -291,6 +290,12 @@ func TestCollector_Collect_CombineErrors(t *testing.T) {
 			  },
 			  "409":{
 				"description":"Conflict",
+				"content":{
+				  "application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}
+				}
+			  },
+			  "412":{
+				"description":"Precondition Failed",
 				"content":{
 				  "application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}
 				}

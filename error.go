@@ -7,6 +7,19 @@ import (
 	"github.com/swaggest/usecase/status"
 )
 
+// HTTPCodeAsError exposes HTTP status code as use case error that can be translated to response status.
+type HTTPCodeAsError int
+
+// Error return HTTP status text.
+func (c HTTPCodeAsError) Error() string {
+	return http.StatusText(int(c))
+}
+
+// HTTPStatus returns HTTP status code.
+func (c HTTPCodeAsError) HTTPStatus() int {
+	return int(c)
+}
+
 // ErrWithHTTPStatus exposes HTTP status code.
 type ErrWithHTTPStatus interface {
 	error
@@ -127,7 +140,7 @@ func HTTPStatusFromCanonicalCode(c status.Code) int {
 	case status.ResourceExhausted:
 		return http.StatusTooManyRequests
 	case status.FailedPrecondition:
-		return http.StatusBadRequest
+		return http.StatusPreconditionFailed
 	case status.Aborted:
 		return http.StatusConflict
 	case status.OutOfRange:
