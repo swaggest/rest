@@ -267,7 +267,10 @@ func (c *Collector) setJSONResponse(op *openapi3.Operation, output interface{}, 
 	oc.Operation = op
 	oc.Output = output
 	oc.HTTPStatus = statusCode
-	oc.RespContentType = c.DefaultErrorResponseContentType
+
+	if output != nil {
+		oc.RespContentType = c.DefaultErrorResponseContentType
+	}
 
 	return c.Reflector().SetupResponse(oc)
 }
@@ -295,6 +298,10 @@ func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Inte
 			statusCode, errResp = rest.Err(e)
 		}
 
+		if statusCode < http.StatusOK || statusCode == http.StatusNotModified || statusCode == http.StatusNoContent {
+			errResp = nil
+		}
+
 		if errsByCode[statusCode] == nil {
 			statusCodes = append(statusCodes, statusCode)
 		}
@@ -306,6 +313,10 @@ func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Inte
 		}
 	}
 
+	return c.combineErrors(op, statusCodes, errsByCode)
+}
+
+func (c *Collector) combineErrors(op *openapi3.Operation, statusCodes []int, errsByCode map[int][]interface{}) error {
 	for _, statusCode := range statusCodes {
 		var (
 			errResps = errsByCode[statusCode]

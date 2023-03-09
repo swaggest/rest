@@ -402,10 +402,7 @@
             },
             "content":{"text/csv":{"schema":{"type":"string"}}}
           },
-          "304":{
-            "description":"Not Modified",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
-          },
+          "304":{"description":"Not Modified"},
           "500":{
             "description":"Internal Server Error",
             "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
