@@ -278,8 +278,6 @@ func (h *Encoder) writeJSONResponse(
 
 // WriteErrResponse encodes and writes error to response.
 func (h *Encoder) WriteErrResponse(w http.ResponseWriter, r *http.Request, statusCode int, response interface{}) {
-	contentType := DefaultErrorResponseContentType
-
 	e := jsonEncoderPool.Get().(*jsonEncoder) //nolint:errcheck
 
 	e.buf.Reset()
@@ -292,8 +290,14 @@ func (h *Encoder) WriteErrResponse(w http.ResponseWriter, r *http.Request, statu
 		return
 	}
 
-	w.Header().Set("Content-Length", strconv.Itoa(e.buf.Len()))
-	w.Header().Set("Content-Type", contentType)
+	// Skip statuses that do not allow response body (1xx, 204, 304).
+	if !(statusCode < http.StatusOK || statusCode == http.StatusNoContent || statusCode == http.StatusNotModified) {
+		w.Header().Set("Content-Length", strconv.Itoa(e.buf.Len()))
+
+		contentType := DefaultErrorResponseContentType
+		w.Header().Set("Content-Type", contentType)
+	}
+
 	w.WriteHeader(statusCode)
 
 	if r.Method == http.MethodHead {
