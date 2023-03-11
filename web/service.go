@@ -15,7 +15,6 @@ import (
 	"github.com/swaggest/rest/openapi"
 	"github.com/swaggest/rest/request"
 	"github.com/swaggest/rest/response"
-	"github.com/swaggest/usecase"
 )
 
 // DefaultService initializes router and other basic components of web service.
@@ -91,46 +90,6 @@ type Service struct {
 	// This field is populated so that response.ValidatorMiddleware(s.ResponseValidatorFactory) can be
 	// added to service via Wrap.
 	ResponseValidatorFactory rest.ResponseValidatorFactory
-}
-
-// Delete adds the route `pattern` that matches a DELETE http method to invoke use case interactor.
-func (s *Service) Delete(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
-	s.Method(http.MethodDelete, pattern, nethttp.NewHandler(uc, options...))
-}
-
-// Get adds the route `pattern` that matches a GET http method to invoke use case interactor.
-func (s *Service) Get(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
-	s.Method(http.MethodGet, pattern, nethttp.NewHandler(uc, options...))
-}
-
-// Head adds the route `pattern` that matches a HEAD http method to invoke use case interactor.
-func (s *Service) Head(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
-	s.Method(http.MethodHead, pattern, nethttp.NewHandler(uc, options...))
-}
-
-// Options adds the route `pattern` that matches a OPTIONS http method to invoke use case interactor.
-func (s *Service) Options(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
-	s.Method(http.MethodOptions, pattern, nethttp.NewHandler(uc, options...))
-}
-
-// Patch adds the route `pattern` that matches a PATCH http method to invoke use case interactor.
-func (s *Service) Patch(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
-	s.Method(http.MethodPatch, pattern, nethttp.NewHandler(uc, options...))
-}
-
-// Post adds the route `pattern` that matches a POST http method to invoke use case interactor.
-func (s *Service) Post(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
-	s.Method(http.MethodPost, pattern, nethttp.NewHandler(uc, options...))
-}
-
-// Put adds the route `pattern` that matches a PUT http method to invoke use case interactor.
-func (s *Service) Put(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
-	s.Method(http.MethodPut, pattern, nethttp.NewHandler(uc, options...))
-}
-
-// Trace adds the route `pattern` that matches a TRACE http method to invoke use case interactor.
-func (s *Service) Trace(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
-	s.Method(http.MethodTrace, pattern, nethttp.NewHandler(uc, options...))
 }
 
 // Docs adds the route `pattern` that serves API documentation with Swagger UI.

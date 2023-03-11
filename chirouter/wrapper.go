@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/usecase"
 )
 
 // NewWrapper creates router wrapper to upgrade middlewares processing.
@@ -28,8 +29,6 @@ type Wrapper struct {
 	wraps       []func(http.Handler) http.Handler
 	handlers    []http.Handler
 }
-
-var _ chi.Router = &Wrapper{}
 
 func (r *Wrapper) copy(router chi.Router, pattern string) *Wrapper {
 	return &Wrapper{
@@ -68,7 +67,7 @@ func (r *Wrapper) Use(middlewares ...func(http.Handler) http.Handler) {
 }
 
 // With adds inline middlewares for an endpoint handler.
-func (r Wrapper) With(middlewares ...func(http.Handler) http.Handler) chi.Router {
+func (r Wrapper) With(middlewares ...func(http.Handler) http.Handler) *Wrapper {
 	var mws, ws []func(http.Handler) http.Handler
 
 	for _, mw := range middlewares {
@@ -86,7 +85,7 @@ func (r Wrapper) With(middlewares ...func(http.Handler) http.Handler) chi.Router
 }
 
 // Group adds a new inline-router along the current routing path, with a fresh middleware stack for the inline-router.
-func (r *Wrapper) Group(fn func(r chi.Router)) chi.Router {
+func (r *Wrapper) Group(fn func(r *Wrapper)) *Wrapper {
 	im := r.With()
 
 	if fn != nil {
@@ -97,7 +96,7 @@ func (r *Wrapper) Group(fn func(r chi.Router)) chi.Router {
 }
 
 // Route mounts a sub-router along a `basePattern` string.
-func (r *Wrapper) Route(pattern string, fn func(r chi.Router)) chi.Router {
+func (r *Wrapper) Route(pattern string, fn func(r *Wrapper)) *Wrapper {
 	subRouter := r.copy(chi.NewRouter(), pattern)
 
 	if fn != nil {
@@ -154,49 +153,43 @@ func (r *Wrapper) MethodFunc(method, pattern string, handlerFn http.HandlerFunc)
 	r.Method(method, pattern, handlerFn)
 }
 
-// Connect adds the route `pattern` that matches a CONNECT http method to execute the `handlerFn` http.HandlerFunc.
-func (r *Wrapper) Connect(pattern string, handlerFn http.HandlerFunc) {
-	r.Method(http.MethodConnect, pattern, handlerFn)
+func (r *Wrapper) Delete(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	r.Method(http.MethodDelete, pattern, nethttp.NewHandler(uc, options...))
 }
 
-// Delete adds the route `pattern` that matches a DELETE http method to execute the `handlerFn` http.HandlerFunc.
-func (r *Wrapper) Delete(pattern string, handlerFn http.HandlerFunc) {
-	r.Method(http.MethodDelete, pattern, handlerFn)
+// Get adds the route `pattern` that matches a GET http method to invoke use case interactor.
+func (r *Wrapper) Get(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	r.Method(http.MethodGet, pattern, nethttp.NewHandler(uc, options...))
 }
 
-// Get adds the route `pattern` that matches a GET http method to execute the `handlerFn` http.HandlerFunc.
-func (r *Wrapper) Get(pattern string, handlerFn http.HandlerFunc) {
-	r.Method(http.MethodGet, pattern, handlerFn)
+// Head adds the route `pattern` that matches a HEAD http method to invoke use case interactor.
+func (r *Wrapper) Head(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	r.Method(http.MethodHead, pattern, nethttp.NewHandler(uc, options...))
 }
 
-// Head adds the route `pattern` that matches a HEAD http method to execute the `handlerFn` http.HandlerFunc.
-func (r *Wrapper) Head(pattern string, handlerFn http.HandlerFunc) {
-	r.Method(http.MethodHead, pattern, handlerFn)
+// Options adds the route `pattern` that matches a OPTIONS http method to invoke use case interactor.
+func (r *Wrapper) Options(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	r.Method(http.MethodOptions, pattern, nethttp.NewHandler(uc, options...))
 }
 
-// Options adds the route `pattern` that matches a OPTIONS http method to execute the `handlerFn` http.HandlerFunc.
-func (r *Wrapper) Options(pattern string, handlerFn http.HandlerFunc) {
-	r.Method(http.MethodOptions, pattern, handlerFn)
+// Patch adds the route `pattern` that matches a PATCH http method to invoke use case interactor.
+func (r *Wrapper) Patch(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	r.Method(http.MethodPatch, pattern, nethttp.NewHandler(uc, options...))
 }
 
-// Patch adds the route `pattern` that matches a PATCH http method to execute the `handlerFn` http.HandlerFunc.
-func (r *Wrapper) Patch(pattern string, handlerFn http.HandlerFunc) {
-	r.Method(http.MethodPatch, pattern, handlerFn)
+// Post adds the route `pattern` that matches a POST http method to invoke use case interactor.
+func (r *Wrapper) Post(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	r.Method(http.MethodPost, pattern, nethttp.NewHandler(uc, options...))
 }
 
-// Post adds the route `pattern` that matches a POST http method to execute the `handlerFn` http.HandlerFunc.
-func (r *Wrapper) Post(pattern string, handlerFn http.HandlerFunc) {
-	r.Method(http.MethodPost, pattern, handlerFn)
+// Put adds the route `pattern` that matches a PUT http method to invoke use case interactor.
+func (r *Wrapper) Put(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	r.Method(http.MethodPut, pattern, nethttp.NewHandler(uc, options...))
 }
 
-// Put adds the route `pattern` that matches a PUT http method to execute the `handlerFn` http.HandlerFunc.
-func (r *Wrapper) Put(pattern string, handlerFn http.HandlerFunc) {
-	r.Method(http.MethodPut, pattern, handlerFn)
-}
-
-// Trace adds the route `pattern` that matches a TRACE http method to execute the `handlerFn` http.HandlerFunc.
-func (r *Wrapper) Trace(pattern string, handlerFn http.HandlerFunc) {
-	r.Method(http.MethodTrace, pattern, handlerFn)
+// Trace adds the route `pattern` that matches a TRACE http method to invoke use case interactor.
+func (r *Wrapper) Trace(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	r.Method(http.MethodTrace, pattern, nethttp.NewHandler(uc, options...))
 }
 
 func (r *Wrapper) resolvePattern(pattern string) string {
