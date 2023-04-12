@@ -77,7 +77,7 @@ func main() {
 
 	// Start server.
 	log.Println("http://localhost:8011/docs")
-	if err := http.ListenAndServe(":8011", s); err != nil {
+	if err := http.ListenAndServe("localhost:8011", s); err != nil {
 		log.Fatal(err)
 	}
 }
