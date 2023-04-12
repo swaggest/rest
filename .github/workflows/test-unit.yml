@@ -21,12 +21,12 @@ jobs:
   test:
     strategy:
       matrix:
-        go-version: [ 1.13.x, 1.19.x,  1.20.x ]
+        go-version: [ 1.13.x, 1.19.x, 1.20.x ]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go stable
         if: matrix.go-version != 'tip'
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ matrix.go-version }}
 
@@ -41,10 +41,10 @@ jobs:
           echo "PATH=$HOME/go/bin:$HOME/sdk/gotip/bin/:$PATH" >> $GITHUB_ENV
 
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Go cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           # In order:
           # * Module download cache

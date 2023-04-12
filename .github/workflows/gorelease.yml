@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Install Go stable
         if: env.GO_VERSION != 'tip'
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v4
         with:
           go-version: ${{ env.GO_VERSION }}
       - name: Install Go tip
@@ -29,9 +29,9 @@ jobs:
           ~/sdk/gotip/bin/go version
           echo "PATH=$HOME/go/bin:$HOME/sdk/gotip/bin/:$PATH" >> $GITHUB_ENV
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Gorelease cache
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: |
             ~/go/bin/gorelease
