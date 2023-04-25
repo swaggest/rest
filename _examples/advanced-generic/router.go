@@ -56,27 +56,23 @@ func NewRouter() http.Handler {
 	})))
 
 	// An example of global schema override to disable additionalProperties for all object schemas.
-	s.OpenAPICollector.Reflector().DefaultOptions = append(s.OpenAPICollector.Reflector().DefaultOptions, func(rc *jsonschema.ReflectContext) {
-		it := rc.InterceptType
-		rc.InterceptType = func(value reflect.Value, schema *jsonschema.Schema) (bool, error) {
-			stop, err := it(value, schema)
-			if err != nil {
-				return stop, err
+	s.OpenAPICollector.Reflector().DefaultOptions = append(s.OpenAPICollector.Reflector().DefaultOptions,
+		jsonschema.InterceptSchema(func(params jsonschema.InterceptSchemaParams) (stop bool, err error) {
+			// Allow unknown request headers and skip response.
+			if oc, ok := openapi3.OperationCtx(params.Context); !params.Processed || !ok ||
+				oc.ProcessingResponse || oc.ProcessingIn == string(rest.ParamInHeader) {
+				return false, nil
 			}
 
-			// Allow unknown request headers and skip response.
-			if oc, ok := openapi3.OperationCtx(rc); !ok ||
-				oc.ProcessingResponse || oc.ProcessingIn == string(rest.ParamInHeader) {
-				return stop, nil
-			}
+			schema := params.Schema
 
 			if schema.HasType(jsonschema.Object) && len(schema.Properties) > 0 && schema.AdditionalProperties == nil {
 				schema.AdditionalProperties = (&jsonschema.SchemaOrBool{}).WithTypeBoolean(false)
 			}
 
-			return stop, nil
-		}
-	})
+			return false, nil
+		}),
+	)
 
 	// Create custom schema mapping for 3rd party type.
 	uuidDef := jsonschema.Schema{}

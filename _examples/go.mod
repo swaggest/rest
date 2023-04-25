@@ -7,18 +7,18 @@ replace github.com/swaggest/rest => ../
 require (
 	github.com/bool64/ctxd v1.2.1
 	github.com/bool64/dev v0.2.27
-	github.com/bool64/httpmock v0.1.8
+	github.com/bool64/httpmock v0.1.10
 	github.com/bool64/httptestbench v0.1.4
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/kelseyhightower/envconfig v1.4.0
-	github.com/rs/cors v1.8.3
+	github.com/rs/cors v1.9.0
 	github.com/stretchr/testify v1.8.2
-	github.com/swaggest/assertjson v1.7.0
-	github.com/swaggest/jsonschema-go v0.3.49
-	github.com/swaggest/openapi-go v0.2.29
-	github.com/swaggest/swgui v1.6.0
+	github.com/swaggest/assertjson v1.8.0
+	github.com/swaggest/jsonschema-go v0.3.51
+	github.com/swaggest/openapi-go v0.2.30
+	github.com/swaggest/swgui v1.6.2
 	github.com/swaggest/usecase v1.2.1
-	github.com/valyala/fasthttp v1.44.0
+	github.com/valyala/fasthttp v1.46.0
 )
 
 require (
@@ -27,21 +27,21 @@ require (
 )
 
 require (
-	github.com/andybalholm/brotli v1.0.4 // indirect
+	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/bool64/shared v0.1.5 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/iancoleman/orderedmap v0.2.0 // indirect
-	github.com/klauspost/compress v1.15.14 // indirect
+	github.com/klauspost/compress v1.16.5 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v3 v3.1.0 // indirect
-	github.com/sergi/go-diff v1.2.0 // indirect
+	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/swaggest/form/v5 v5.0.4 // indirect
 	github.com/swaggest/refl v1.1.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vearutop/dynhist-go v1.1.0 // indirect
-	github.com/vearutop/statigz v1.1.5 // indirect
+	github.com/vearutop/statigz v1.3.0 // indirect
 	github.com/yosuke-furukawa/json5 v0.1.2-0.20201207051438-cf7bb3f354ff // indirect
 	github.com/yudai/gojsondiff v1.0.0 // indirect
 	github.com/yudai/golcs v0.0.0-20170316035057-ecda9a501e82 // indirect
