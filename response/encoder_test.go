@@ -221,12 +221,18 @@ func TestEncoder_SetupOutput_httpStatus(t *testing.T) {
 	e := response.Encoder{}
 	ht := rest.HandlerTrait{}
 	e.SetupOutput(outputWithHTTPStatuses{}, &ht)
+	assert.Equal(t, http.StatusCreated, ht.SuccessStatus)
+}
+
+func TestEncoder_Writer_httpStatus(t *testing.T) {
+	e := response.Encoder{}
+	e.SetupOutput(outputWithHTTPStatuses{}, &rest.HandlerTrait{})
 
 	r, err := http.NewRequest(http.MethodPost, "/", nil)
 	require.NoError(t, err)
 
 	w := httptest.NewRecorder()
-	output := e.MakeOutput(w, ht)
-	e.WriteSuccessfulResponse(w, r, output, ht)
+	output := e.MakeOutput(w, rest.HandlerTrait{})
+	e.WriteSuccessfulResponse(w, r, output, rest.HandlerTrait{})
 	assert.Equal(t, http.StatusCreated, w.Code)
 }
