@@ -323,3 +323,79 @@ func TestCollector_Collect_CombineErrors(t *testing.T) {
 	  }
 	}`), collector.Reflector().SpecEns())
 }
+
+// Output that implements OutputWithHTTPStatus interface.
+type outputWithHttpStatuses struct {
+	Number int `json:"number"`
+}
+
+func (outputWithHttpStatuses) HTTPStatus() int {
+	return http.StatusCreated
+}
+
+func (outputWithHttpStatuses) ExpectedHTTPStatuses() []int {
+	return []int{http.StatusCreated, http.StatusOK}
+}
+
+func TestCollector_Collect_multipleHttpStatuses(t *testing.T) {
+	c := openapi.Collector{}
+	u := usecase.IOInteractor{}
+	u.SetTitle("Title")
+	u.SetName("name")
+	u.Input = new(struct{})
+	u.Output = new(outputWithHttpStatuses)
+
+	require.NoError(t, c.Collect(http.MethodPost, "/foo", u, rest.HandlerTrait{
+		ReqValidator: &jsonschema.Validator{},
+	}))
+
+	assertjson.EqualMarshal(t, []byte(`{
+	  "openapi": "3.0.3",
+	  "info": {
+		"title": "",
+		"version": ""
+	  },
+	  "paths": {
+		"/foo": {
+		  "post": {
+			"summary": "Title",
+			"operationId": "name",
+			"responses": {
+			  "200": {
+				"description": "OK",
+				"content": {
+				  "application/json": {
+					"schema": {
+					  "$ref": "#/components/schemas/OpenapiTestOutputWithHttpStatuses"
+					}
+				  }
+				}
+			  },
+			  "201": {
+				"description": "Created",
+				"content": {
+				  "application/json": {
+					"schema": {
+					  "$ref": "#/components/schemas/OpenapiTestOutputWithHttpStatuses"
+					}
+				  }
+				}
+			  }
+			}
+		  }
+		}
+	  },
+	  "components": {
+		"schemas": {
+		  "OpenapiTestOutputWithHttpStatuses": {
+			"type": "object",
+			"properties": {
+			  "number": {
+				"type": "integer"
+			  }
+			}
+		  }
+		}
+	  }
+	}`), c.Reflector().SpecEns())
+}

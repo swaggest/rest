@@ -203,3 +203,30 @@ func TestEncoder_SetupOutput_nonPtr(t *testing.T) {
 	assert.Equal(t, "32", w.Header().Get("Content-Length"))
 	assert.Equal(t, `{"items":["one","two","three"]}`+"\n", w.Body.String())
 }
+
+// Output that implements OutputWithHTTPStatus interface.
+type outputWithHttpStatuses struct {
+	Number int `json:"number"`
+}
+
+func (outputWithHttpStatuses) HTTPStatus() int {
+	return http.StatusCreated
+}
+
+func (outputWithHttpStatuses) ExpectedHTTPStatuses() []int {
+	return []int{http.StatusCreated, http.StatusOK}
+}
+
+func TestEncoder_SetupOutput_httpStatus(t *testing.T) {
+	e := response.Encoder{}
+	ht := rest.HandlerTrait{}
+	e.SetupOutput(outputWithHttpStatuses{}, &ht)
+
+	r, err := http.NewRequest(http.MethodPost, "/", nil)
+	require.NoError(t, err)
+
+	w := httptest.NewRecorder()
+	output := e.MakeOutput(w, ht)
+	e.WriteSuccessfulResponse(w, r, output, ht)
+	assert.Equal(t, http.StatusCreated, w.Code)
+}

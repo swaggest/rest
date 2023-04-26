@@ -191,10 +191,14 @@ func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
 		return
 	}
 
-	if h.skipRendering && !h.outputWithWriter {
-		ht.SuccessStatus = http.StatusNoContent
+	if outputWithStatus, ok := output.(rest.OutputWithHTTPStatus); ok {
+		ht.SuccessStatus = outputWithStatus.HTTPStatus()
 	} else {
-		ht.SuccessStatus = http.StatusOK
+		if h.skipRendering && !h.outputWithWriter {
+			ht.SuccessStatus = http.StatusNoContent
+		} else {
+			ht.SuccessStatus = http.StatusOK
+		}
 	}
 }
 
