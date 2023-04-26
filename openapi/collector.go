@@ -149,8 +149,7 @@ func (c *Collector) setupOutput(oc *openapi3.OperationContext, u usecase.Interac
 	if outputWithStatus, ok := oc.Output.(rest.OutputWithHTTPStatus); ok {
 		for _, status := range outputWithStatus.ExpectedHTTPStatuses() {
 			oc.HTTPStatus = status
-			err := c.Reflector().SetupResponse(*oc)
-			if err != nil {
+			if err := c.Reflector().SetupResponse(*oc); err != nil {
 				return err
 			}
 		}

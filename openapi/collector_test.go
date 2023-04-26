@@ -325,15 +325,15 @@ func TestCollector_Collect_CombineErrors(t *testing.T) {
 }
 
 // Output that implements OutputWithHTTPStatus interface.
-type outputWithHttpStatuses struct {
+type outputWithHTTPStatuses struct {
 	Number int `json:"number"`
 }
 
-func (outputWithHttpStatuses) HTTPStatus() int {
+func (outputWithHTTPStatuses) HTTPStatus() int {
 	return http.StatusCreated
 }
 
-func (outputWithHttpStatuses) ExpectedHTTPStatuses() []int {
+func (outputWithHTTPStatuses) ExpectedHTTPStatuses() []int {
 	return []int{http.StatusCreated, http.StatusOK}
 }
 
@@ -343,7 +343,7 @@ func TestCollector_Collect_multipleHttpStatuses(t *testing.T) {
 	u.SetTitle("Title")
 	u.SetName("name")
 	u.Input = new(struct{})
-	u.Output = new(outputWithHttpStatuses)
+	u.Output = new(outputWithHTTPStatuses)
 
 	require.NoError(t, c.Collect(http.MethodPost, "/foo", u, rest.HandlerTrait{
 		ReqValidator: &jsonschema.Validator{},
@@ -366,7 +366,7 @@ func TestCollector_Collect_multipleHttpStatuses(t *testing.T) {
 				"content": {
 				  "application/json": {
 					"schema": {
-					  "$ref": "#/components/schemas/OpenapiTestOutputWithHttpStatuses"
+					  "$ref": "#/components/schemas/OpenapiTestOutputWithHTTPStatuses"
 					}
 				  }
 				}
@@ -376,7 +376,7 @@ func TestCollector_Collect_multipleHttpStatuses(t *testing.T) {
 				"content": {
 				  "application/json": {
 					"schema": {
-					  "$ref": "#/components/schemas/OpenapiTestOutputWithHttpStatuses"
+					  "$ref": "#/components/schemas/OpenapiTestOutputWithHTTPStatuses"
 					}
 				  }
 				}
@@ -387,7 +387,7 @@ func TestCollector_Collect_multipleHttpStatuses(t *testing.T) {
 	  },
 	  "components": {
 		"schemas": {
-		  "OpenapiTestOutputWithHttpStatuses": {
+		  "OpenapiTestOutputWithHTTPStatuses": {
 			"type": "object",
 			"properties": {
 			  "number": {

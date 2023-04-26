@@ -205,22 +205,22 @@ func TestEncoder_SetupOutput_nonPtr(t *testing.T) {
 }
 
 // Output that implements OutputWithHTTPStatus interface.
-type outputWithHttpStatuses struct {
+type outputWithHTTPStatuses struct {
 	Number int `json:"number"`
 }
 
-func (outputWithHttpStatuses) HTTPStatus() int {
+func (outputWithHTTPStatuses) HTTPStatus() int {
 	return http.StatusCreated
 }
 
-func (outputWithHttpStatuses) ExpectedHTTPStatuses() []int {
+func (outputWithHTTPStatuses) ExpectedHTTPStatuses() []int {
 	return []int{http.StatusCreated, http.StatusOK}
 }
 
 func TestEncoder_SetupOutput_httpStatus(t *testing.T) {
 	e := response.Encoder{}
 	ht := rest.HandlerTrait{}
-	e.SetupOutput(outputWithHttpStatuses{}, &ht)
+	e.SetupOutput(outputWithHTTPStatuses{}, &ht)
 
 	r, err := http.NewRequest(http.MethodPost, "/", nil)
 	require.NoError(t, err)
