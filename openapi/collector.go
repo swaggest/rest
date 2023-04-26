@@ -142,17 +142,25 @@ func (c *Collector) setupOutput(oc *openapi3.OperationContext, u usecase.Interac
 		noContent = true
 	}
 
-	if oc.HTTPStatus == 0 {
-		oc.HTTPStatus = status
-	}
-
 	if !noContent && oc.RespContentType == "" {
 		oc.RespContentType = c.DefaultSuccessResponseContentType
 	}
 
-	err := c.Reflector().SetupResponse(*oc)
-	if err != nil {
-		return err
+	if outputWithStatus, ok := oc.Output.(rest.OutputWithHTTPStatus); ok {
+		for _, status := range outputWithStatus.ExpectedHTTPStatuses() {
+			oc.HTTPStatus = status
+			if err := c.Reflector().SetupResponse(*oc); err != nil {
+				return err
+			}
+		}
+	} else {
+		if oc.HTTPStatus == 0 {
+			oc.HTTPStatus = status
+		}
+		err := c.Reflector().SetupResponse(*oc)
+		if err != nil {
+			return err
+		}
 	}
 
 	if oc.HTTPMethod == http.MethodHead {
