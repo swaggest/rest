@@ -197,11 +197,13 @@ func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
 func (h *Encoder) successStatus(output interface{}) int {
 	if outputWithStatus, ok := output.(rest.OutputWithHTTPStatus); ok {
 		return outputWithStatus.HTTPStatus()
-	} else if h.skipRendering && !h.outputWithWriter {
-		return http.StatusNoContent
-	} else {
-		return http.StatusOK
 	}
+
+	if h.skipRendering && !h.outputWithWriter {
+		return http.StatusNoContent
+	}
+
+	return http.StatusOK
 }
 
 type jsonEncoder struct {

@@ -75,6 +75,8 @@ func setFile(r *http.Request, field reflect.StructField, v reflect.Value) error 
 			if field.Tag.Get("required") == "true" {
 				return fmt.Errorf("%w: %q", ErrMissingRequiredFile, name)
 			}
+
+			return nil
 		}
 
 		return fmt.Errorf("failed to get file %q from request: %w", name, err)
