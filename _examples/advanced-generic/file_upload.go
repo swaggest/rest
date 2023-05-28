@@ -31,6 +31,10 @@ func fileUploader() usecase.Interactor {
 	u := usecase.NewInteractor(func(ctx context.Context, in upload, out *info) (err error) {
 		out.Query = in.Query
 		out.Simple = in.Simple
+		if in.Upload1 == nil {
+			return nil
+		}
+
 		out.Filename = in.Upload1.Filename
 		out.Header = in.Upload1.Header
 		out.Size = in.Upload1.Size

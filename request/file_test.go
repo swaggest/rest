@@ -19,10 +19,12 @@ import (
 	"github.com/swaggest/rest/openapi"
 	"github.com/swaggest/rest/request"
 	"github.com/swaggest/rest/response"
+	"github.com/swaggest/rest/web"
 	"github.com/swaggest/usecase"
 )
 
 type ReqEmb struct {
+	Simple         string                  `formData:"simple"`
 	UploadHeader   *multipart.FileHeader   `formData:"upload"`
 	UploadsHeaders []*multipart.FileHeader `formData:"uploads"`
 }
@@ -33,7 +35,32 @@ type fileReqTest struct {
 	Uploads []multipart.File `formData:"uploads"`
 }
 
-func TestMapper_Decode_fileUploadTag(t *testing.T) {
+func TestDecoder_Decode_fileUploadOptional(t *testing.T) {
+	u := usecase.NewIOI(new(ReqEmb), nil, func(ctx context.Context, input, output interface{}) error {
+		return nil
+	})
+
+	s := web.DefaultService()
+	s.Post("/", u)
+
+	b := bytes.NewBuffer(nil)
+	w := multipart.NewWriter(b)
+	require.NoError(t, w.WriteField("simple", "def"))
+	require.NoError(t, w.Close())
+
+	req, err := http.NewRequest(http.MethodPost, "/", b)
+	require.NoError(t, err)
+
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	rw := httptest.NewRecorder()
+	s.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusNoContent, rw.Code)
+	assert.Equal(t, ``, rw.Body.String())
+}
+
+func TestDecoder_Decode_fileUploadTag(t *testing.T) {
 	r := chirouter.NewWrapper(chi.NewRouter())
 	apiSchema := openapi.Collector{}
 	decoderFactory := request.NewDecoderFactory()
