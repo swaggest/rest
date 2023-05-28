@@ -12,7 +12,7 @@ require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/rs/cors v1.9.0
-	github.com/stretchr/testify v1.8.3
+	github.com/stretchr/testify v1.8.2
 	github.com/swaggest/assertjson v1.8.1
 	github.com/swaggest/jsonschema-go v0.3.51
 	github.com/swaggest/openapi-go v0.2.30
