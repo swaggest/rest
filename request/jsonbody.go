@@ -72,7 +72,7 @@ func checkJSONBodyContentType(contentType string, tolerateFormData bool) (ret bo
 		return false, nil
 	}
 
-	if strings.ToLower(contentType) != "application/json" {
+	if !strings.Contains(strings.ToLower(contentType), "application/json") {
 		if tolerateFormData && (contentType == "application/x-www-form-urlencoded" || contentType == "multipart/form-data") {
 			return true, nil
 		}
