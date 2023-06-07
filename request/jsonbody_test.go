@@ -126,6 +126,7 @@ func Test_decodeJSONBody_charset(t *testing.T) {
 	type Input struct {
 		Amount int `json:"amount" formData:"amount"`
 	}
+
 	i := Input{}
 
 	assert.NoError(t, decodeJSONBody(readJSON, false)(req, &i, nil))
