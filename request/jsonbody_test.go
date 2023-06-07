@@ -117,3 +117,16 @@ func Test_decodeJSONBody_tolerateFormData(t *testing.T) {
 	assert.Empty(t, i.CustomerID)
 	assert.Empty(t, i.Type)
 }
+
+func Test_decodeJSONBody_charset(t *testing.T) {
+	req, err := http.NewRequest(http.MethodPost, "any", bytes.NewBufferString(`{"amount": 123}`))
+	require.NoError(t, err)
+	req.Header.Set("Content-Type", "application/json;charset=utf-8")
+
+	type Input struct {
+		Amount int `json:"amount" formData:"amount"`
+	}
+	i := Input{}
+
+	assert.NoError(t, decodeJSONBody(readJSON, false)(req, &i, nil))
+}
