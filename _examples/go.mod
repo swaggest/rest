@@ -6,7 +6,7 @@ replace github.com/swaggest/rest => ../
 
 require (
 	github.com/bool64/ctxd v1.2.1
-	github.com/bool64/dev v0.2.27
+	github.com/bool64/dev v0.2.28
 	github.com/bool64/httpmock v0.1.13
 	github.com/bool64/httptestbench v0.1.4
 	github.com/go-chi/chi/v5 v5.0.8
@@ -14,7 +14,7 @@ require (
 	github.com/rs/cors v1.9.0
 	github.com/stretchr/testify v1.8.2
 	github.com/swaggest/assertjson v1.8.1
-	github.com/swaggest/jsonschema-go v0.3.51
+	github.com/swaggest/jsonschema-go v0.3.52
 	github.com/swaggest/openapi-go v0.2.30
 	github.com/swaggest/swgui v1.6.2
 	github.com/swaggest/usecase v1.2.1
