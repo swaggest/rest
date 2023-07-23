@@ -488,6 +488,14 @@
           {
             "name":"in_query","in":"query","description":"Object value in query.","style":"deepObject","explode":true,
             "schema":{"type":"object","additionalProperties":{"type":"number"},"description":"Object value in query."}
+          },
+          {
+            "name":"json_filter","in":"query","description":"JSON object value in query.",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonFilter"}}}
+          },
+          {
+            "name":"deep_object_filter","in":"query","description":"Deep object value in query params.",
+            "style":"deepObject","explode":true,"schema":{"$ref":"#/components/schemas/AdvancedDeepObjectFilter"}
           }
         ],
         "responses":{
@@ -622,6 +630,7 @@
     "schemas":{
       "AdvancedAnotherErr":{"type":"object","properties":{"foo":{"type":"integer"}}},
       "AdvancedCustomErr":{"type":"object","properties":{"details":{"type":"object","additionalProperties":{}},"msg":{"type":"string"}}},
+      "AdvancedDeepObjectFilter":{"type":"object"},
       "AdvancedGzipPassThroughStruct":{
         "type":"object",
         "properties":{"id":{"type":"integer"},"text":{"type":"array","items":{"type":"string"},"nullable":true}}
@@ -686,6 +695,7 @@
       "AdvancedJSONPayloadType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONPayloadType3":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONSlicePayload":{"type":"array","items":{"type":"integer"},"nullable":true},
+      "AdvancedJsonFilter":{"type":"object","properties":{"foo":{"type":"string"}}},
       "AdvancedJsonMapReq":{"type":"object","additionalProperties":{"type":"number"}},
       "AdvancedJsonOutput":{
         "type":"object",
@@ -711,7 +721,11 @@
       "AdvancedOutputPortType3":{"type":"object","properties":{"data":{"type":"object","properties":{"value":{"type":"string"}}}}},
       "AdvancedOutputQueryObject":{
         "type":"object",
-        "properties":{"inQuery":{"type":"object","additionalProperties":{"type":"number"},"nullable":true}}
+        "properties":{
+          "deepObjectFilter":{"$ref":"#/components/schemas/AdvancedDeepObjectFilter"},
+          "inQuery":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
+          "jsonFilter":{"$ref":"#/components/schemas/AdvancedJsonFilter"}
+        }
       },
       "AdvancedOutputType2":{"type":"object","properties":{"path":{"type":"string"},"query":{"type":"integer"},"text":{"type":"string"}}},
       "AdvancedOutputType3":{"type":"object","properties":{"path":{"type":"string"},"query":{"type":"integer"},"text":{"type":"string"}}},

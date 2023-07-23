@@ -13,7 +13,7 @@ import (
 	"github.com/swaggest/rest/_examples/task-api/internal/usecase"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/web"
-	swgui "github.com/swaggest/swgui/v4emb"
+	swgui "github.com/swaggest/swgui/v5emb"
 )
 
 // NewRouter creates HTTP router.

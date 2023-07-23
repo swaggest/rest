@@ -59,6 +59,8 @@ func NewDecoderFactory() *DecoderFactory {
 	df.SetDecoderFunc("form", formToURLValues)
 
 	defaultValDecoder := form.NewDecoder()
+	defaultValDecoder.SetNamespacePrefix("[")
+	defaultValDecoder.SetNamespaceSuffix("]")
 	defaultValDecoder.RegisterTagNameFunc(func(field reflect.StructField) string {
 		return field.Name
 	})
@@ -80,6 +82,8 @@ func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(r *http.Re
 
 	df.decoderFunctions[tagName] = d
 	dec := form.NewDecoder()
+	dec.SetNamespacePrefix("[")
+	dec.SetNamespaceSuffix("]")
 	dec.SetTagName(string(tagName))
 	dec.SetMode(form.ModeExplicit)
 	df.formDecoders[tagName] = dec
@@ -98,7 +102,7 @@ func (df *DecoderFactory) MakeDecoder(
 ) nethttp.RequestDecoder {
 	d := initDecoder(input)
 
-	if df.ApplyDefaults && refl.HasTaggedFields(input, defaultTag) {
+	if df.ApplyDefaults {
 		df.makeDefaultDecoder(input, &d)
 	}
 
@@ -250,9 +254,35 @@ func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn,
 func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 	defaults := url.Values{}
 
-	refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
-		defaults[sf.Name] = []string{tag}
-	}, defaultTag)
+	refl.WalkFieldsRecursively(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, path []reflect.StructField) {
+		var key string
+
+		for _, p := range path {
+			if p.Anonymous {
+				continue
+			}
+
+			if key == "" {
+				key = p.Name
+			} else {
+				key += "[" + p.Name + "]"
+			}
+		}
+
+		if key == "" {
+			key = sf.Name
+		} else {
+			key += "[" + sf.Name + "]"
+		}
+
+		if d, ok := sf.Tag.Lookup(defaultTag); ok {
+			defaults[key] = []string{d}
+		}
+	})
+
+	if len(defaults) == 0 {
+		return
+	}
 
 	dec := df.defaultValDecoder
 
@@ -265,6 +295,8 @@ func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 func (df *DecoderFactory) makeCustomMappingDecoder(customMapping rest.RequestMapping, m *decoder) {
 	for in, mapping := range customMapping {
 		dec := form.NewDecoder()
+		dec.SetNamespacePrefix("[")
+		dec.SetNamespaceSuffix("]")
 		dec.SetTagName(string(in))
 
 		// Copy mapping to avoid mutability.
