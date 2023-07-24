@@ -630,7 +630,10 @@
     "schemas":{
       "AdvancedAnotherErr":{"type":"object","properties":{"foo":{"type":"integer"}}},
       "AdvancedCustomErr":{"type":"object","properties":{"details":{"type":"object","additionalProperties":{}},"msg":{"type":"string"}}},
-      "AdvancedDeepObjectFilter":{"type":"object"},
+      "AdvancedDeepObjectFilter":{
+        "type":"object",
+        "properties":{"bar":{"minLength":3,"type":"string"},"baz":{"minLength":3,"type":"string","nullable":true}}
+      },
       "AdvancedGzipPassThroughStruct":{
         "type":"object",
         "properties":{"id":{"type":"integer"},"text":{"type":"array","items":{"type":"string"},"nullable":true}}
@@ -790,7 +793,11 @@
       },
       "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
       "FormDataMultipartFileHeader":{"type":"string","format":"binary","nullable":true},
-      "QueryAdvancedDeepObjectFilter":{"type":"object","properties":{"bar":{"minLength":3,"type":"string"}},"additionalProperties":false},
+      "QueryAdvancedDeepObjectFilter":{
+        "type":"object",
+        "properties":{"bar":{"minLength":3,"type":"string"},"baz":{"minLength":3,"type":"string","nullable":true}},
+        "additionalProperties":false
+      },
       "QueryAdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "QueryAdvancedJsonFilter":{"type":"object","properties":{"foo":{"maxLength":5,"type":"string"}},"additionalProperties":false},
       "RestErrResponse":{

@@ -14,7 +14,8 @@ func queryObject() usecase.Interactor {
 	}
 
 	type deepObjectFilter struct {
-		Bar string `query:"bar" minLength:"3"`
+		Bar string  `json:"bar" query:"bar" minLength:"3"`
+		Baz *string `json:"baz,omitempty" query:"baz" minLength:"3"`
 	}
 
 	type inputQueryObject struct {

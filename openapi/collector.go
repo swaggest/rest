@@ -367,12 +367,27 @@ func (c *Collector) provideParametersJSONSchemas(op openapi3.Operation, validato
 	}
 
 	for _, p := range op.Parameters {
-		if p.Parameter.Schema == nil {
+		pp := p.Parameter
+
+		required := false
+		if pp.Required != nil && *pp.Required {
+			required = true
+		}
+
+		sc := paramSchema(pp)
+
+		if sc == nil {
+			if validator != nil {
+				err := validator.AddSchema(rest.ParamIn(pp.In), pp.Name, nil, required)
+				if err != nil {
+					return fmt.Errorf("failed to add validation schema for parameter (%s, %s): %w", pp.In, pp.Name, err)
+				}
+			}
+
 			continue
 		}
 
-		pp := p.Parameter
-		schema := pp.Schema.ToJSONSchema(c.Reflector().Spec)
+		schema := sc.ToJSONSchema(c.Reflector().Spec)
 
 		var (
 			err        error
@@ -386,11 +401,6 @@ func (c *Collector) provideParametersJSONSchemas(op openapi3.Operation, validato
 			}
 		}
 
-		required := false
-		if pp.Required != nil && *pp.Required {
-			required = true
-		}
-
 		if validator != nil {
 			err = validator.AddSchema(rest.ParamIn(pp.In), pp.Name, schemaData, required)
 			if err != nil {
@@ -400,6 +410,18 @@ func (c *Collector) provideParametersJSONSchemas(op openapi3.Operation, validato
 	}
 
 	return nil
+}
+
+func paramSchema(p *openapi3.Parameter) *openapi3.SchemaOrRef {
+	sc := p.Schema
+
+	if sc == nil {
+		if jsc, ok := p.Content["application/json"]; ok {
+			sc = jsc.Schema
+		}
+	}
+
+	return sc
 }
 
 // ProvideRequestJSONSchemas provides JSON Schemas for request structure.

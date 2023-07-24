@@ -15,7 +15,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggest/assertjson v1.9.0
 	github.com/swaggest/jsonschema-go v0.3.52
-	github.com/swaggest/openapi-go v0.2.32
+	github.com/swaggest/openapi-go v0.2.33
 	github.com/swaggest/swgui v1.6.4
 	github.com/swaggest/usecase v1.2.1
 	github.com/valyala/fasthttp v1.46.0
@@ -37,7 +37,7 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/santhosh-tekuri/jsonschema/v3 v3.1.0 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
-	github.com/swaggest/form/v5 v5.1.0 // indirect
+	github.com/swaggest/form/v5 v5.1.1 // indirect
 	github.com/swaggest/refl v1.2.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/vearutop/dynhist-go v1.1.0 // indirect
