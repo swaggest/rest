@@ -8,12 +8,13 @@ require (
 	github.com/bool64/shared v0.1.5
 	github.com/cespare/xxhash/v2 v2.2.0
 	github.com/go-chi/chi/v5 v5.0.10
+	github.com/gorilla/mux v1.8.0
 	github.com/santhosh-tekuri/jsonschema/v3 v3.1.0
 	github.com/stretchr/testify v1.8.2
 	github.com/swaggest/assertjson v1.9.0
 	github.com/swaggest/form/v5 v5.1.1
 	github.com/swaggest/jsonschema-go v0.3.52
-	github.com/swaggest/openapi-go v0.2.33
+	github.com/swaggest/openapi-go v0.2.34-0.20230724152659-8b6c8939a721
 	github.com/swaggest/refl v1.2.0
 	github.com/swaggest/usecase v1.2.1
 )

@@ -11,10 +11,13 @@ import (
 	"sync"
 
 	"github.com/swaggest/jsonschema-go"
+	"github.com/swaggest/openapi-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/usecase"
 )
+
+type ContentType string
 
 // Collector extracts OpenAPI documentation from HTTP handler and underlying use case interactor.
 type Collector struct {
@@ -35,9 +38,11 @@ type Collector struct {
 	// If empty, "application/json" is used.
 	DefaultErrorResponseContentType string
 
-	gen          *openapi3.Reflector
-	annotations  map[string][]func(*openapi3.Operation) error
-	operationIDs map[string]bool
+	gen *openapi3.Reflector
+
+	ocAnnotations map[string][]func(oc openapi.OperationContext) error
+	annotations   map[string][]func(*openapi3.Operation) error
+	operationIDs  map[string]bool
 }
 
 // Reflector is an accessor to OpenAPI Reflector instance.
@@ -59,6 +64,49 @@ func (c *Collector) Annotate(method, pattern string, setup ...func(op *openapi3.
 	}
 
 	c.annotations[method+pattern] = append(c.annotations[method+pattern], setup...)
+}
+
+// AnnotateOperation adds OpenAPI operation configuration that is applied during collection.
+func (c *Collector) AnnotateOperation(method, pattern string, setup ...func(oc openapi.OperationContext) error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.ocAnnotations == nil {
+		c.ocAnnotations = make(map[string][]func(oc openapi.OperationContext) error)
+	}
+
+	c.ocAnnotations[method+pattern] = append(c.ocAnnotations[method+pattern], setup...)
+}
+
+// CollectOperation prepares and adds OpenAPI operation.
+func (c *Collector) CollectOperation(
+	method, pattern string,
+	annotations ...func(oc openapi.OperationContext) error,
+) (err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("failed to reflect API schema for %s %s: %w", method, pattern, err)
+		}
+	}()
+
+	reflector := c.Reflector()
+
+	oc, err := reflector.NewOperationContext(method, pattern)
+	if err != nil {
+		return err
+	}
+
+	for _, setup := range append(c.ocAnnotations[method+pattern], annotations...) {
+		err = setup(oc)
+		if err != nil {
+			return err
+		}
+	}
+
+	return reflector.AddOperation(oc)
 }
 
 // Collect adds use case handler to documentation.
