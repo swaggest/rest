@@ -5,7 +5,6 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/swaggest/rest/response"
 	"log"
 	"net/http"
 	"reflect"
@@ -18,6 +17,7 @@ import (
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/nethttp"
+	"github.com/swaggest/rest/response"
 	"github.com/swaggest/rest/response/gzip"
 	"github.com/swaggest/rest/web"
 	swgui "github.com/swaggest/swgui/v4emb"

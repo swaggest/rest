@@ -121,7 +121,10 @@ func TestDecoderFactory_MakeDecoder_default(t *testing.T) {
 		ID     int    `query:"id" default:"123"`
 		Name   string `header:"X-Name" default:"foo"`
 		Deeper struct {
-			Foo string `query:"foo" default:"abc"`
+			Foo        string `query:"foo" default:"abc"`
+			EvenDeeper struct {
+				Bar float64 `query:"bar" default:"1.23"`
+			} `query:"even_deeper"`
 		} `query:"deeper"`
 		unexported bool `query:"unexported"` // This field is skipped because it is unexported.
 	}
@@ -142,8 +145,9 @@ func TestDecoderFactory_MakeDecoder_default(t *testing.T) {
 	assert.Equal(t, "foo", i.Name)
 	assert.Equal(t, 123, i.ID)
 	assert.Equal(t, "abc", i.Deeper.Foo)
+	assert.Equal(t, 1.23, i.Deeper.EvenDeeper.Bar)
 
-	req, err = http.NewRequest(http.MethodPost, "/?id=321&deeper[foo]=def", nil)
+	req, err = http.NewRequest(http.MethodPost, "/?id=321&deeper[foo]=def&deeper[even_deeper][bar]=3.21", nil)
 	require.NoError(t, err)
 
 	req.Header.Set("X-Name", "bar")
@@ -155,6 +159,7 @@ func TestDecoderFactory_MakeDecoder_default(t *testing.T) {
 	assert.Equal(t, "bar", i.Name)
 	assert.Equal(t, 321, i.ID)
 	assert.Equal(t, "def", i.Deeper.Foo)
+	assert.Equal(t, 3.21, i.Deeper.EvenDeeper.Bar)
 }
 
 func TestDecoderFactory_MakeDecoder_invalidMapping(t *testing.T) {
