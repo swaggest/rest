@@ -242,7 +242,7 @@
           },
           {
             "name":"identity","in":"query","description":"JSON value in query",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJSONPayload"}}}
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryAdvancedJSONPayload"}}}
           },
           {
             "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
@@ -250,7 +250,7 @@
           },
           {
             "name":"in_cookie","in":"cookie","description":"UUID in cookie.",
-            "schema":{"$ref":"#/components/schemas/UuidUUID"}
+            "schema":{"$ref":"#/components/schemas/CookieUuidUUID"}
           },
           {
             "name":"X-Header","in":"header","description":"Simple scalar value in header.",
@@ -518,7 +518,6 @@
         "additionalProperties":false
       },
       "AdvancedJSONMapPayload":{"type":"object","additionalProperties":{"type":"number"}},
-      "AdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONPayloadType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONSlicePayload":{"type":"array","items":{"type":"integer"},"nullable":true},
       "AdvancedJsonMapReq":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
@@ -569,6 +568,7 @@
           "name":{"minLength":3,"type":"string"}
         }
       },
+      "CookieUuidUUID":{"type":"string","format":"uuid","example":"248df4b7-aa70-47b8-a036-33ac447e668d"},
       "FormDataAdvancedInputPort":{
         "required":["val2"],"type":"object",
         "properties":{"val2":{"minimum":3,"type":"integer","description":"Simple scalar value with sample validation."}},
@@ -600,6 +600,7 @@
       },
       "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
       "FormDataMultipartFileHeader":{"type":"string","format":"binary","nullable":true},
+      "QueryAdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "RestErrResponse":{
         "type":"object",
         "properties":{
@@ -609,8 +610,7 @@
           "status":{"type":"string","description":"Status text."}
         }
       },
-      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}},
-      "UuidUUID":{"type":"string","format":"uuid","example":"248df4b7-aa70-47b8-a036-33ac447e668d"}
+      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}}
     },
     "securitySchemes":{"User":{"type":"apiKey","name":"sessid","in":"cookie"}}
   }

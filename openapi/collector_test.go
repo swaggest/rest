@@ -443,14 +443,16 @@ func TestCollector_Collect_queryObject(t *testing.T) {
 				"name":"json_filter","in":"query",
 				"description":"JSON object value in query.",
 				"content":{
-				  "application/json":{"schema":{"$ref":"#/components/schemas/OpenapiTestJsonFilter"}}
+				  "application/json":{
+					"schema":{"$ref":"#/components/schemas/QueryOpenapiTestJsonFilter"}
+				  }
 				}
 			  },
 			  {
 				"name":"deep_object_filter","in":"query",
 				"description":"Deep object value in query params.",
 				"style":"deepObject","explode":true,
-				"schema":{"$ref":"#/components/schemas/OpenapiTestDeepObjectFilter"}
+				"schema":{"$ref":"#/components/schemas/QueryOpenapiTestDeepObjectFilter"}
 			  }
 			],
 			"responses":{"204":{"description":"No Content"}}
@@ -459,8 +461,8 @@ func TestCollector_Collect_queryObject(t *testing.T) {
 	  },
 	  "components":{
 		"schemas":{
-		  "OpenapiTestDeepObjectFilter":{"type":"object","properties":{"bar":{"type":"string"}}},
-		  "OpenapiTestJsonFilter":{"type":"object","properties":{"foo":{"type":"string"}}}
+		  "QueryOpenapiTestDeepObjectFilter":{"type":"object","properties":{"bar":{"type":"string"}}},
+		  "QueryOpenapiTestJsonFilter":{"type":"object","properties":{"foo":{"type":"string"}}}
 		}
 	  }
 	}`, c.Reflector().SpecEns())

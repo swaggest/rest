@@ -308,7 +308,7 @@
           },
           {
             "name":"identity","in":"query","description":"JSON value in query",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJSONPayload"}}}
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryAdvancedJSONPayload"}}}
           },
           {
             "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
@@ -316,7 +316,7 @@
           },
           {
             "name":"in_cookie","in":"cookie","description":"UUID in cookie.",
-            "schema":{"$ref":"#/components/schemas/UuidUUID"}
+            "schema":{"$ref":"#/components/schemas/CookieUuidUUID"}
           },
           {
             "name":"X-Header","in":"header","description":"Simple scalar value in header.",
@@ -491,11 +491,11 @@
           },
           {
             "name":"json_filter","in":"query","description":"JSON object value in query.",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonFilter"}}}
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryAdvancedJsonFilter"}}}
           },
           {
             "name":"deep_object_filter","in":"query","description":"Deep object value in query params.",
-            "style":"deepObject","explode":true,"schema":{"$ref":"#/components/schemas/AdvancedDeepObjectFilter"}
+            "style":"deepObject","explode":true,"schema":{"$ref":"#/components/schemas/QueryAdvancedDeepObjectFilter"}
           }
         ],
         "responses":{
@@ -691,11 +691,10 @@
         "additionalProperties":false
       },
       "AdvancedJSONMapPayload":{"type":"object","additionalProperties":{"type":"number"}},
-      "AdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONPayloadType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONPayloadType3":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONSlicePayload":{"type":"array","items":{"type":"integer"},"nullable":true},
-      "AdvancedJsonFilter":{"type":"object","properties":{"foo":{"type":"string"}}},
+      "AdvancedJsonFilter":{"type":"object","properties":{"foo":{"maxLength":5,"type":"string"}}},
       "AdvancedJsonMapReq":{"type":"object","additionalProperties":{"type":"number"}},
       "AdvancedJsonOutput":{
         "type":"object",
@@ -758,6 +757,7 @@
           "name":{"minLength":3,"type":"string"}
         }
       },
+      "CookieUuidUUID":{"type":"string","format":"uuid","example":"248df4b7-aa70-47b8-a036-33ac447e668d"},
       "FormDataAdvancedForm":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "FormDataAdvancedInputPort":{
         "required":["val2"],"type":"object",
@@ -790,6 +790,9 @@
       },
       "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
       "FormDataMultipartFileHeader":{"type":"string","format":"binary","nullable":true},
+      "QueryAdvancedDeepObjectFilter":{"type":"object","properties":{"bar":{"minLength":3,"type":"string"}},"additionalProperties":false},
+      "QueryAdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
+      "QueryAdvancedJsonFilter":{"type":"object","properties":{"foo":{"maxLength":5,"type":"string"}},"additionalProperties":false},
       "RestErrResponse":{
         "type":"object",
         "properties":{
@@ -799,8 +802,7 @@
           "status":{"type":"string","description":"Status text."}
         }
       },
-      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}},
-      "UuidUUID":{"type":"string","format":"uuid","example":"248df4b7-aa70-47b8-a036-33ac447e668d"}
+      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}}
     },
     "securitySchemes":{"User":{"type":"apiKey","name":"sessid","in":"cookie"}}
   }
