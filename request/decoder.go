@@ -39,6 +39,10 @@ func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamI
 
 	if len(p) > len(goValues) {
 		for k := range p {
+			if pos := strings.Index(k, "["); pos > 0 {
+				k = k[:pos]
+			}
+
 			if _, exists := goValues[k]; !exists {
 				pk := p[k]
 				switch len(pk) {

@@ -13,7 +13,7 @@ import (
 
 	"github.com/swaggest/rest/response/gzip"
 	"github.com/swaggest/rest/web"
-	swgui "github.com/swaggest/swgui/v4emb"
+	swgui "github.com/swaggest/swgui/v5emb"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 )

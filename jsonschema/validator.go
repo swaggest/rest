@@ -214,7 +214,7 @@ func (v *Validator) ValidateData(in rest.ParamIn, namedData map[string]interface
 					errs = make(rest.ValidationErrors, 1)
 				}
 
-				errs[string(in)+":"+name] = []string{fmt.Sprintf("unknown parameter with value %v", value)}
+				errs[string(in)+":"+name] = []string{fmt.Sprintf("unknown parameter with value %+v", value)}
 			}
 
 			continue

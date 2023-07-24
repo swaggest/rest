@@ -48,7 +48,7 @@ func NewRouter() http.Handler {
 		return usecase.Interact(func(ctx context.Context, input, output interface{}) error {
 			err := next.Interact(ctx, input, output)
 			if err != nil && err != rest.HTTPCodeAsError(http.StatusNotModified) {
-				log.Printf("usecase %s request (%v) failed: %v\n", name, input, err)
+				log.Printf("usecase %s request (%+v) failed: %v\n", name, input, err)
 			}
 
 			return err

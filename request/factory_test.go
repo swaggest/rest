@@ -117,10 +117,25 @@ func BenchmarkDecoderFactory_SetDecoderFunc(b *testing.B) {
 }
 
 func TestDecoderFactory_MakeDecoder_default(t *testing.T) {
+	type Embed struct {
+		Baz bool `query:"baz" default:"true"`
+	}
+
+	type DeeplyEmbedded struct {
+		Embed
+	}
+
 	type MyInput struct {
-		ID         int    `query:"id" default:"123"`
-		Name       string `header:"X-Name" default:"foo"`
-		unexported bool   `query:"unexported"` // This field is skipped because it is unexported.
+		ID     int    `query:"id" default:"123"`
+		Name   string `header:"X-Name" default:"foo"`
+		Deeper struct {
+			Foo        string `query:"foo" default:"abc"`
+			EvenDeeper struct {
+				Bar float64 `query:"bar" default:"1.23"`
+			} `query:"even_deeper"`
+		} `query:"deeper"`
+		*DeeplyEmbedded
+		unexported bool `query:"unexported"` // This field is skipped because it is unexported.
 	}
 
 	df := request.NewDecoderFactory()
@@ -138,8 +153,15 @@ func TestDecoderFactory_MakeDecoder_default(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "foo", i.Name)
 	assert.Equal(t, 123, i.ID)
+	assert.Equal(t, "abc", i.Deeper.Foo)
+	assert.Equal(t, 1.23, i.Deeper.EvenDeeper.Bar)
+	assert.Equal(t, true, i.Baz)
 
-	req, err = http.NewRequest(http.MethodPost, "/?id=321", nil)
+	req, err = http.NewRequest(
+		http.MethodPost,
+		"/?id=321&deeper[foo]=def&deeper[even_deeper][bar]=3.21&baz=false",
+		nil,
+	)
 	require.NoError(t, err)
 
 	req.Header.Set("X-Name", "bar")
@@ -150,6 +172,9 @@ func TestDecoderFactory_MakeDecoder_default(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "bar", i.Name)
 	assert.Equal(t, 321, i.ID)
+	assert.Equal(t, "def", i.Deeper.Foo)
+	assert.Equal(t, 3.21, i.Deeper.EvenDeeper.Bar)
+	assert.Equal(t, false, i.Baz)
 }
 
 func TestDecoderFactory_MakeDecoder_invalidMapping(t *testing.T) {

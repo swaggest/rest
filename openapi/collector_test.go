@@ -147,7 +147,7 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 	require.NoError(t, collector.Collect(http.MethodPost, "/test/{in-path}", u, h))
 	require.NoError(t, collector.Collect(http.MethodPut, "/test/{in-path}", u, h))
 
-	assertjson.EqualMarshal(t, []byte(`{
+	assertjson.EqMarshal(t, `{
 	  "openapi":"3.0.3","info":{"title":"","version":""},
 	  "paths":{
 		"/test/{in-path}":{
@@ -223,7 +223,7 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 		  }
 		}
 	  }
-	}`), collector.Reflector().SpecEns())
+	}`, collector.Reflector().SpecEns())
 
 	val := validatorMock{
 		AddSchemaFunc: func(in rest.ParamIn, name string, schemaData []byte, required bool) error {
@@ -267,7 +267,7 @@ func TestCollector_Collect_CombineErrors(t *testing.T) {
 
 	require.NoError(t, collector.Collect(http.MethodPost, "/test", u, h))
 
-	assertjson.EqualMarshal(t, []byte(`{
+	assertjson.EqMarshal(t, `{
 	  "openapi":"3.0.3","info":{"title":"","version":""},
 	  "paths":{
 		"/test":{
@@ -321,7 +321,7 @@ func TestCollector_Collect_CombineErrors(t *testing.T) {
 		  }
 		}
 	  }
-	}`), collector.Reflector().SpecEns())
+	}`, collector.Reflector().SpecEns())
 }
 
 // Output that implements OutputWithHTTPStatus interface.
@@ -349,7 +349,7 @@ func TestCollector_Collect_multipleHttpStatuses(t *testing.T) {
 		ReqValidator: &jsonschema.Validator{},
 	}))
 
-	assertjson.EqualMarshal(t, []byte(`{
+	assertjson.EqMarshal(t, `{
 	  "openapi": "3.0.3",
 	  "info": {
 		"title": "",
@@ -397,5 +397,73 @@ func TestCollector_Collect_multipleHttpStatuses(t *testing.T) {
 		  }
 		}
 	  }
-	}`), c.Reflector().SpecEns())
+	}`, c.Reflector().SpecEns())
+}
+
+func TestCollector_Collect_queryObject(t *testing.T) {
+	c := openapi.Collector{}
+	u := usecase.IOInteractor{}
+
+	type jsonFilter struct {
+		Foo string `json:"foo"`
+	}
+
+	type deepObjectFilter struct {
+		Bar string `query:"bar"`
+	}
+
+	type inputQueryObject struct {
+		Query            map[int]float64  `query:"in_query" description:"Object value in query."`
+		JSONFilter       jsonFilter       `query:"json_filter" description:"JSON object value in query."`
+		DeepObjectFilter deepObjectFilter `query:"deep_object_filter" description:"Deep object value in query params."`
+	}
+
+	u.Input = new(inputQueryObject)
+
+	require.NoError(t, c.Collect(http.MethodGet, "/foo", u, rest.HandlerTrait{
+		ReqValidator: &jsonschema.Validator{},
+	}))
+
+	assertjson.EqMarshal(t, `{
+	  "openapi":"3.0.3","info":{"title":"","version":""},
+	  "paths":{
+		"/foo":{
+		  "get":{
+			"parameters":[
+			  {
+				"name":"in_query","in":"query",
+				"description":"Object value in query.","style":"deepObject",
+				"explode":true,
+				"schema":{
+				  "type":"object","additionalProperties":{"type":"number"},
+				  "description":"Object value in query."
+				}
+			  },
+			  {
+				"name":"json_filter","in":"query",
+				"description":"JSON object value in query.",
+				"content":{
+				  "application/json":{
+					"schema":{"$ref":"#/components/schemas/QueryOpenapiTestJsonFilter"}
+				  }
+				}
+			  },
+			  {
+				"name":"deep_object_filter","in":"query",
+				"description":"Deep object value in query params.",
+				"style":"deepObject","explode":true,
+				"schema":{"$ref":"#/components/schemas/QueryOpenapiTestDeepObjectFilter"}
+			  }
+			],
+			"responses":{"204":{"description":"No Content"}}
+		  }
+		}
+	  },
+	  "components":{
+		"schemas":{
+		  "QueryOpenapiTestDeepObjectFilter":{"type":"object","properties":{"bar":{"type":"string"}}},
+		  "QueryOpenapiTestJsonFilter":{"type":"object","properties":{"foo":{"type":"string"}}}
+		}
+	  }
+	}`, c.Reflector().SpecEns())
 }

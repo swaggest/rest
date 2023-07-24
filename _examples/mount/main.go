@@ -9,7 +9,7 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/web"
-	swgui "github.com/swaggest/swgui/v4emb"
+	swgui "github.com/swaggest/swgui/v5emb"
 	"github.com/swaggest/usecase"
 )
 
