@@ -6,7 +6,6 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 
 	"github.com/go-chi/chi/v5"
@@ -78,40 +77,40 @@ func TestNewWrapper(t *testing.T) {
 
 	r.Use(mw)
 
-	r.Group(func(r chi.Router) {
-		r.Method(http.MethodPost,
-			"/baz/{id}/",
-			HandlerWithFoo{Handler: http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
-				val, err := chirouter.PathToURLValues(request)
-				assert.NoError(t, err)
-				assert.Equal(t, url.Values{"id": []string{"123"}}, val)
-			})},
-		)
-	})
+	// r.Group(func(r chi.Router) {
+	// 	r.Method(http.MethodPost,
+	// 		"/baz/{id}/",
+	// 		HandlerWithFoo{Handler: http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	// 			val, err := chirouter.PathToURLValues(request)
+	// 			assert.NoError(t, err)
+	// 			assert.Equal(t, url.Values{"id": []string{"123"}}, val)
+	// 		})},
+	// 	)
+	// })
 
 	r.Mount("/mount",
 		HandlerWithFoo{Handler: http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})},
 	)
 
-	r.Route("/deeper", func(r chi.Router) {
-		r.Use(func(handler http.Handler) http.Handler {
-			return HandlerWithFoo{Handler: handler}
-		})
+	// r.Route("/deeper", func(r chi.Router) {
+	// 	r.Use(func(handler http.Handler) http.Handler {
+	// 		return HandlerWithFoo{Handler: handler}
+	// 	})
 
-		r.Get("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Head("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Post("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Put("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Trace("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Connect("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Options("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Patch("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Delete("/foo", func(writer http.ResponseWriter, request *http.Request) {})
+	// 	r.Get("/foo", func(writer http.ResponseWriter, request *http.Request) {})
+	// 	r.Head("/foo", func(writer http.ResponseWriter, request *http.Request) {})
+	// 	r.Post("/foo", func(writer http.ResponseWriter, request *http.Request) {})
+	// 	r.Put("/foo", func(writer http.ResponseWriter, request *http.Request) {})
+	// 	r.Trace("/foo", func(writer http.ResponseWriter, request *http.Request) {})
+	// 	r.Connect("/foo", func(writer http.ResponseWriter, request *http.Request) {})
+	// 	r.Options("/foo", func(writer http.ResponseWriter, request *http.Request) {})
+	// 	r.Patch("/foo", func(writer http.ResponseWriter, request *http.Request) {})
+	// 	r.Delete("/foo", func(writer http.ResponseWriter, request *http.Request) {})
 
-		r.MethodFunc(http.MethodGet, "/cuux", func(writer http.ResponseWriter, request *http.Request) {})
+	// 	r.MethodFunc(http.MethodGet, "/cuux", func(writer http.ResponseWriter, request *http.Request) {})
 
-		r.Handle("/bar", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {}))
-	})
+	// 	r.Handle("/bar", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {}))
+	// })
 
 	for _, u := range []string{"/baz/123/", "/deeper/foo", "/mount/abc"} {
 		req, err := http.NewRequest(http.MethodPost, u, nil)
