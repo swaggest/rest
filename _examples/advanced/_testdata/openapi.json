@@ -140,12 +140,7 @@
             "schema":{"type":"boolean","description":"Invokes internal decoding of compressed data."}
           }
         ],
-        "responses":{
-          "200":{
-            "description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}},
-            "content":{"application/dummy+json":{}}
-          }
-        },
+        "responses":{"200":{"description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}}}},
         "x-forbid-unknown-query":true
       }
     },
@@ -358,8 +353,7 @@
                 "style":"simple","description":"Sample response header.",
                 "schema":{"type":"string","description":"Sample response header."}
               }
-            },
-            "content":{"application/dummy+json":{}}
+            }
           }
         }
       }

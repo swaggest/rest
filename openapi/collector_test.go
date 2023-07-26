@@ -467,3 +467,55 @@ func TestCollector_Collect_queryObject(t *testing.T) {
 	  }
 	}`, c.Reflector().SpecEns())
 }
+
+func TestCollector_Collect_head_no_response(t *testing.T) {
+	c := openapi.Collector{}
+	u := usecase.IOInteractor{}
+
+	type resp struct {
+		Foo string `json:"foo"`
+		Bar string `header:"X-Bar"`
+	}
+
+	u.Output = new(resp)
+
+	require.NoError(t, c.Collect(http.MethodHead, "/foo", u, rest.HandlerTrait{
+		ReqValidator: &jsonschema.Validator{},
+	}))
+
+	require.NoError(t, c.Collect(http.MethodGet, "/foo", u, rest.HandlerTrait{
+		ReqValidator: &jsonschema.Validator{},
+	}))
+
+	assertjson.EqMarshal(t, `{
+	  "openapi":"3.0.3","info":{"title":"","version":""},
+	  "paths":{
+		"/foo":{
+		  "get":{
+			"responses":{
+			  "200":{
+				"description":"OK",
+				"headers":{"X-Bar":{"style":"simple","schema":{"type":"string"}}},
+				"content":{
+				  "application/json":{"schema":{"$ref":"#/components/schemas/OpenapiTestResp"}}
+				}
+			  }
+			}
+		  },
+		  "head":{
+			"responses":{
+			  "200":{
+				"description":"OK",
+				"headers":{"X-Bar":{"style":"simple","schema":{"type":"string"}}}
+			  }
+			}
+		  }
+		}
+	  },
+	  "components":{
+		"schemas":{
+		  "OpenapiTestResp":{"type":"object","properties":{"foo":{"type":"string"}}}
+		}
+	  }
+	}`, c.Reflector().Spec)
+}

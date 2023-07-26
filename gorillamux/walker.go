@@ -50,6 +50,7 @@ func (dc *DocsCollector) Walker(route *mux.Route, router *mux.Router, ancestors 
 	}
 
 	var openAPIPreparer OperationPreparer
+
 	nethttp.HandlerAs(handler, &openAPIPreparer)
 
 	for _, method := range methods {

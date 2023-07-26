@@ -1,7 +1,6 @@
 package gorillamux_test
 
 import (
-	"github.com/swaggest/rest/gorillamux"
 	"net/http"
 	"testing"
 
@@ -9,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/assertjson"
 	"github.com/swaggest/openapi-go"
+	"github.com/swaggest/rest/gorillamux"
 	"github.com/swaggest/usecase"
 )
 
@@ -51,12 +51,10 @@ func TestNewWrapper(t *testing.T) {
 			h.Input = struct {
 				Key string `path:"key"`
 			}{}
-			h.Output = struct {
-			}{}
+			h.Output = struct{}{}
 		})).
 		Methods(http.MethodGet).
 		Queries("key", "value")
-	s := r.Host("www.example.com").Subrouter()
 	r.Handle("/articles/{category}/",
 		newStructuredHandler(func(h *structuredHandler) {
 			h.Input = struct {
@@ -66,6 +64,9 @@ func TestNewWrapper(t *testing.T) {
 		})).
 		Methods(http.MethodGet).
 		Host("{subdomain:[a-z]+}.example.com")
+
+	s := r.Host("www.example.com").Subrouter()
+
 	s.Handle("/articles/{category}/{id:[0-9]+}", newStructuredHandler(func(h *structuredHandler) {
 		h.Input = struct {
 			Filter   string `query:"filter"`
@@ -112,8 +113,7 @@ func TestNewWrapper(t *testing.T) {
 		  "head":{
 			"responses":{
 			  "200":{
-				"description":"OK",
-				"content":{"text/html":{"schema":{"type":"string"}}}
+				"description":"OK"
 			  }
 			}
 		  },
