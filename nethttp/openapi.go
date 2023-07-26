@@ -3,6 +3,7 @@ package nethttp
 import (
 	"net/http"
 
+	oapi "github.com/swaggest/openapi-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/openapi"
@@ -105,6 +106,8 @@ func HTTPBearerSecurityMiddleware(
 }
 
 // AnnotateOpenAPI applies OpenAPI annotation to relevant handlers.
+//
+// Deprecated: use SetupOpenAPI.
 func AnnotateOpenAPI(
 	s *openapi.Collector,
 	setup ...func(op *openapi3.Operation) error,
@@ -145,9 +148,33 @@ type MiddlewareConfig struct {
 	ResponseStatus int
 }
 
+// SetupOpenAPI applies OpenAPI annotation to relevant handlers.
+func SetupOpenAPI(
+	s *openapi.Collector,
+	setup ...func(oc oapi.OperationContext) error,
+) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		if IsWrapperChecker(next) {
+			return next
+		}
+
+		var withRoute rest.HandlerWithRoute
+
+		if HandlerAs(next, &withRoute) {
+			s.AnnotateOperation(
+				withRoute.RouteMethod(),
+				withRoute.RoutePattern(),
+				setup...,
+			)
+		}
+
+		return next
+	}
+}
+
 func securityMiddleware(s *openapi.Collector, name string, cfg MiddlewareConfig) func(http.Handler) http.Handler {
-	return AnnotateOpenAPI(s, func(op *openapi3.Operation) error {
-		op.Security = append(op.Security, map[string][]string{name: {}})
+	return SetupOpenAPI(s, func(oc oapi.OperationContext) error {
+		oc.AddSecurity(name)
 
 		if cfg.ResponseStatus == 0 {
 			cfg.ResponseStatus = http.StatusUnauthorized
@@ -157,6 +184,10 @@ func securityMiddleware(s *openapi.Collector, name string, cfg MiddlewareConfig)
 			cfg.ResponseStructure = rest.ErrResponse{}
 		}
 
-		return s.Reflector().SetJSONResponse(op, cfg.ResponseStructure, cfg.ResponseStatus)
+		oc.AddRespStructure(cfg.ResponseStructure, func(cu *oapi.ContentUnit) {
+			cu.HTTPStatus = cfg.ResponseStatus
+		})
+
+		return nil
 	})
 }

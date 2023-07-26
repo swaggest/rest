@@ -17,8 +17,6 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-type ContentType string
-
 // Collector extracts OpenAPI documentation from HTTP handler and underlying use case interactor.
 type Collector struct {
 	mu sync.Mutex
@@ -127,7 +125,7 @@ func (c *Collector) Collect(
 
 	reflector := c.Reflector()
 
-	oc, err := c.Reflector().NewOperationContext(method, pattern)
+	oc, err := reflector.NewOperationContext(method, pattern)
 	if err != nil {
 		return err
 	}
@@ -161,50 +159,7 @@ func (c *Collector) Collect(
 		}
 	}
 
-	return c.Reflector().AddOperation(oc)
-
-	err = reflector.SpecEns().SetupOperation(method, pattern, func(op *openapi3.Operation) error {
-		oc := openapi3.OperationContext{
-			Operation:         op,
-			HTTPMethod:        method,
-			HTTPStatus:        h.SuccessStatus,
-			RespContentType:   h.SuccessContentType,
-			RespHeaderMapping: h.RespHeaderMapping, // TODO: where is it used?
-		}
-
-		err = c.setupInput(&oc, u, h)
-		if err != nil {
-			return fmt.Errorf("setup request: %w", err)
-		}
-
-		err = c.setupOutput(&oc, u)
-		if err != nil {
-			return fmt.Errorf("setup response: %w", err)
-		}
-
-		err = c.processUseCase(op, u, h)
-		if err != nil {
-			return err
-		}
-
-		for _, setup := range c.annotations[method+pattern] {
-			err = setup(op)
-			if err != nil {
-				return err
-			}
-		}
-
-		for _, setup := range annotations {
-			err = setup(op)
-			if err != nil {
-				return err
-			}
-		}
-
-		return nil
-	})
-
-	return err
+	return reflector.AddOperation(oc)
 }
 
 func (c *Collector) setupOCOutput(oc openapi.OperationContext, u usecase.Interactor, h rest.HandlerTrait) {
@@ -314,38 +269,13 @@ func (c *Collector) setupOutput(oc *openapi3.OperationContext, u usecase.Interac
 }
 
 func (c *Collector) setupOCInput(oc openapi.OperationContext, u usecase.Interactor, h rest.HandlerTrait) {
-	var (
-		hasInput usecase.HasInputPort
-	)
+	var hasInput usecase.HasInputPort
 
 	if usecase.As(u, &hasInput) {
 		oc.AddReqStructure(hasInput.InputPort(), func(cu *openapi.ContentUnit) {
 			setFieldMapping(cu, h.ReqMapping)
 		})
 	}
-
-	return
-}
-
-func (c *Collector) setupInput(oc *openapi3.OperationContext, u usecase.Interactor, h rest.HandlerTrait) error {
-	var (
-		hasInput usecase.HasInputPort
-
-		err error
-	)
-
-	if usecase.As(u, &hasInput) {
-		oc.Input = hasInput.InputPort()
-
-		setRequestMapping(oc, h.ReqMapping)
-
-		err = c.Reflector().SetupRequest(*oc)
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 func setFieldMapping(cu *openapi.ContentUnit, mapping rest.RequestMapping) {
@@ -430,68 +360,6 @@ func (c *Collector) processOCUseCase(oc openapi.OperationContext, u usecase.Inte
 	c.processOCExpectedErrors(oc, u, h)
 }
 
-func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor, h rest.HandlerTrait) error {
-	var (
-		hasName        usecase.HasName
-		hasTitle       usecase.HasTitle
-		hasDescription usecase.HasDescription
-		hasTags        usecase.HasTags
-		hasDeprecated  usecase.HasIsDeprecated
-	)
-
-	if usecase.As(u, &hasName) {
-		id := hasName.Name()
-
-		if id != "" {
-			if c.operationIDs == nil {
-				c.operationIDs = make(map[string]bool)
-			}
-
-			idSuf := id
-			suf := 1
-
-			for c.operationIDs[idSuf] {
-				suf++
-				idSuf = id + strconv.Itoa(suf)
-			}
-
-			c.operationIDs[idSuf] = true
-
-			op.WithID(idSuf)
-		}
-	}
-
-	if usecase.As(u, &hasTitle) {
-		title := hasTitle.Title()
-
-		if title != "" {
-			op.WithSummary(hasTitle.Title())
-		}
-	}
-
-	if usecase.As(u, &hasTags) {
-		tags := hasTags.Tags()
-
-		if len(tags) > 0 {
-			op.WithTags(hasTags.Tags()...)
-		}
-	}
-
-	if usecase.As(u, &hasDescription) {
-		desc := hasDescription.Description()
-
-		if desc != "" {
-			op.WithDescription(hasDescription.Description())
-		}
-	}
-
-	if usecase.As(u, &hasDeprecated) && hasDeprecated.IsDeprecated() {
-		op.WithDeprecated(true)
-	}
-
-	return c.processExpectedErrors(op, u, h)
-}
-
 func (c *Collector) setOCJSONResponse(oc openapi.OperationContext, output interface{}, statusCode int) {
 	oc.AddRespStructure(output, func(cu *openapi.ContentUnit) {
 		cu.HTTPStatus = statusCode
@@ -499,19 +367,6 @@ func (c *Collector) setOCJSONResponse(oc openapi.OperationContext, output interf
 			cu.ContentType = c.DefaultErrorResponseContentType
 		}
 	})
-}
-
-func (c *Collector) setJSONResponse(op *openapi3.Operation, output interface{}, statusCode int) error {
-	oc := openapi3.OperationContext{}
-	oc.Operation = op
-	oc.Output = output
-	oc.HTTPStatus = statusCode
-
-	if output != nil {
-		oc.RespContentType = c.DefaultErrorResponseContentType
-	}
-
-	return c.Reflector().SetupResponse(oc)
 }
 
 func (c *Collector) processOCExpectedErrors(oc openapi.OperationContext, u usecase.Interactor, h rest.HandlerTrait) {
@@ -553,52 +408,9 @@ func (c *Collector) processOCExpectedErrors(oc openapi.OperationContext, u useca
 	c.combineOCErrors(oc, statusCodes, errsByCode)
 }
 
-func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Interactor, h rest.HandlerTrait) error {
-	var (
-		errsByCode        = map[int][]interface{}{}
-		statusCodes       []int
-		hasExpectedErrors usecase.HasExpectedErrors
-	)
-
-	if !usecase.As(u, &hasExpectedErrors) {
-		return nil
-	}
-
-	for _, e := range hasExpectedErrors.ExpectedErrors() {
-		var (
-			errResp    interface{}
-			statusCode int
-		)
-
-		if h.MakeErrResp != nil {
-			statusCode, errResp = h.MakeErrResp(context.Background(), e)
-		} else {
-			statusCode, errResp = rest.Err(e)
-		}
-
-		if statusCode < http.StatusOK || statusCode == http.StatusNotModified || statusCode == http.StatusNoContent {
-			errResp = nil
-		}
-
-		if errsByCode[statusCode] == nil {
-			statusCodes = append(statusCodes, statusCode)
-		}
-
-		errsByCode[statusCode] = append(errsByCode[statusCode], errResp)
-
-		if err := c.setJSONResponse(op, errResp, statusCode); err != nil {
-			return err
-		}
-	}
-
-	return c.combineErrors(op, statusCodes, errsByCode)
-}
-
 func (c *Collector) combineOCErrors(oc openapi.OperationContext, statusCodes []int, errsByCode map[int][]interface{}) {
 	for _, statusCode := range statusCodes {
-		var (
-			errResps = errsByCode[statusCode]
-		)
+		errResps := errsByCode[statusCode]
 
 		if len(errResps) == 1 || c.CombineErrors == "" {
 			c.setOCJSONResponse(oc, errResps[0], statusCode)
@@ -614,37 +426,6 @@ func (c *Collector) combineOCErrors(oc openapi.OperationContext, statusCodes []i
 			}
 		}
 	}
-
-	return
-}
-
-func (c *Collector) combineErrors(op *openapi3.Operation, statusCodes []int, errsByCode map[int][]interface{}) error {
-	for _, statusCode := range statusCodes {
-		var (
-			errResps = errsByCode[statusCode]
-			err      error
-		)
-
-		if len(errResps) == 1 || c.CombineErrors == "" {
-			err = c.setJSONResponse(op, errResps[0], statusCode)
-		} else {
-			switch c.CombineErrors {
-			case "oneOf":
-				err = c.setJSONResponse(op, jsonschema.OneOf(errResps...), statusCode)
-			case "anyOf":
-				err = c.setJSONResponse(op, jsonschema.AnyOf(errResps...), statusCode)
-			default:
-				return errors.New("oneOf/anyOf expected for openapi.Collector.CombineErrors, " +
-					c.CombineErrors + " received")
-			}
-		}
-
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
 }
 
 type unknownFieldsValidator interface {
