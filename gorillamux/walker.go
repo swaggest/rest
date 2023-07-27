@@ -5,14 +5,15 @@ import (
 
 	"github.com/gorilla/mux"
 	oapi "github.com/swaggest/openapi-go"
+	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/openapi"
 )
 
 type DocsCollector struct {
-	AllowIncomplete bool
-	OnError         func(err error)
-	Collector       *openapi.Collector
+	OnError        func(err error)
+	Collector      *openapi.Collector
+	DefaultMethods []string
 }
 
 func NewOpenAPICollector() *DocsCollector {
@@ -25,6 +26,10 @@ func NewOpenAPICollector() *DocsCollector {
 
 	return &DocsCollector{
 		Collector: c,
+		DefaultMethods: []string{
+			http.MethodHead, http.MethodGet, http.MethodPost,
+			http.MethodPut, http.MethodPatch, http.MethodDelete,
+		},
 	}
 }
 
@@ -46,7 +51,7 @@ func (dc *DocsCollector) Walker(route *mux.Route, router *mux.Router, ancestors 
 	dc.onError(err)
 
 	if len(methods) == 0 {
-		methods = []string{http.MethodHead, http.MethodGet, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete}
+		methods = dc.DefaultMethods
 	}
 
 	var openAPIPreparer OperationPreparer
@@ -57,6 +62,27 @@ func (dc *DocsCollector) Walker(route *mux.Route, router *mux.Router, ancestors 
 		if err := dc.Collector.CollectOperation(method, path, func(oc oapi.OperationContext) error {
 			if openAPIPreparer != nil {
 				return openAPIPreparer.SetupOpenAPIOperation(oc)
+			}
+
+			_, _, pathItems, err := oapi.SanitizeMethodPath(method, path)
+			if err != nil {
+				return err
+			}
+
+			if len(pathItems) > 0 {
+				if o3, ok := oc.(openapi3.OperationExposer); ok {
+					op := o3.Operation()
+
+					for _, p := range pathItems {
+						param := openapi3.ParameterOrRef{}
+						param.WithParameter(openapi3.Parameter{
+							Name: p,
+							In:   openapi3.ParameterInPath,
+						})
+
+						op.Parameters = append(op.Parameters, param)
+					}
+				}
 			}
 
 			oc.AddRespStructure(nil, func(cu *oapi.ContentUnit) {

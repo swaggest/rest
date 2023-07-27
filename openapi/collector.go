@@ -214,60 +214,6 @@ func (c *Collector) setupOCOutput(oc openapi.OperationContext, u usecase.Interac
 	}
 }
 
-func (c *Collector) setupOutput(oc *openapi3.OperationContext, u usecase.Interactor) error {
-	var (
-		hasOutput usecase.HasOutputPort
-		status    = http.StatusOK
-		noContent bool
-	)
-
-	if usecase.As(u, &hasOutput) {
-		oc.Output = hasOutput.OutputPort()
-
-		if rest.OutputHasNoContent(oc.Output) {
-			status = http.StatusNoContent
-			noContent = true
-		}
-	} else {
-		status = http.StatusNoContent
-		noContent = true
-	}
-
-	if !noContent && oc.RespContentType == "" {
-		oc.RespContentType = c.DefaultSuccessResponseContentType
-	}
-
-	if outputWithStatus, ok := oc.Output.(rest.OutputWithHTTPStatus); ok {
-		for _, status := range outputWithStatus.ExpectedHTTPStatuses() {
-			oc.HTTPStatus = status
-			if err := c.Reflector().SetupResponse(*oc); err != nil {
-				return err
-			}
-		}
-	} else {
-		if oc.HTTPStatus == 0 {
-			oc.HTTPStatus = status
-		}
-		err := c.Reflector().SetupResponse(*oc)
-		if err != nil {
-			return err
-		}
-	}
-
-	if oc.HTTPMethod == http.MethodHead {
-		for code, resp := range oc.Operation.Responses.MapOfResponseOrRefValues {
-			for contentType, cont := range resp.Response.Content {
-				cont.Schema = nil
-				resp.Response.Content[contentType] = cont
-			}
-
-			oc.Operation.Responses.MapOfResponseOrRefValues[code] = resp
-		}
-	}
-
-	return nil
-}
-
 func (c *Collector) setupOCInput(oc openapi.OperationContext, u usecase.Interactor, h rest.HandlerTrait) {
 	var hasInput usecase.HasInputPort
 
