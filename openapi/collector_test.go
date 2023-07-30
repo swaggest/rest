@@ -97,7 +97,7 @@ func TestCollector_Collect(t *testing.T) {
 		ReqValidator: &jsonschema.Validator{},
 	}))
 
-	j, err := json.MarshalIndent(c.Reflector().Spec, "", " ")
+	j, err := json.MarshalIndent(c.SpecSchema(), "", " ")
 	require.NoError(t, err)
 
 	rw := httptest.NewRecorder()
@@ -223,7 +223,7 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 		  }
 		}
 	  }
-	}`, collector.Reflector().SpecEns())
+	}`, collector.SpecSchema())
 
 	val := validatorMock{
 		AddSchemaFunc: func(in rest.ParamIn, name string, schemaData []byte, required bool) error {
@@ -321,7 +321,7 @@ func TestCollector_Collect_CombineErrors(t *testing.T) {
 		  }
 		}
 	  }
-	}`, collector.Reflector().SpecEns())
+	}`, collector.SpecSchema())
 }
 
 // Output that implements OutputWithHTTPStatus interface.
@@ -397,7 +397,7 @@ func TestCollector_Collect_multipleHttpStatuses(t *testing.T) {
 		  }
 		}
 	  }
-	}`, c.Reflector().SpecEns())
+	}`, c.SpecSchema())
 }
 
 func TestCollector_Collect_queryObject(t *testing.T) {
@@ -465,7 +465,7 @@ func TestCollector_Collect_queryObject(t *testing.T) {
 		  "QueryOpenapiTestJsonFilter":{"type":"object","properties":{"foo":{"type":"string"}}}
 		}
 	  }
-	}`, c.Reflector().SpecEns())
+	}`, c.SpecSchema())
 }
 
 func TestCollector_Collect_head_no_response(t *testing.T) {
@@ -517,5 +517,5 @@ func TestCollector_Collect_head_no_response(t *testing.T) {
 		  "OpenapiTestResp":{"type":"object","properties":{"foo":{"type":"string"}}}
 		}
 	  }
-	}`, c.Reflector().Spec)
+	}`, c.SpecSchema())
 }

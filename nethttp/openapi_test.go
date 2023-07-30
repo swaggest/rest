@@ -67,7 +67,7 @@ func TestOpenAPIMiddleware(t *testing.T) {
 		assert.True(t, nethttp.MiddlewareIsWrapper(w), i)
 	}
 
-	sp, err := assertjson.MarshalIndentCompact(c.Reflector().Spec, "", " ", 100)
+	sp, err := assertjson.MarshalIndentCompact(c.SpecSchema(), "", " ", 100)
 	require.NoError(t, err)
 
 	assertjson.Equal(t, []byte(`{

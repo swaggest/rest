@@ -25,12 +25,11 @@ func OpenAPIMiddleware(s *openapi.Collector) func(http.Handler) http.Handler {
 			return h
 		}
 
-		err := s.Collect(
+		err := s.CollectUseCase(
 			withRoute.RouteMethod(),
 			withRoute.RoutePattern(),
 			handler.UseCase(),
 			handler.HandlerTrait,
-			handler.OperationAnnotations...,
 		)
 		if err != nil {
 			panic(err)

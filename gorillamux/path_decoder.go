@@ -5,11 +5,13 @@ import (
 	"net/url"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/gorilla/mux"
 )
 
 // PathToURLValues is a decoder function for parameters in path.
 func PathToURLValues(r *http.Request) (url.Values, error) { //nolint:unparam // Matches request.DecoderFactory.SetDecoderFunc.
-	// vars := mux.Vars(r)
+	vars := mux.Vars(r)
+	_ = vars
 
 	// w.WriteHeader(http.StatusOK)
 	// fmt.Fprintf(w, "Category: %v\n", vars["category"])

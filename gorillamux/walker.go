@@ -16,13 +16,8 @@ type DocsCollector struct {
 	DefaultMethods []string
 }
 
-func NewOpenAPICollector() *DocsCollector {
-	c := &openapi.Collector{}
-
-	c.Reflector().SpecEns().Info.
-		WithTitle("Test Server").
-		WithVersion("v1.2.3").
-		WithDescription("Provides API over HTTP")
+func NewOpenAPICollector(r oapi.Reflector) *DocsCollector {
+	c := openapi.NewCollector(r)
 
 	return &DocsCollector{
 		Collector: c,

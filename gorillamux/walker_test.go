@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/swaggest/assertjson"
 	"github.com/swaggest/openapi-go"
+	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest/gorillamux"
 	"github.com/swaggest/usecase"
 )
@@ -82,7 +83,13 @@ func TestNewWrapper(t *testing.T) {
 
 	http.Handle("/", r)
 
-	c := gorillamux.NewOpenAPICollector()
+	rf := openapi3.NewReflector()
+	rf.Spec.Info.
+		WithTitle("Test Server").
+		WithVersion("v1.2.3").
+		WithDescription("Provides API over HTTP")
+
+	c := gorillamux.NewOpenAPICollector(rf)
 
 	assert.NoError(t, r.Walk(c.Walker))
 
@@ -208,5 +215,5 @@ func TestNewWrapper(t *testing.T) {
 		  }
 		}
 	  }
-	}`, c.Collector.Reflector().Spec)
+	}`, c.Collector.SpecSchema())
 }

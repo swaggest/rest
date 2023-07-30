@@ -8,6 +8,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"github.com/swaggest/jsonschema-go"
+	oapi "github.com/swaggest/openapi-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/nethttp"
@@ -23,16 +24,17 @@ func NewRouter() http.Handler {
 
 	s := web.DefaultService()
 
-	s.OpenAPI.Info.Title = "Advanced Example"
-	s.OpenAPI.Info.WithDescription("This app showcases a variety of features.")
-	s.OpenAPI.Info.Version = "v1.2.3"
+	s.OpenAPISchema().SetTitle("Advanced Example")
+	s.OpenAPISchema().SetDescription("This app showcases a variety of features.")
+	s.OpenAPISchema().SetVersion("v1.2.3")
 
 	// An example of global schema override to disable additionalProperties for all object schemas.
-	s.OpenAPICollector.Reflector().DefaultOptions = append(s.OpenAPICollector.Reflector().DefaultOptions,
+	jsr := s.OpenAPIReflector().JSONSchemaReflector()
+	jsr.DefaultOptions = append(jsr.DefaultOptions,
 		jsonschema.InterceptSchema(func(params jsonschema.InterceptSchemaParams) (stop bool, err error) {
 			// Allow unknown request headers and skip response.
-			if oc, ok := openapi3.OperationCtx(params.Context); !params.Processed || !ok ||
-				oc.ProcessingResponse || oc.ProcessingIn == string(rest.ParamInHeader) {
+			if oc, ok := oapi.OperationCtx(params.Context); !params.Processed || !ok ||
+				oc.IsProcessingResponse() || oc.ProcessingIn() == oapi.InHeader {
 				return false, nil
 			}
 
@@ -51,7 +53,7 @@ func NewRouter() http.Handler {
 	uuidDef.AddType(jsonschema.String)
 	uuidDef.WithFormat("uuid")
 	uuidDef.WithExamples("248df4b7-aa70-47b8-a036-33ac447e668d")
-	s.OpenAPICollector.Reflector().AddTypeMapping(uuid.UUID{}, uuidDef)
+	jsr.AddTypeMapping(uuid.UUID{}, uuidDef)
 
 	s.OpenAPICollector.CombineErrors = "anyOf"
 
@@ -88,7 +90,14 @@ func NewRouter() http.Handler {
 	)
 
 	// Annotations can be used to alter documentation of operation identified by method and path.
-	s.OpenAPICollector.Annotate(http.MethodPost, "/validation", func(op *openapi3.Operation) error {
+	s.OpenAPICollector.AnnotateOperation(http.MethodPost, "/validation", func(oc oapi.OperationContext) error {
+		o3, ok := oc.(openapi3.OperationExposer)
+		if !ok {
+			return nil
+		}
+
+		op := o3.Operation()
+
 		if op.Description != nil {
 			*op.Description = *op.Description + " Custom annotation."
 		}
@@ -134,7 +143,7 @@ func NewRouter() http.Handler {
 	s.Post("/no-validation", noValidation())
 
 	// Type mapping is necessary to pass interface as structure into documentation.
-	s.OpenAPICollector.Reflector().AddTypeMapping(new(gzipPassThroughOutput), new(gzipPassThroughStruct))
+	jsr.AddTypeMapping(new(gzipPassThroughOutput), new(gzipPassThroughStruct))
 	s.Get("/gzip-pass-through", directGzip())
 	s.Head("/gzip-pass-through", directGzip())
 
