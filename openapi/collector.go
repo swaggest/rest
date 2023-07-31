@@ -165,9 +165,20 @@ func (c *Collector) CollectUseCase(
 	c.setupOutput(oc, u, h)
 	c.processUseCase(oc, u, h)
 
-	for _, setup := range append(c.ocAnnotations[method+pattern], h.OpenAPIAnnotations...) {
-		err = setup(oc)
-		if err != nil {
+	for _, setup := range c.ocAnnotations[method+pattern] {
+		if err = setup(oc); err != nil {
+			return err
+		}
+	}
+
+	for _, setup := range h.OpenAPIAnnotations {
+		if err = setup(oc); err != nil {
+			return err
+		}
+	}
+
+	for _, setup := range annotations {
+		if err = setup(oc); err != nil {
 			return err
 		}
 	}
@@ -176,15 +187,14 @@ func (c *Collector) CollectUseCase(
 		op := o3.Operation()
 
 		for _, setup := range c.annotations[method+pattern] {
-			err = setup(op)
-			if err != nil {
+			if err = setup(op); err != nil {
 				return err
 			}
 		}
 
+		//nolint:staticcheck // To be removed with deprecations cleanup.
 		for _, setup := range h.OperationAnnotations {
-			err = setup(op)
-			if err != nil {
+			if err = setup(op); err != nil {
 				return err
 			}
 		}

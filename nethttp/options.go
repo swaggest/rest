@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/swaggest/openapi-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/refl"
 	"github.com/swaggest/rest"
@@ -27,20 +28,31 @@ func OptionsMiddleware(options ...func(h *Handler)) func(h http.Handler) http.Ha
 }
 
 // AnnotateOperation allows customizations of prepared operations.
+//
+// Deprecated: TODO ?.
 func AnnotateOperation(annotations ...func(operation *openapi3.Operation) error) func(h *Handler) {
 	return func(h *Handler) {
-		h.OperationAnnotations = append(h.OperationAnnotations, annotations...)
+		for _, a := range annotations {
+			a := a
+
+			h.OpenAPIAnnotations = append(h.OpenAPIAnnotations, func(oc openapi.OperationContext) error {
+				if o3, ok := oc.(openapi3.OperationExposer); ok {
+					return a(o3.Operation())
+				}
+
+				return nil
+			})
+		}
 	}
 }
 
 // RequestBodyContent enables string request body with content type (e.g. text/plain).
 func RequestBodyContent(contentType string) func(h *Handler) {
 	return func(h *Handler) {
-		mt := openapi3.MediaType{}
-		mt.SchemaEns().SchemaEns().WithType(openapi3.SchemaTypeString)
-
-		h.OperationAnnotations = append(h.OperationAnnotations, func(op *openapi3.Operation) error {
-			op.RequestBodyEns().RequestBodyEns().WithContentItem(contentType, mt)
+		h.OpenAPIAnnotations = append(h.OpenAPIAnnotations, func(oc openapi.OperationContext) error {
+			oc.AddReqStructure(nil, func(cu *openapi.ContentUnit) {
+				cu.ContentType = contentType
+			})
 
 			return nil
 		})
