@@ -34,6 +34,7 @@ func outputCSVWriter() usecase.Interactor {
 		out.ContentHash = contentHash
 
 		c := csv.NewWriter(out)
+
 		return c.WriteAll([][]string{{"abc", "def", "hij"}, {"klm", "nop", "qrs"}})
 	})
 

@@ -36,7 +36,7 @@ func NewRouter(locator *service.Locator) http.Handler {
 
 	// Unrestricted access.
 	s.Route("/dev", func(r chi.Router) {
-		r.Use(nethttp.SetupOpenAPI(s.OpenAPICollector, func(oc openapi.OperationContext) error {
+		r.Use(nethttp.OpenAPIAnnotationsMiddleware(s.OpenAPICollector, func(oc openapi.OperationContext) error {
 			oc.SetTags("Dev Mode")
 
 			return nil
@@ -54,7 +54,7 @@ func NewRouter(locator *service.Locator) http.Handler {
 	// Endpoints with admin access.
 	s.Route("/admin", func(r chi.Router) {
 		r.Group(func(r chi.Router) {
-			r.Use(nethttp.SetupOpenAPI(s.OpenAPICollector, func(oc openapi.OperationContext) error {
+			r.Use(nethttp.OpenAPIAnnotationsMiddleware(s.OpenAPICollector, func(oc openapi.OperationContext) error {
 				oc.SetTags("Admin Mode")
 
 				return nil

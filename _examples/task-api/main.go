@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/kelseyhightower/envconfig"
 	"github.com/swaggest/rest/_examples/task-api/internal/infra"
@@ -26,7 +27,10 @@ func main() {
 	l.EnableGracefulShutdown()
 
 	// Initialize HTTP server.
-	srv := http.Server{Addr: fmt.Sprintf(":%d", cfg.HTTPPort), Handler: nethttp.NewRouter(l)}
+	srv := http.Server{
+		Addr: fmt.Sprintf(":%d", cfg.HTTPPort), Handler: nethttp.NewRouter(l),
+		ReadHeaderTimeout: time.Second,
+	}
 
 	// Start HTTP server.
 	log.Printf("starting HTTP server at http://localhost:%d/docs\n", cfg.HTTPPort)

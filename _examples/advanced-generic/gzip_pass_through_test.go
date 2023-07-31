@@ -20,6 +20,7 @@ func Test_directGzip(t *testing.T) {
 	require.NoError(t, err)
 
 	req.Header.Set("Accept-Encoding", "gzip")
+
 	rw := httptest.NewRecorder()
 
 	r.ServeHTTP(rw, req)
@@ -37,6 +38,7 @@ func Test_noDirectGzip(t *testing.T) {
 	require.NoError(t, err)
 
 	req.Header.Set("Accept-Encoding", "gzip")
+
 	rw := httptest.NewRecorder()
 
 	r.ServeHTTP(rw, req)

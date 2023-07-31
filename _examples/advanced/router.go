@@ -117,8 +117,8 @@ func NewRouter() http.Handler {
 
 	s.Post("/json-map-body", jsonMapBody(),
 		// Annotate operation to add post-processing if necessary.
-		nethttp.AnnotateOperation(func(op *openapi3.Operation) error {
-			op.WithDescription("Request with JSON object (map) body.")
+		nethttp.AnnotateOpenAPIOperation(func(oc oapi.OperationContext) error {
+			oc.SetDescription("Request with JSON object (map) body.")
 
 			return nil
 		}))
@@ -157,6 +157,8 @@ func NewRouter() http.Handler {
 			if c, err := r.Cookie("sessid"); err == nil {
 				r = r.WithContext(context.WithValue(r.Context(), "sessionID", c.Value))
 			}
+
+			handler.ServeHTTP(w, r)
 		})
 	}
 
