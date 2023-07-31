@@ -165,19 +165,11 @@ func (c *Collector) CollectUseCase(
 	c.setupOutput(oc, u, h)
 	c.processUseCase(oc, u, h)
 
-	for _, setup := range c.ocAnnotations[method+pattern] {
-		if err = setup(oc); err != nil {
-			return err
-		}
-	}
+	an := append([]func(oc openapi.OperationContext) error(nil), c.ocAnnotations[method+pattern]...)
+	an = append(an, h.OpenAPIAnnotations...)
+	an = append(an, annotations...)
 
-	for _, setup := range h.OpenAPIAnnotations {
-		if err = setup(oc); err != nil {
-			return err
-		}
-	}
-
-	for _, setup := range annotations {
+	for _, setup := range an {
 		if err = setup(oc); err != nil {
 			return err
 		}

@@ -106,7 +106,7 @@ func HTTPBearerSecurityMiddleware(
 
 // AnnotateOpenAPI applies OpenAPI annotation to relevant handlers.
 //
-// Deprecated: use SetupOpenAPI.
+// Deprecated: use OpenAPIAnnotationsMiddleware.
 func AnnotateOpenAPI(
 	s *openapi.Collector,
 	setup ...func(op *openapi3.Operation) error,
@@ -147,10 +147,10 @@ type MiddlewareConfig struct {
 	ResponseStatus int
 }
 
-// SetupOpenAPI applies OpenAPI annotation to relevant handlers.
-func SetupOpenAPI(
+// OpenAPIAnnotationsMiddleware applies OpenAPI annotations to handlers.
+func OpenAPIAnnotationsMiddleware(
 	s *openapi.Collector,
-	setup ...func(oc oapi.OperationContext) error,
+	annotations ...func(oc oapi.OperationContext) error,
 ) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		if IsWrapperChecker(next) {
@@ -163,7 +163,7 @@ func SetupOpenAPI(
 			s.AnnotateOperation(
 				withRoute.RouteMethod(),
 				withRoute.RoutePattern(),
-				setup...,
+				annotations...,
 			)
 		}
 
@@ -172,7 +172,7 @@ func SetupOpenAPI(
 }
 
 func securityMiddleware(s *openapi.Collector, name string, cfg MiddlewareConfig) func(http.Handler) http.Handler {
-	return SetupOpenAPI(s, func(oc oapi.OperationContext) error {
+	return OpenAPIAnnotationsMiddleware(s, func(oc oapi.OperationContext) error {
 		oc.AddSecurity(name)
 
 		if cfg.ResponseStatus == 0 {

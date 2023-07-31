@@ -27,9 +27,16 @@ func OptionsMiddleware(options ...func(h *Handler)) func(h http.Handler) http.Ha
 	}
 }
 
+// AnnotateOpenAPIOperation allows customization of OpenAPI operation, that is reflected from the Handler.
+func AnnotateOpenAPIOperation(annotations ...func(oc openapi.OperationContext) error) func(h *Handler) {
+	return func(h *Handler) {
+		h.OpenAPIAnnotations = append(h.OpenAPIAnnotations, annotations...)
+	}
+}
+
 // AnnotateOperation allows customizations of prepared operations.
 //
-// Deprecated: TODO ?.
+// Deprecated: use AnnotateOpenAPIOperation.
 func AnnotateOperation(annotations ...func(operation *openapi3.Operation) error) func(h *Handler) {
 	return func(h *Handler) {
 		for _, a := range annotations {
