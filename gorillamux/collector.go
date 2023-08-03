@@ -45,8 +45,10 @@ type OpenAPIPreparer interface {
 	SetupOpenAPIOperation(oc oapi.OperationContext) error
 }
 
+type preparerFunc func(oc oapi.OperationContext) error
+
 // Walker walks route tree and collects OpenAPI information.
-func (dc *OpenAPICollector) Walker(route *mux.Route, router *mux.Router, ancestors []*mux.Route) error {
+func (dc *OpenAPICollector) Walker(route *mux.Route, _ *mux.Router, _ []*mux.Route) error {
 	handler := route.GetHandler()
 
 	if handler == nil {
@@ -72,7 +74,7 @@ func (dc *OpenAPICollector) Walker(route *mux.Route, router *mux.Router, ancesto
 
 	var (
 		openAPIPreparer OpenAPIPreparer
-		preparer        func(oc oapi.OperationContext) error
+		preparer        preparerFunc
 	)
 
 	if nethttp.HandlerAs(handler, &openAPIPreparer) {
@@ -82,53 +84,54 @@ func (dc *OpenAPICollector) Walker(route *mux.Route, router *mux.Router, ancesto
 	}
 
 	for _, method := range methods {
-		if err := dc.Collector.CollectOperation(
-			method, path,
-			func(oc oapi.OperationContext) error {
-				// Do not apply default parameters to not conflict with custom preparer.
-				if preparer != nil {
-					return preparer(oc)
-				}
-
-				// Do not apply default parameters to not conflict with custom annotation.
-				if dc.Collector.HasAnnotation(method, path) {
-					return nil
-				}
-
-				_, _, pathItems, err := oapi.SanitizeMethodPath(method, path)
-				if err != nil {
-					return err
-				}
-
-				if len(pathItems) > 0 {
-					if o3, ok := oc.(openapi3.OperationExposer); ok {
-						op := o3.Operation()
-
-						for _, p := range pathItems {
-							param := openapi3.ParameterOrRef{}
-							param.WithParameter(openapi3.Parameter{
-								Name: p,
-								In:   openapi3.ParameterInPath,
-							})
-
-							op.Parameters = append(op.Parameters, param)
-						}
-					}
-				}
-
-				oc.SetDescription("Information about this operation was obtained using only HTTP method and path pattern. " +
-					"It may be incomplete and/or inaccurate.")
-				oc.SetTags("Incomplete")
-				oc.AddRespStructure(nil, func(cu *oapi.ContentUnit) {
-					cu.ContentType = "text/html"
-				})
-
-				return nil
-			},
-		); err != nil {
+		if err := dc.Collector.CollectOperation(method, path, dc.collect(method, path, preparer)); err != nil {
 			return err
 		}
 	}
 
 	return nil
+}
+
+func (dc *OpenAPICollector) collect(method, path string, preparer preparerFunc) preparerFunc {
+	return func(oc oapi.OperationContext) error {
+		// Do not apply default parameters to not conflict with custom preparer.
+		if preparer != nil {
+			return preparer(oc)
+		}
+
+		// Do not apply default parameters to not conflict with custom annotation.
+		if dc.Collector.HasAnnotation(method, path) {
+			return nil
+		}
+
+		_, _, pathItems, err := oapi.SanitizeMethodPath(method, path)
+		if err != nil {
+			return err
+		}
+
+		if len(pathItems) > 0 {
+			if o3, ok := oc.(openapi3.OperationExposer); ok {
+				op := o3.Operation()
+
+				for _, p := range pathItems {
+					param := openapi3.ParameterOrRef{}
+					param.WithParameter(openapi3.Parameter{
+						Name: p,
+						In:   openapi3.ParameterInPath,
+					})
+
+					op.Parameters = append(op.Parameters, param)
+				}
+			}
+		}
+
+		oc.SetDescription("Information about this operation was obtained using only HTTP method and path pattern. " +
+			"It may be incomplete and/or inaccurate.")
+		oc.SetTags("Incomplete")
+		oc.AddRespStructure(nil, func(cu *oapi.ContentUnit) {
+			cu.ContentType = "text/html"
+		})
+
+		return nil
+	}
 }
