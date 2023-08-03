@@ -84,6 +84,8 @@ func (c *Collector) Reflector() *openapi3.Reflector {
 }
 
 // Annotate adds OpenAPI operation configuration that is applied during collection.
+//
+// Deprecated: use AnnotateOperation.
 func (c *Collector) Annotate(method, pattern string, setup ...func(op *openapi3.Operation) error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -95,7 +97,8 @@ func (c *Collector) Annotate(method, pattern string, setup ...func(op *openapi3.
 	c.annotations[method+pattern] = append(c.annotations[method+pattern], setup...)
 }
 
-// AnnotateOperation adds OpenAPI operation configuration that is applied during collection.
+// AnnotateOperation adds OpenAPI operation configuration that is applied during collection,
+// method can be empty to indicate any method.
 func (c *Collector) AnnotateOperation(method, pattern string, setup ...func(oc openapi.OperationContext) error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -105,6 +108,15 @@ func (c *Collector) AnnotateOperation(method, pattern string, setup ...func(oc o
 	}
 
 	c.ocAnnotations[method+pattern] = append(c.ocAnnotations[method+pattern], setup...)
+}
+
+// HasAnnotation indicates if there is at least one annotation registered for this operation.
+func (c *Collector) HasAnnotation(method, pattern string) bool {
+	if len(c.ocAnnotations[method+pattern]) > 0 {
+		return true
+	}
+
+	return len(c.ocAnnotations[pattern]) > 0
 }
 
 // CollectOperation prepares and adds OpenAPI operation.
@@ -128,9 +140,20 @@ func (c *Collector) CollectOperation(
 		return err
 	}
 
-	for _, setup := range append(c.ocAnnotations[method+pattern], annotations...) {
-		err = setup(oc)
-		if err != nil {
+	for _, setup := range c.ocAnnotations[pattern] {
+		if err = setup(oc); err != nil {
+			return err
+		}
+	}
+
+	for _, setup := range c.ocAnnotations[method+pattern] {
+		if err = setup(oc); err != nil {
+			return err
+		}
+	}
+
+	for _, setup := range annotations {
+		if err = setup(oc); err != nil {
 			return err
 		}
 	}

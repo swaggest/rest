@@ -136,28 +136,20 @@ func NewRouter() http.Handler {
 	)
 
 	// Annotations can be used to alter documentation of operation identified by method and path.
-	s.OpenAPICollector.Annotate(http.MethodPost, "/validation", func(op *openapi3.Operation) error {
+	s.OpenAPICollector.AnnotateOperation(http.MethodPost, "/validation", func(oc oapi.OperationContext) error {
+		o3, ok := oc.(openapi3.OperationExposer)
+		if !ok {
+			return nil
+		}
+
+		op := o3.Operation()
+
 		if op.Description != nil {
 			*op.Description = *op.Description + " Custom annotation."
 		}
 
 		return nil
 	})
-
-	//s.OpenAPICollector.AnnotateOperation(http.MethodPost, "/validation", func(oc oapi.OperationContext) error {
-	//	o3, ok := oc.(openapi3.OperationExposer)
-	//	if !ok {
-	//		return nil
-	//	}
-	//
-	//	op := o3.Operation()
-	//
-	//	if op.Description != nil {
-	//		*op.Description = *op.Description + " Custom annotation."
-	//	}
-	//
-	//	return nil
-	//})
 
 	s.Get("/query-object", queryObject())
 	s.Post("/form", form())

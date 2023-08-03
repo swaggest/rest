@@ -33,10 +33,9 @@ func newStructuredHandler(setup func(h *structuredHandler)) structuredHandler {
 	return h
 }
 
-func (s structuredHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-}
+func (s structuredHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {}
 
-func TestNewWrapper(t *testing.T) {
+func TestOpenAPICollector_Walker(t *testing.T) {
 	r := mux.NewRouter()
 
 	r.Use(func(handler http.Handler) http.Handler {
@@ -100,92 +99,22 @@ func TestNewWrapper(t *testing.T) {
 		"version":"v1.2.3"
 	  },
 	  "paths":{
-		"/":{
-		  "delete":{
-			"responses":{
-			  "200":{
-				"description":"OK",
-				"content":{"text/html":{"schema":{"type":"string"}}}
-			  }
-			}
-		  },
-		  "get":{
-			"responses":{
-			  "200":{
-				"description":"OK",
-				"content":{"text/html":{"schema":{"type":"string"}}}
-			  }
-			}
-		  },
-		  "head":{
-			"responses":{
-			  "200":{
-				"description":"OK"
-			  }
-			}
-		  },
-		  "patch":{
-			"responses":{
-			  "200":{
-				"description":"OK",
-				"content":{"text/html":{"schema":{"type":"string"}}}
-			  }
-			}
-		  },
-		  "post":{
-			"responses":{
-			  "200":{
-				"description":"OK",
-				"content":{"text/html":{"schema":{"type":"string"}}}
-			  }
-			}
-		  },
-		  "put":{
-			"responses":{
-			  "200":{
-				"description":"OK",
-				"content":{"text/html":{"schema":{"type":"string"}}}
-			  }
-			}
-		  }
-		},
 		"/articles":{
 		  "get":{
+			"tags":["Incomplete"],
+			"description":"Information about this operation was obtained using only HTTP method and path pattern. It may be incomplete and/or inaccurate.",
 			"responses":{
 			  "200":{
 				"description":"OK",
 				"content":{"text/html":{"schema":{"type":"string"}}}
 			  }
 			}
-		  }
-		},
-		"/articles/{category}/":{
-		  "get":{
-			"parameters":[
-			  {"name":"filter","in":"query","schema":{"type":"string"}},
-			  {
-				"name":"category","in":"path","required":true,
-				"schema":{"type":"string"}
-			  }
-			],
-			"responses":{"200":{"description":"OK"}}
-		  }
-		},
-		"/articles/{category}/{id}":{
-		  "get":{
-			"parameters":[
-			  {"name":"filter","in":"query","schema":{"type":"string"}},
-			  {
-				"name":"category","in":"path","required":true,
-				"schema":{"type":"string"}
-			  },
-			  {"name":"id","in":"path","required":true,"schema":{"type":"string"}}
-			],
-			"responses":{"200":{"description":"OK"}}
 		  }
 		},
 		"/products":{
 		  "get":{
+			"tags":["Incomplete"],
+			"description":"Information about this operation was obtained using only HTTP method and path pattern. It may be incomplete and/or inaccurate.",
 			"responses":{
 			  "200":{
 				"description":"OK",
@@ -206,6 +135,8 @@ func TestNewWrapper(t *testing.T) {
 		},
 		"/specific":{
 		  "post":{
+			"tags":["Incomplete"],
+			"description":"Information about this operation was obtained using only HTTP method and path pattern. It may be incomplete and/or inaccurate.",
 			"responses":{
 			  "200":{
 				"description":"OK",
@@ -215,5 +146,90 @@ func TestNewWrapper(t *testing.T) {
 		  }
 		}
 	  }
-	}`, c.Collector.SpecSchema())
+	}`, rf.Spec)
+
+	rf = openapi3.NewReflector()
+	rf.Spec.Info.
+		WithTitle("Test Server (www.example.com)").
+		WithVersion("v1.2.3").
+		WithDescription("Provides API over HTTP")
+	rf.Spec.WithServers(openapi3.Server{
+		URL: "www.example.com",
+	})
+
+	c = gorillamux.NewOpenAPICollector(rf)
+	c.Host = "www.example.com"
+
+	assert.NoError(t, r.Walk(c.Walker))
+
+	assertjson.EqMarshal(t, `{
+	  "openapi":"3.0.3",
+	  "info":{
+		"title":"Test Server (www.example.com)",
+		"description":"Provides API over HTTP","version":"v1.2.3"
+	  },
+	  "servers":[{"url":"www.example.com"}],
+	  "paths":{
+		"/articles/{category}/{id}":{
+		  "get":{
+			"parameters":[
+			  {"name":"filter","in":"query","schema":{"type":"string"}},
+			  {
+				"name":"category","in":"path","required":true,
+				"schema":{"type":"string"}
+			  },
+			  {"name":"id","in":"path","required":true,"schema":{"type":"string"}}
+			],
+			"responses":{"200":{"description":"OK"}}
+		  }
+		}
+	  }
+	}`, rf.Spec)
+
+	rf = openapi3.NewReflector()
+	rf.Spec.Info.
+		WithTitle("Test Server ({subdomain}.example.com)").
+		WithVersion("v1.2.3").
+		WithDescription("Provides API over HTTP")
+	rf.Spec.WithServers(openapi3.Server{
+		URL: "{subdomain}.example.com",
+		Variables: map[string]openapi3.ServerVariable{
+			"subdomain": {
+				Default: "foo",
+			},
+		},
+	})
+
+	c = gorillamux.NewOpenAPICollector(rf)
+	c.Host = "{subdomain:[a-z]+}.example.com"
+
+	assert.NoError(t, r.Walk(c.Walker))
+
+	assertjson.EqMarshal(t, `{
+	  "openapi":"3.0.3",
+	  "info":{
+		"title":"Test Server ({subdomain}.example.com)",
+		"description":"Provides API over HTTP","version":"v1.2.3"
+	  },
+	  "servers":[
+		{
+		  "url":"{subdomain}.example.com",
+		  "variables":{"subdomain":{"default":"foo"}}
+		}
+	  ],
+	  "paths":{
+		"/articles/{category}/":{
+		  "get":{
+			"parameters":[
+			  {"name":"filter","in":"query","schema":{"type":"string"}},
+			  {
+				"name":"category","in":"path","required":true,
+				"schema":{"type":"string"}
+			  }
+			],
+			"responses":{"200":{"description":"OK"}}
+		  }
+		}
+	  }
+	}`, rf.Spec)
 }

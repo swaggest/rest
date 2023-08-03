@@ -452,6 +452,10 @@ func main() {
 
 ![Documentation Page](./_examples/basic/screen.png)
 
+## Additional Integrations
+
+* [`github.com/gorilla/mux`](https://github.com/gorilla/mux), see [example](./gorillamux/example_openapi_collector_test.go).
+
 ## Performance Optimization
 
 If top performance is critical for the service or particular endpoints, you can trade 
