@@ -10,7 +10,7 @@ import (
 	"github.com/swaggest/rest/openapi"
 )
 
-// OpenAPICollector is a wrapper for openapi.Collector tailored to walk gorilla.Mux router.
+// OpenAPICollector is a wrapper for openapi.Collector tailored to walk gorilla/mux router.
 type OpenAPICollector struct {
 	// Collector is an actual OpenAPI collector.
 	Collector *openapi.Collector
@@ -21,13 +21,13 @@ type OpenAPICollector struct {
 	// OperationExtractor allows flexible extraction of OpenAPI information.
 	OperationExtractor func(h http.Handler) func(oc oapi.OperationContext) error
 
-	// Host filters routes by host, gorilla.Mux can serve different handlers at
+	// Host filters routes by host, gorilla/mux can serve different handlers at
 	// same method, paths with different hosts. This can not be expressed with a single
 	// OpenAPI document.
 	Host string
 }
 
-// NewOpenAPICollector creates route walker for gorilla.Mux, that collects OpenAPI operations.
+// NewOpenAPICollector creates route walker for gorilla/mux, that collects OpenAPI operations.
 func NewOpenAPICollector(r oapi.Reflector) *OpenAPICollector {
 	c := openapi.NewCollector(r)
 
