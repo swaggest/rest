@@ -12,6 +12,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/chirouter"
 	"github.com/swaggest/rest/jsonschema"
@@ -62,14 +63,14 @@ func TestDecoder_Decode_fileUploadOptional(t *testing.T) {
 
 func TestDecoder_Decode_fileUploadTag(t *testing.T) {
 	r := chirouter.NewWrapper(chi.NewRouter())
-	apiSchema := openapi.Collector{}
+	apiSchema := openapi.NewCollector(openapi3.NewReflector())
 	decoderFactory := request.NewDecoderFactory()
-	validatorFactory := jsonschema.NewFactory(&apiSchema, &apiSchema)
+	validatorFactory := jsonschema.NewFactory(apiSchema, apiSchema)
 
 	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
 	ws := []func(handler http.Handler) http.Handler{
-		nethttp.OpenAPIMiddleware(&apiSchema),
+		nethttp.OpenAPIMiddleware(apiSchema),
 		request.DecoderMiddleware(decoderFactory),
 		request.ValidatorMiddleware(validatorFactory),
 		response.EncoderMiddleware,

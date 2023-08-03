@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	oapi "github.com/swaggest/openapi-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/chirouter"
@@ -34,13 +35,15 @@ func DefaultService(options ...func(s *Service, initialized bool)) *Service {
 
 	// Init API documentation schema.
 	if s.OpenAPICollector == nil {
-		c := &openapi.Collector{}
+		r := openapi3.NewReflector()
+		r.Spec = s.OpenAPI
+
+		c := openapi.NewCollector(r)
 
 		c.DefaultSuccessResponseContentType = response.DefaultSuccessResponseContentType
 		c.DefaultErrorResponseContentType = response.DefaultErrorResponseContentType
 
 		s.OpenAPICollector = c
-		s.OpenAPICollector.Reflector().Spec = s.OpenAPI
 	}
 
 	if s.Wrapper == nil {
@@ -83,14 +86,29 @@ type Service struct {
 	*chirouter.Wrapper
 
 	PanicRecoveryMiddleware func(handler http.Handler) http.Handler // Default is middleware.Recoverer.
-	OpenAPI                 *openapi3.Spec
-	OpenAPICollector        *openapi.Collector
-	DecoderFactory          *request.DecoderFactory
+
+	// Deprecated: use openapi.Collector.
+	OpenAPI *openapi3.Spec
+
+	OpenAPICollector *openapi.Collector
+	DecoderFactory   *request.DecoderFactory
 
 	// Response validation is not enabled by default for its less justifiable performance impact.
 	// This field is populated so that response.ValidatorMiddleware(s.ResponseValidatorFactory) can be
 	// added to service via Wrap.
 	ResponseValidatorFactory rest.ResponseValidatorFactory
+}
+
+// OpenAPISchema returns OpenAPI schema.
+//
+// Returned value can be type asserted to *openapi3.Spec or marshaled.
+func (s *Service) OpenAPISchema() oapi.SpecSchema {
+	return s.OpenAPICollector.SpecSchema()
+}
+
+// OpenAPIReflector returns OpenAPI structure reflector for customizations.
+func (s *Service) OpenAPIReflector() oapi.Reflector {
+	return s.OpenAPICollector.Refl()
 }
 
 // Delete adds the route `pattern` that matches a DELETE http method to invoke use case interactor.
@@ -137,6 +155,9 @@ func (s *Service) Trace(pattern string, uc usecase.Interactor, options ...func(h
 //
 // Swagger UI should be provided by `swgui` handler constructor, you can use one of these functions
 //
+//	github.com/swaggest/swgui/v5emb.New
+//	github.com/swaggest/swgui/v5cdn.New
+//	github.com/swaggest/swgui/v5.New
 //	github.com/swaggest/swgui/v4emb.New
 //	github.com/swaggest/swgui/v4cdn.New
 //	github.com/swaggest/swgui/v4.New

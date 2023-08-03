@@ -97,7 +97,7 @@ func TestCollector_Collect(t *testing.T) {
 		ReqValidator: &jsonschema.Validator{},
 	}))
 
-	j, err := json.MarshalIndent(c.Reflector().Spec, "", " ")
+	j, err := json.MarshalIndent(c.SpecSchema(), "", " ")
 	require.NoError(t, err)
 
 	rw := httptest.NewRecorder()
@@ -223,7 +223,7 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 		  }
 		}
 	  }
-	}`, collector.Reflector().SpecEns())
+	}`, collector.SpecSchema())
 
 	val := validatorMock{
 		AddSchemaFunc: func(in rest.ParamIn, name string, schemaData []byte, required bool) error {
@@ -321,7 +321,7 @@ func TestCollector_Collect_CombineErrors(t *testing.T) {
 		  }
 		}
 	  }
-	}`, collector.Reflector().SpecEns())
+	}`, collector.SpecSchema())
 }
 
 // Output that implements OutputWithHTTPStatus interface.
@@ -397,7 +397,7 @@ func TestCollector_Collect_multipleHttpStatuses(t *testing.T) {
 		  }
 		}
 	  }
-	}`, c.Reflector().SpecEns())
+	}`, c.SpecSchema())
 }
 
 func TestCollector_Collect_queryObject(t *testing.T) {
@@ -465,5 +465,57 @@ func TestCollector_Collect_queryObject(t *testing.T) {
 		  "QueryOpenapiTestJsonFilter":{"type":"object","properties":{"foo":{"type":"string"}}}
 		}
 	  }
-	}`, c.Reflector().SpecEns())
+	}`, c.SpecSchema())
+}
+
+func TestCollector_Collect_head_no_response(t *testing.T) {
+	c := openapi.Collector{}
+	u := usecase.IOInteractor{}
+
+	type resp struct {
+		Foo string `json:"foo"`
+		Bar string `header:"X-Bar"`
+	}
+
+	u.Output = new(resp)
+
+	require.NoError(t, c.Collect(http.MethodHead, "/foo", u, rest.HandlerTrait{
+		ReqValidator: &jsonschema.Validator{},
+	}))
+
+	require.NoError(t, c.Collect(http.MethodGet, "/foo", u, rest.HandlerTrait{
+		ReqValidator: &jsonschema.Validator{},
+	}))
+
+	assertjson.EqMarshal(t, `{
+	  "openapi":"3.0.3","info":{"title":"","version":""},
+	  "paths":{
+		"/foo":{
+		  "get":{
+			"responses":{
+			  "200":{
+				"description":"OK",
+				"headers":{"X-Bar":{"style":"simple","schema":{"type":"string"}}},
+				"content":{
+				  "application/json":{"schema":{"$ref":"#/components/schemas/OpenapiTestResp"}}
+				}
+			  }
+			}
+		  },
+		  "head":{
+			"responses":{
+			  "200":{
+				"description":"OK",
+				"headers":{"X-Bar":{"style":"simple","schema":{"type":"string"}}}
+			  }
+			}
+		  }
+		}
+	  },
+	  "components":{
+		"schemas":{
+		  "OpenapiTestResp":{"type":"object","properties":{"foo":{"type":"string"}}}
+		}
+	  }
+	}`, c.SpecSchema())
 }

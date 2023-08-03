@@ -3,6 +3,7 @@ package nethttp
 import (
 	"net/http"
 
+	oapi "github.com/swaggest/openapi-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/openapi"
@@ -24,12 +25,11 @@ func OpenAPIMiddleware(s *openapi.Collector) func(http.Handler) http.Handler {
 			return h
 		}
 
-		err := s.Collect(
+		err := s.CollectUseCase(
 			withRoute.RouteMethod(),
 			withRoute.RoutePattern(),
 			handler.UseCase(),
 			handler.HandlerTrait,
-			handler.OperationAnnotations...,
 		)
 		if err != nil {
 			panic(err)
@@ -105,6 +105,8 @@ func HTTPBearerSecurityMiddleware(
 }
 
 // AnnotateOpenAPI applies OpenAPI annotation to relevant handlers.
+//
+// Deprecated: use OpenAPIAnnotationsMiddleware.
 func AnnotateOpenAPI(
 	s *openapi.Collector,
 	setup ...func(op *openapi3.Operation) error,
@@ -145,9 +147,33 @@ type MiddlewareConfig struct {
 	ResponseStatus int
 }
 
+// OpenAPIAnnotationsMiddleware applies OpenAPI annotations to handlers.
+func OpenAPIAnnotationsMiddleware(
+	s *openapi.Collector,
+	annotations ...func(oc oapi.OperationContext) error,
+) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		if IsWrapperChecker(next) {
+			return next
+		}
+
+		var withRoute rest.HandlerWithRoute
+
+		if HandlerAs(next, &withRoute) {
+			s.AnnotateOperation(
+				withRoute.RouteMethod(),
+				withRoute.RoutePattern(),
+				annotations...,
+			)
+		}
+
+		return next
+	}
+}
+
 func securityMiddleware(s *openapi.Collector, name string, cfg MiddlewareConfig) func(http.Handler) http.Handler {
-	return AnnotateOpenAPI(s, func(op *openapi3.Operation) error {
-		op.Security = append(op.Security, map[string][]string{name: {}})
+	return OpenAPIAnnotationsMiddleware(s, func(oc oapi.OperationContext) error {
+		oc.AddSecurity(name)
 
 		if cfg.ResponseStatus == 0 {
 			cfg.ResponseStatus = http.StatusUnauthorized
@@ -157,6 +183,10 @@ func securityMiddleware(s *openapi.Collector, name string, cfg MiddlewareConfig)
 			cfg.ResponseStructure = rest.ErrResponse{}
 		}
 
-		return s.Reflector().SetJSONResponse(op, cfg.ResponseStructure, cfg.ResponseStatus)
+		oc.AddRespStructure(cfg.ResponseStructure, func(cu *oapi.ContentUnit) {
+			cu.HTTPStatus = cfg.ResponseStatus
+		})
+
+		return nil
 	})
 }

@@ -167,7 +167,7 @@ func (v *Validator) ValidateJSONBody(jsonBody []byte) error {
 	name := "body"
 
 	schema, found := v.inNamedSchemas[rest.ParamInBody][name]
-	if !found {
+	if !found || schema == nil {
 		return nil
 	}
 

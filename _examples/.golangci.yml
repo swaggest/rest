@@ -20,6 +20,11 @@ linters-settings:
 linters:
   enable-all: true
   disable:
+    - funlen
+    - exhaustruct
+    - musttag
+    - nonamedreturns
+    - goerr113
     - lll
     - maligned
     - gochecknoglobals

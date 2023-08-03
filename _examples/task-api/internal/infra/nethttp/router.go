@@ -6,7 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/swaggest/openapi-go/openapi3"
+	"github.com/swaggest/openapi-go"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/_examples/task-api/internal/infra/schema"
 	"github.com/swaggest/rest/_examples/task-api/internal/infra/service"
@@ -36,8 +36,8 @@ func NewRouter(locator *service.Locator) http.Handler {
 
 	// Unrestricted access.
 	s.Route("/dev", func(r chi.Router) {
-		r.Use(nethttp.AnnotateOpenAPI(s.OpenAPICollector, func(op *openapi3.Operation) error {
-			op.Tags = []string{"Dev Mode"}
+		r.Use(nethttp.OpenAPIAnnotationsMiddleware(s.OpenAPICollector, func(oc openapi.OperationContext) error {
+			oc.SetTags("Dev Mode")
 
 			return nil
 		}))
@@ -54,8 +54,8 @@ func NewRouter(locator *service.Locator) http.Handler {
 	// Endpoints with admin access.
 	s.Route("/admin", func(r chi.Router) {
 		r.Group(func(r chi.Router) {
-			r.Use(nethttp.AnnotateOpenAPI(s.OpenAPICollector, func(op *openapi3.Operation) error {
-				op.Tags = []string{"Admin Mode"}
+			r.Use(nethttp.OpenAPIAnnotationsMiddleware(s.OpenAPICollector, func(oc openapi.OperationContext) error {
+				oc.SetTags("Admin Mode")
 
 				return nil
 			}))

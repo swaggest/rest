@@ -62,6 +62,7 @@ func directGzip() usecase.Interactor {
 
 	// Precompute compressed data container. Generally this step should be owned by a caching storage of data.
 	dataFromCache := gzipPassThroughContainer{}
+
 	err := dataFromCache.PackJSON(rawData)
 	if err != nil {
 		panic(err)

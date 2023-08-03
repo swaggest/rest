@@ -19,9 +19,9 @@ func main() {
 	s := web.DefaultService()
 
 	// Init API documentation schema.
-	s.OpenAPI.Info.Title = "Basic Example"
-	s.OpenAPI.Info.WithDescription("This app showcases a trivial REST API.")
-	s.OpenAPI.Info.Version = "v1.2.3"
+	s.OpenAPISchema().SetTitle("Basic Example")
+	s.OpenAPISchema().SetDescription("This app showcases a trivial REST API.")
+	s.OpenAPISchema().SetVersion("v1.2.3")
 
 	// Setup middlewares.
 	s.Wrap(

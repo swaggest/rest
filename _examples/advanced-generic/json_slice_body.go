@@ -9,6 +9,7 @@ import (
 	"github.com/swaggest/usecase"
 )
 
+// JSONSlicePayload is an example non-scalar type without `json` tags.
 type JSONSlicePayload []int
 
 type jsonSliceReq struct {

@@ -4,13 +4,13 @@ package openapi
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
 	"sync"
 
 	"github.com/swaggest/jsonschema-go"
+	"github.com/swaggest/openapi-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/usecase"
@@ -35,21 +35,57 @@ type Collector struct {
 	// If empty, "application/json" is used.
 	DefaultErrorResponseContentType string
 
-	gen          *openapi3.Reflector
-	annotations  map[string][]func(*openapi3.Operation) error
-	operationIDs map[string]bool
+	gen *openapi3.Reflector
+	ref openapi.Reflector
+
+	ocAnnotations map[string][]func(oc openapi.OperationContext) error
+	annotations   map[string][]func(*openapi3.Operation) error
+	operationIDs  map[string]bool
+}
+
+// NewCollector creates an instance of OpenAPI Collector.
+func NewCollector(r openapi.Reflector) *Collector {
+	c := &Collector{
+		ref: r,
+	}
+
+	if r3, ok := r.(*openapi3.Reflector); ok {
+		c.gen = r3
+	}
+
+	return c
+}
+
+// SpecSchema returns OpenAPI specification schema.
+func (c *Collector) SpecSchema() openapi.SpecSchema {
+	return c.Refl().SpecSchema()
+}
+
+// Refl returns OpenAPI reflector.
+func (c *Collector) Refl() openapi.Reflector {
+	if c.ref != nil {
+		return c.ref
+	}
+
+	return c.Reflector()
 }
 
 // Reflector is an accessor to OpenAPI Reflector instance.
 func (c *Collector) Reflector() *openapi3.Reflector {
+	if c.ref != nil && c.gen == nil {
+		panic(fmt.Sprintf("conflicting OpenAPI reflector supplied: %T", c.ref))
+	}
+
 	if c.gen == nil {
-		c.gen = &openapi3.Reflector{}
+		c.gen = openapi3.NewReflector()
 	}
 
 	return c.gen
 }
 
 // Annotate adds OpenAPI operation configuration that is applied during collection.
+//
+// Deprecated: use AnnotateOperation.
 func (c *Collector) Annotate(method, pattern string, setup ...func(op *openapi3.Operation) error) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
@@ -61,7 +97,130 @@ func (c *Collector) Annotate(method, pattern string, setup ...func(op *openapi3.
 	c.annotations[method+pattern] = append(c.annotations[method+pattern], setup...)
 }
 
+// AnnotateOperation adds OpenAPI operation configuration that is applied during collection,
+// method can be empty to indicate any method.
+func (c *Collector) AnnotateOperation(method, pattern string, setup ...func(oc openapi.OperationContext) error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	if c.ocAnnotations == nil {
+		c.ocAnnotations = make(map[string][]func(oc openapi.OperationContext) error)
+	}
+
+	c.ocAnnotations[method+pattern] = append(c.ocAnnotations[method+pattern], setup...)
+}
+
+// HasAnnotation indicates if there is at least one annotation registered for this operation.
+func (c *Collector) HasAnnotation(method, pattern string) bool {
+	if len(c.ocAnnotations[method+pattern]) > 0 {
+		return true
+	}
+
+	return len(c.ocAnnotations[pattern]) > 0
+}
+
+// CollectOperation prepares and adds OpenAPI operation.
+func (c *Collector) CollectOperation(
+	method, pattern string,
+	annotations ...func(oc openapi.OperationContext) error,
+) (err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("failed to reflect API schema for %s %s: %w", method, pattern, err)
+		}
+	}()
+
+	reflector := c.Refl()
+
+	oc, err := reflector.NewOperationContext(method, pattern)
+	if err != nil {
+		return err
+	}
+
+	for _, setup := range c.ocAnnotations[pattern] {
+		if err = setup(oc); err != nil {
+			return err
+		}
+	}
+
+	for _, setup := range c.ocAnnotations[method+pattern] {
+		if err = setup(oc); err != nil {
+			return err
+		}
+	}
+
+	for _, setup := range annotations {
+		if err = setup(oc); err != nil {
+			return err
+		}
+	}
+
+	return reflector.AddOperation(oc)
+}
+
+// CollectUseCase adds use case handler to documentation.
+func (c *Collector) CollectUseCase(
+	method, pattern string,
+	u usecase.Interactor,
+	h rest.HandlerTrait,
+	annotations ...func(oc openapi.OperationContext) error,
+) (err error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	defer func() {
+		if err != nil {
+			err = fmt.Errorf("reflect API schema for %s %s: %w", method, pattern, err)
+		}
+	}()
+
+	reflector := c.Refl()
+
+	oc, err := reflector.NewOperationContext(method, pattern)
+	if err != nil {
+		return err
+	}
+
+	c.setupInput(oc, u, h)
+	c.setupOutput(oc, u, h)
+	c.processUseCase(oc, u, h)
+
+	an := append([]func(oc openapi.OperationContext) error(nil), c.ocAnnotations[method+pattern]...)
+	an = append(an, h.OpenAPIAnnotations...)
+	an = append(an, annotations...)
+
+	for _, setup := range an {
+		if err = setup(oc); err != nil {
+			return err
+		}
+	}
+
+	if o3, ok := oc.(openapi3.OperationExposer); ok {
+		op := o3.Operation()
+
+		for _, setup := range c.annotations[method+pattern] {
+			if err = setup(op); err != nil {
+				return err
+			}
+		}
+
+		//nolint:staticcheck // To be removed with deprecations cleanup.
+		for _, setup := range h.OperationAnnotations {
+			if err = setup(op); err != nil {
+				return err
+			}
+		}
+	}
+
+	return reflector.AddOperation(oc)
+}
+
 // Collect adds use case handler to documentation.
+//
+// Deprecated: use CollectUseCase.
 func (c *Collector) Collect(
 	method, pattern string,
 	u usecase.Interactor,
@@ -73,35 +232,30 @@ func (c *Collector) Collect(
 
 	defer func() {
 		if err != nil {
-			err = fmt.Errorf("failed to reflect API schema for %s %s: %w", method, pattern, err)
+			err = fmt.Errorf("reflect API schema for %s %s: %w", method, pattern, err)
 		}
 	}()
 
-	reflector := c.Reflector()
+	reflector := c.Refl()
 
-	err = reflector.SpecEns().SetupOperation(method, pattern, func(op *openapi3.Operation) error {
-		oc := openapi3.OperationContext{
-			Operation:         op,
-			HTTPMethod:        method,
-			HTTPStatus:        h.SuccessStatus,
-			RespContentType:   h.SuccessContentType,
-			RespHeaderMapping: h.RespHeaderMapping,
-		}
+	oc, err := reflector.NewOperationContext(method, pattern)
+	if err != nil {
+		return err
+	}
 
-		err = c.setupInput(&oc, u, h)
-		if err != nil {
-			return fmt.Errorf("failed to setup request: %w", err)
-		}
+	c.setupInput(oc, u, h)
+	c.setupOutput(oc, u, h)
+	c.processUseCase(oc, u, h)
 
-		err = c.setupOutput(&oc, u)
-		if err != nil {
-			return fmt.Errorf("failed to setup response: %w", err)
-		}
-
-		err = c.processUseCase(op, u, h)
+	for _, setup := range c.ocAnnotations[method+pattern] {
+		err = setup(oc)
 		if err != nil {
 			return err
 		}
+	}
+
+	if o3, ok := oc.(openapi3.OperationExposer); ok {
+		op := o3.Operation()
 
 		for _, setup := range c.annotations[method+pattern] {
 			err = setup(op)
@@ -116,24 +270,24 @@ func (c *Collector) Collect(
 				return err
 			}
 		}
+	}
 
-		return nil
-	})
-
-	return err
+	return reflector.AddOperation(oc)
 }
 
-func (c *Collector) setupOutput(oc *openapi3.OperationContext, u usecase.Interactor) error {
+func (c *Collector) setupOutput(oc openapi.OperationContext, u usecase.Interactor, h rest.HandlerTrait) {
 	var (
-		hasOutput usecase.HasOutputPort
-		status    = http.StatusOK
-		noContent bool
+		hasOutput   usecase.HasOutputPort
+		status      = http.StatusOK
+		noContent   bool
+		output      interface{}
+		contentType = h.SuccessContentType
 	)
 
 	if usecase.As(u, &hasOutput) {
-		oc.Output = hasOutput.OutputPort()
+		output = hasOutput.OutputPort()
 
-		if rest.OutputHasNoContent(oc.Output) {
+		if rest.OutputHasNoContent(output) {
 			status = http.StatusNoContent
 			noContent = true
 		}
@@ -142,73 +296,58 @@ func (c *Collector) setupOutput(oc *openapi3.OperationContext, u usecase.Interac
 		noContent = true
 	}
 
-	if !noContent && oc.RespContentType == "" {
-		oc.RespContentType = c.DefaultSuccessResponseContentType
+	if !noContent && contentType == "" {
+		contentType = c.DefaultSuccessResponseContentType
 	}
 
-	if outputWithStatus, ok := oc.Output.(rest.OutputWithHTTPStatus); ok {
+	if oc.Method() == http.MethodHead {
+		output = nil
+	}
+
+	setupCU := func(cu *openapi.ContentUnit) {
+		cu.ContentType = contentType
+		cu.SetFieldMapping(openapi.InHeader, h.RespHeaderMapping)
+	}
+
+	if outputWithStatus, ok := output.(rest.OutputWithHTTPStatus); ok {
 		for _, status := range outputWithStatus.ExpectedHTTPStatuses() {
-			oc.HTTPStatus = status
-			if err := c.Reflector().SetupResponse(*oc); err != nil {
-				return err
-			}
+			oc.AddRespStructure(output, func(cu *openapi.ContentUnit) {
+				cu.HTTPStatus = status
+				setupCU(cu)
+			})
 		}
 	} else {
-		if oc.HTTPStatus == 0 {
-			oc.HTTPStatus = status
+		if h.SuccessStatus != 0 {
+			status = h.SuccessStatus
 		}
-		err := c.Reflector().SetupResponse(*oc)
-		if err != nil {
-			return err
-		}
+		oc.AddRespStructure(output, func(cu *openapi.ContentUnit) {
+			cu.HTTPStatus = status
+			setupCU(cu)
+		})
 	}
-
-	if oc.HTTPMethod == http.MethodHead {
-		for code, resp := range oc.Operation.Responses.MapOfResponseOrRefValues {
-			for contentType, cont := range resp.Response.Content {
-				cont.Schema = nil
-				resp.Response.Content[contentType] = cont
-			}
-
-			oc.Operation.Responses.MapOfResponseOrRefValues[code] = resp
-		}
-	}
-
-	return nil
 }
 
-func (c *Collector) setupInput(oc *openapi3.OperationContext, u usecase.Interactor, h rest.HandlerTrait) error {
-	var (
-		hasInput usecase.HasInputPort
-
-		err error
-	)
+func (c *Collector) setupInput(oc openapi.OperationContext, u usecase.Interactor, h rest.HandlerTrait) {
+	var hasInput usecase.HasInputPort
 
 	if usecase.As(u, &hasInput) {
-		oc.Input = hasInput.InputPort()
-
-		setRequestMapping(oc, h.ReqMapping)
-
-		err = c.Reflector().SetupRequest(*oc)
-		if err != nil {
-			return err
-		}
+		oc.AddReqStructure(hasInput.InputPort(), func(cu *openapi.ContentUnit) {
+			setFieldMapping(cu, h.ReqMapping)
+		})
 	}
-
-	return nil
 }
 
-func setRequestMapping(oc *openapi3.OperationContext, mapping rest.RequestMapping) {
+func setFieldMapping(cu *openapi.ContentUnit, mapping rest.RequestMapping) {
 	if mapping != nil {
-		oc.ReqQueryMapping = mapping[rest.ParamInQuery]
-		oc.ReqPathMapping = mapping[rest.ParamInPath]
-		oc.ReqHeaderMapping = mapping[rest.ParamInHeader]
-		oc.ReqCookieMapping = mapping[rest.ParamInCookie]
-		oc.ReqFormDataMapping = mapping[rest.ParamInFormData]
+		cu.SetFieldMapping(openapi.InQuery, mapping[rest.ParamInQuery])
+		cu.SetFieldMapping(openapi.InPath, mapping[rest.ParamInPath])
+		cu.SetFieldMapping(openapi.InHeader, mapping[rest.ParamInHeader])
+		cu.SetFieldMapping(openapi.InCookie, mapping[rest.ParamInCookie])
+		cu.SetFieldMapping(openapi.InFormData, mapping[rest.ParamInFormData])
 	}
 }
 
-func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor, h rest.HandlerTrait) error {
+func (c *Collector) processUseCase(oc openapi.OperationContext, u usecase.Interactor, h rest.HandlerTrait) {
 	var (
 		hasName        usecase.HasName
 		hasTitle       usecase.HasTitle
@@ -235,7 +374,7 @@ func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor,
 
 			c.operationIDs[idSuf] = true
 
-			op.WithID(idSuf)
+			oc.SetID(idSuf)
 		}
 	}
 
@@ -243,7 +382,7 @@ func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor,
 		title := hasTitle.Title()
 
 		if title != "" {
-			op.WithSummary(hasTitle.Title())
+			oc.SetSummary(hasTitle.Title())
 		}
 	}
 
@@ -251,7 +390,7 @@ func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor,
 		tags := hasTags.Tags()
 
 		if len(tags) > 0 {
-			op.WithTags(hasTags.Tags()...)
+			oc.SetTags(hasTags.Tags()...)
 		}
 	}
 
@@ -259,31 +398,27 @@ func (c *Collector) processUseCase(op *openapi3.Operation, u usecase.Interactor,
 		desc := hasDescription.Description()
 
 		if desc != "" {
-			op.WithDescription(hasDescription.Description())
+			oc.SetDescription(hasDescription.Description())
 		}
 	}
 
 	if usecase.As(u, &hasDeprecated) && hasDeprecated.IsDeprecated() {
-		op.WithDeprecated(true)
+		oc.SetIsDeprecated(true)
 	}
 
-	return c.processExpectedErrors(op, u, h)
+	c.processOCExpectedErrors(oc, u, h)
 }
 
-func (c *Collector) setJSONResponse(op *openapi3.Operation, output interface{}, statusCode int) error {
-	oc := openapi3.OperationContext{}
-	oc.Operation = op
-	oc.Output = output
-	oc.HTTPStatus = statusCode
-
-	if output != nil {
-		oc.RespContentType = c.DefaultErrorResponseContentType
-	}
-
-	return c.Reflector().SetupResponse(oc)
+func (c *Collector) setOCJSONResponse(oc openapi.OperationContext, output interface{}, statusCode int) {
+	oc.AddRespStructure(output, func(cu *openapi.ContentUnit) {
+		cu.HTTPStatus = statusCode
+		if output != nil {
+			cu.ContentType = c.DefaultErrorResponseContentType
+		}
+	})
 }
 
-func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Interactor, h rest.HandlerTrait) error {
+func (c *Collector) processOCExpectedErrors(oc openapi.OperationContext, u usecase.Interactor, h rest.HandlerTrait) {
 	var (
 		errsByCode        = map[int][]interface{}{}
 		statusCodes       []int
@@ -291,7 +426,7 @@ func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Inte
 	)
 
 	if !usecase.As(u, &hasExpectedErrors) {
-		return nil
+		return
 	}
 
 	for _, e := range hasExpectedErrors.ExpectedErrors() {
@@ -316,112 +451,34 @@ func (c *Collector) processExpectedErrors(op *openapi3.Operation, u usecase.Inte
 
 		errsByCode[statusCode] = append(errsByCode[statusCode], errResp)
 
-		if err := c.setJSONResponse(op, errResp, statusCode); err != nil {
-			return err
-		}
+		c.setOCJSONResponse(oc, errResp, statusCode)
 	}
 
-	return c.combineErrors(op, statusCodes, errsByCode)
+	c.combineOCErrors(oc, statusCodes, errsByCode)
 }
 
-func (c *Collector) combineErrors(op *openapi3.Operation, statusCodes []int, errsByCode map[int][]interface{}) error {
+func (c *Collector) combineOCErrors(oc openapi.OperationContext, statusCodes []int, errsByCode map[int][]interface{}) {
 	for _, statusCode := range statusCodes {
-		var (
-			errResps = errsByCode[statusCode]
-			err      error
-		)
+		errResps := errsByCode[statusCode]
 
 		if len(errResps) == 1 || c.CombineErrors == "" {
-			err = c.setJSONResponse(op, errResps[0], statusCode)
+			c.setOCJSONResponse(oc, errResps[0], statusCode)
 		} else {
 			switch c.CombineErrors {
 			case "oneOf":
-				err = c.setJSONResponse(op, jsonschema.OneOf(errResps...), statusCode)
+				c.setOCJSONResponse(oc, jsonschema.OneOf(errResps...), statusCode)
 			case "anyOf":
-				err = c.setJSONResponse(op, jsonschema.AnyOf(errResps...), statusCode)
+				c.setOCJSONResponse(oc, jsonschema.AnyOf(errResps...), statusCode)
 			default:
-				return errors.New("oneOf/anyOf expected for openapi.Collector.CombineErrors, " +
+				panic("oneOf/anyOf expected for openapi.Collector.CombineErrors, " +
 					c.CombineErrors + " received")
 			}
 		}
-
-		if err != nil {
-			return err
-		}
 	}
-
-	return nil
 }
 
 type unknownFieldsValidator interface {
 	ForbidUnknownParams(in rest.ParamIn, forbidden bool)
-}
-
-func (c *Collector) provideParametersJSONSchemas(op openapi3.Operation, validator rest.JSONSchemaValidator) error {
-	if fv, ok := validator.(unknownFieldsValidator); ok {
-		for _, in := range []rest.ParamIn{rest.ParamInQuery, rest.ParamInCookie, rest.ParamInHeader} {
-			if op.UnknownParamIsForbidden(openapi3.ParameterIn(in)) {
-				fv.ForbidUnknownParams(in, true)
-			}
-		}
-	}
-
-	for _, p := range op.Parameters {
-		pp := p.Parameter
-
-		required := false
-		if pp.Required != nil && *pp.Required {
-			required = true
-		}
-
-		sc := paramSchema(pp)
-
-		if sc == nil {
-			if validator != nil {
-				err := validator.AddSchema(rest.ParamIn(pp.In), pp.Name, nil, required)
-				if err != nil {
-					return fmt.Errorf("failed to add validation schema for parameter (%s, %s): %w", pp.In, pp.Name, err)
-				}
-			}
-
-			continue
-		}
-
-		schema := sc.ToJSONSchema(c.Reflector().Spec)
-
-		var (
-			err        error
-			schemaData []byte
-		)
-
-		if !schema.IsTrivial(c.Reflector().ResolveJSONSchemaRef) {
-			schemaData, err = schema.JSONSchemaBytes()
-			if err != nil {
-				return fmt.Errorf("failed to build JSON Schema for parameter (%s, %s)", pp.In, pp.Name)
-			}
-		}
-
-		if validator != nil {
-			err = validator.AddSchema(rest.ParamIn(pp.In), pp.Name, schemaData, required)
-			if err != nil {
-				return fmt.Errorf("failed to add validation schema for parameter (%s, %s): %w", pp.In, pp.Name, err)
-			}
-		}
-	}
-
-	return nil
-}
-
-func paramSchema(p *openapi3.Parameter) *openapi3.SchemaOrRef {
-	sc := p.Schema
-
-	if sc == nil {
-		if jsc, ok := p.Content["application/json"]; ok {
-			sc = jsc.Schema
-		}
-	}
-
-	return sc
 }
 
 // ProvideRequestJSONSchemas provides JSON Schemas for request structure.
@@ -431,126 +488,26 @@ func (c *Collector) ProvideRequestJSONSchemas(
 	mapping rest.RequestMapping,
 	validator rest.JSONSchemaValidator,
 ) error {
-	op := openapi3.Operation{}
-	oc := openapi3.OperationContext{
-		Operation:  &op,
-		HTTPMethod: method,
-		Input:      input,
-	}
+	cu := openapi.ContentUnit{}
+	cu.Structure = input
+	setFieldMapping(&cu, mapping)
 
-	setRequestMapping(&oc, mapping)
+	r := c.Refl()
 
-	err := c.Reflector().SetupRequest(oc)
-	if err != nil {
-		return err
-	}
-
-	err = c.provideParametersJSONSchemas(op, validator)
-	if err != nil {
-		return err
-	}
-
-	if op.RequestBody == nil || op.RequestBody.RequestBody == nil {
-		return nil
-	}
-
-	for ct, content := range op.RequestBody.RequestBody.Content {
-		schema := content.Schema.ToJSONSchema(c.Reflector().Spec)
-		if schema.IsTrivial(c.Reflector().ResolveJSONSchemaRef) {
-			continue
+	err := r.WalkRequestJSONSchemas(method, cu, c.jsonSchemaCallback(validator, r), func(oc openapi.OperationContext) {
+		fv, ok := validator.(unknownFieldsValidator)
+		if !ok {
+			return
 		}
 
-		if ct == "application/json" {
-			schemaData, err := schema.JSONSchemaBytes()
-			if err != nil {
-				return fmt.Errorf("failed to build JSON Schema for request body: %w", err)
-			}
-
-			err = validator.AddSchema(rest.ParamInBody, "body", schemaData, false)
-			if err != nil {
-				return fmt.Errorf("failed to add validation schema for request body: %w", err)
+		for _, in := range []openapi.In{openapi.InQuery, openapi.InCookie, openapi.InHeader} {
+			if oc.UnknownParamsAreForbidden(in) {
+				fv.ForbidUnknownParams(rest.ParamIn(in), true)
 			}
 		}
+	})
 
-		if ct == "application/x-www-form-urlencoded" {
-			if err = provideFormDataSchemas(schema, validator); err != nil {
-				return err
-			}
-		}
-	}
-
-	return nil
-}
-
-func provideFormDataSchemas(schema jsonschema.SchemaOrBool, validator rest.JSONSchemaValidator) error {
-	for name, sch := range schema.TypeObject.Properties {
-		if sch.TypeObject != nil && len(schema.TypeObject.ExtraProperties) > 0 {
-			cp := *sch.TypeObject
-			sch.TypeObject = &cp
-			sch.TypeObject.ExtraProperties = schema.TypeObject.ExtraProperties
-		}
-
-		sb, err := sch.JSONSchemaBytes()
-		if err != nil {
-			return fmt.Errorf("failed to build JSON Schema for form data parameter %q: %w", name, err)
-		}
-
-		isRequired := false
-
-		for _, req := range schema.TypeObject.Required {
-			if req == name {
-				isRequired = true
-
-				break
-			}
-		}
-
-		err = validator.AddSchema(rest.ParamInFormData, name, sb, isRequired)
-		if err != nil {
-			return fmt.Errorf("failed to add validation schema for request body: %w", err)
-		}
-	}
-
-	return nil
-}
-
-func (c *Collector) provideHeaderSchemas(resp *openapi3.Response, validator rest.JSONSchemaValidator) error {
-	for name, h := range resp.Headers {
-		if h.Header.Schema == nil {
-			continue
-		}
-
-		hh := h.Header
-		schema := hh.Schema.ToJSONSchema(c.Reflector().Spec)
-
-		var (
-			err        error
-			schemaData []byte
-		)
-
-		if !schema.IsTrivial(c.Reflector().ResolveJSONSchemaRef) {
-			schemaData, err = schema.JSONSchemaBytes()
-			if err != nil {
-				return fmt.Errorf("failed to build JSON Schema for response header (%s)", name)
-			}
-		}
-
-		required := false
-		if hh.Required != nil && *hh.Required {
-			required = true
-		}
-
-		if validator != nil {
-			name = http.CanonicalHeaderKey(name)
-
-			err = validator.AddSchema(rest.ParamInHeader, name, schemaData, required)
-			if err != nil {
-				return fmt.Errorf("failed to add validation schema for response header (%s): %w", name, err)
-			}
-		}
-	}
-
-	return nil
+	return err
 }
 
 // ProvideResponseJSONSchemas provides JSON schemas for response structure.
@@ -561,58 +518,55 @@ func (c *Collector) ProvideResponseJSONSchemas(
 	headerMapping map[string]string,
 	validator rest.JSONSchemaValidator,
 ) error {
-	op := openapi3.Operation{}
-	oc := openapi3.OperationContext{
-		Operation:         &op,
-		HTTPStatus:        statusCode,
-		Output:            output,
-		RespHeaderMapping: headerMapping,
-		RespContentType:   contentType,
+	cu := openapi.ContentUnit{}
+	cu.Structure = output
+	cu.SetFieldMapping(openapi.InHeader, headerMapping)
+	cu.ContentType = contentType
+	cu.HTTPStatus = statusCode
+
+	if cu.ContentType == "" {
+		cu.ContentType = c.DefaultSuccessResponseContentType
 	}
 
-	if oc.RespContentType == "" {
-		oc.RespContentType = c.DefaultSuccessResponseContentType
-	}
+	r := c.Refl()
+	err := r.WalkResponseJSONSchemas(cu, c.jsonSchemaCallback(validator, r), nil)
 
-	if err := c.Reflector().SetupResponse(oc); err != nil {
-		return err
-	}
+	return err
+}
 
-	resp := op.Responses.MapOfResponseOrRefValues[strconv.Itoa(statusCode)].Response
-
-	if err := c.provideHeaderSchemas(resp, validator); err != nil {
-		return err
-	}
-
-	for _, cont := range resp.Content {
-		if cont.Schema == nil {
-			continue
+func (c *Collector) jsonSchemaCallback(validator rest.JSONSchemaValidator, r openapi.Reflector) openapi.JSONSchemaCallback {
+	return func(in openapi.In, paramName string, schema *jsonschema.SchemaOrBool, required bool) error {
+		loc := string(in) + "." + paramName
+		if loc == "body.body" {
+			loc = "body"
 		}
 
-		schema := cont.Schema.ToJSONSchema(c.Reflector().Spec)
+		if schema == nil || schema.IsTrivial(r.ResolveJSONSchemaRef) {
+			if err := validator.AddSchema(rest.ParamIn(in), paramName, nil, required); err != nil {
+				return fmt.Errorf("add validation schema %s: %w", loc, err)
+			}
 
-		if schema.IsTrivial(c.Reflector().ResolveJSONSchemaRef) {
-			continue
+			return nil
 		}
 
 		schemaData, err := schema.JSONSchemaBytes()
 		if err != nil {
-			return errors.New("failed to build JSON Schema for response body")
+			return fmt.Errorf("marshal schema %s: %w", loc, err)
 		}
 
-		if err := validator.AddSchema(rest.ParamInBody, "body", schemaData, false); err != nil {
-			return fmt.Errorf("failed to add validation schema for response body: %w", err)
+		if err = validator.AddSchema(rest.ParamIn(in), paramName, schemaData, required); err != nil {
+			return fmt.Errorf("add validation schema %s: %w", loc, err)
 		}
+
+		return nil
 	}
-
-	return nil
 }
 
 func (c *Collector) ServeHTTP(rw http.ResponseWriter, _ *http.Request) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
-	document, err := json.MarshalIndent(c.Reflector().Spec, "", " ")
+	document, err := json.MarshalIndent(c.SpecSchema(), "", " ")
 	if err != nil {
 		http.Error(rw, err.Error(), http.StatusInternalServerError)
 	}

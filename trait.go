@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"reflect"
 
+	"github.com/swaggest/openapi-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/refl"
 	"github.com/swaggest/usecase"
@@ -39,7 +40,12 @@ type HandlerTrait struct {
 	RespValidator Validator
 
 	// OperationAnnotations are called after operation setup and before adding operation to documentation.
+	//
+	// Deprecated: use OpenAPIAnnotations.
 	OperationAnnotations []func(op *openapi3.Operation) error
+
+	// OpenAPIAnnotations are called after operation setup and before adding operation to documentation.
+	OpenAPIAnnotations []func(oc openapi.OperationContext) error
 }
 
 // RestHandler is an accessor.

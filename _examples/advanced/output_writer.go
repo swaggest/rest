@@ -32,6 +32,7 @@ func outputCSVWriter() usecase.Interactor {
 		out.Header = "abc"
 
 		c := csv.NewWriter(out)
+
 		return c.WriteAll([][]string{{"abc", "def", "hij"}, {"klm", "nop", "qrs"}})
 	})
 

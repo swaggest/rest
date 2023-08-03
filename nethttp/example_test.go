@@ -57,7 +57,7 @@ func ExampleSecurityMiddleware() {
 		With(serviceTokenAuth, serviceTokenDoc). // Apply a pair of middlewares: actual security and documentation.
 		Method(http.MethodGet, "/foo", nethttp.NewHandler(u))
 
-	schema, _ := assertjson.MarshalIndentCompact(apiSchema.Reflector().Spec, "", " ", 120)
+	schema, _ := assertjson.MarshalIndentCompact(apiSchema.SpecSchema(), "", " ", 120)
 	fmt.Println(string(schema))
 
 	// Output:

@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/swaggest/form/v5"
-	"github.com/swaggest/openapi-go/openapi3"
+	"github.com/swaggest/openapi-go"
 	"github.com/swaggest/refl"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/nethttp"
@@ -126,7 +126,7 @@ func (df *DecoderFactory) MakeDecoder(
 
 	method = strings.ToUpper(method)
 
-	_, forceRequestBody := input.(openapi3.RequestBodyEnforcer)
+	_, forceRequestBody := input.(openapi.RequestBodyEnforcer)
 
 	if method != http.MethodPost && method != http.MethodPut && method != http.MethodPatch && !forceRequestBody {
 		return &d

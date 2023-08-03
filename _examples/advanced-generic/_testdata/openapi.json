@@ -158,12 +158,7 @@
             "schema":{"type":"boolean","description":"Invokes internal decoding of compressed data."}
           }
         ],
-        "responses":{
-          "200":{
-            "description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}},
-            "content":{"application/json":{}}
-          }
-        },
+        "responses":{"200":{"description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}}}},
         "x-forbid-unknown-query":true
       }
     },
@@ -470,13 +465,9 @@
                 "style":"simple","description":"Receives req value of X-Foo reduced by 30.",
                 "schema":{"type":"integer","description":"Receives req value of X-Foo reduced by 30."}
               }
-            },
-            "content":{"application/json":{}}
+            }
           },
-          "500":{
-            "description":"Internal Server Error",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
-          }
+          "500":{"description":"Internal Server Error"}
         }
       }
     },

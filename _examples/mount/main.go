@@ -37,7 +37,7 @@ func sum() usecase.Interactor {
 
 func main() {
 	service := web.DefaultService()
-	service.OpenAPI.Info.Title = "Security and Mount Example"
+	service.OpenAPISchema().SetTitle("Security and Mount Example")
 
 	apiV1 := web.DefaultService()
 

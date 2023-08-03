@@ -23,6 +23,11 @@ func NewHandler(useCase usecase.Interactor, options ...func(h *Handler)) *Handle
 		options: options,
 	}
 	h.HandleErrResponse = h.handleErrResponseDefault
+
+	for _, option := range h.options {
+		option(h)
+	}
+
 	h.SetUseCase(useCase)
 
 	return h
@@ -36,10 +41,6 @@ func (h *Handler) UseCase() usecase.Interactor {
 // SetUseCase prepares handler for a use case.
 func (h *Handler) SetUseCase(useCase usecase.Interactor) {
 	h.useCase = useCase
-
-	for _, option := range h.options {
-		option(h)
-	}
 
 	h.setupInputBuffer()
 	h.setupOutputBuffer()

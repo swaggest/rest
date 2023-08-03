@@ -263,7 +263,7 @@ func TestWrapper_Use_StripSlashes(t *testing.T) {
 
 func TestWrapper_Mount(t *testing.T) {
 	service := web.DefaultService()
-	service.OpenAPI.Info.Title = "Security and Mount Example"
+	service.OpenAPISchema().SetTitle("Security and Mount Example")
 
 	apiV1 := web.DefaultService()
 
@@ -354,7 +354,7 @@ func TestWrapper_Mount(t *testing.T) {
 		},
 		"securitySchemes":{"Admin":{"type":"http","scheme":"basic","description":"Admin access"}}
 	  }
-	}`), service.OpenAPI)
+	}`), service.OpenAPISchema())
 }
 
 func TestWrapper_With(t *testing.T) {
