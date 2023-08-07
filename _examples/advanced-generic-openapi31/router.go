@@ -5,6 +5,7 @@ package main
 import (
 	"context"
 	"errors"
+	"github.com/swaggest/rest/openapi"
 	"log"
 	"net/http"
 	"reflect"
@@ -15,7 +16,7 @@ import (
 	"github.com/rs/cors"
 	"github.com/swaggest/jsonschema-go"
 	oapi "github.com/swaggest/openapi-go"
-	"github.com/swaggest/openapi-go/openapi3"
+	"github.com/swaggest/openapi-go/openapi31"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/response"
@@ -26,7 +27,10 @@ import (
 )
 
 func NewRouter() http.Handler {
-	s := web.DefaultService()
+	openapiRefl := openapi31.NewReflector()
+	s := web.DefaultService(func(s *web.Service, initialized bool) {
+		s.OpenAPICollector = openapi.NewCollector(openapiRefl)
+	})
 
 	s.OpenAPISchema().SetTitle("Advanced Example")
 	s.OpenAPISchema().SetDescription("This app showcases a variety of features.")
@@ -137,7 +141,7 @@ func NewRouter() http.Handler {
 
 	// Annotations can be used to alter documentation of operation identified by method and path.
 	s.OpenAPICollector.AnnotateOperation(http.MethodPost, "/validation", func(oc oapi.OperationContext) error {
-		o3, ok := oc.(openapi3.OperationExposer)
+		o3, ok := oc.(openapi31.OperationExposer)
 		if !ok {
 			return nil
 		}

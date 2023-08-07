@@ -39,6 +39,20 @@ func OpenAPIMiddleware(s *openapi.Collector) func(http.Handler) http.Handler {
 	}
 }
 
+func AuthMiddleware(
+	c *openapi.Collector,
+	name string,
+	options ...func(*MiddlewareConfig),
+) func(http.Handler) http.Handler {
+	cfg := MiddlewareConfig{}
+
+	for _, o := range options {
+		o(&cfg)
+	}
+
+	return securityMiddleware(c, name, cfg)
+}
+
 // SecurityMiddleware creates middleware to expose security scheme.
 func SecurityMiddleware(
 	c *openapi.Collector,
