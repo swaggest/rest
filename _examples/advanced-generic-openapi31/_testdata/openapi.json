@@ -1,807 +1,817 @@
 {
-  "openapi":"3.0.3",
-  "info":{"title":"Advanced Example","description":"This app showcases a variety of features.","version":"v1.2.3"},
-  "paths":{
-    "/deeper-with-session/one":{
-      "get":{
-        "tags":["Other"],"summary":"Dummy","operationId":"_examples/advanced-generic.dummy2",
-        "responses":{
-          "204":{"description":"No Content"},
-          "401":{
-            "description":"Unauthorized",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
-          }
-        },
-        "security":[{"User":[]}]
-      }
+ "openapi":"3.1.0",
+ "info":{"title":"Advanced Example","description":"This app showcases a variety of features.","version":"v1.2.3"},
+ "paths":{
+  "/deeper-with-session/one":{
+   "get":{
+    "tags":["Other"],"summary":"Dummy","operationId":"_examples/advanced-generic-openapi31.dummy2",
+    "responses":{
+     "204":{"description":"No Content"},
+     "401":{
+      "description":"Unauthorized",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
+     }
     },
-    "/deeper-with-session/two":{
-      "get":{
-        "tags":["Other"],"summary":"Dummy","operationId":"_examples/advanced-generic.dummy3",
-        "responses":{
-          "204":{"description":"No Content"},
-          "401":{
-            "description":"Unauthorized",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
-          }
-        },
-        "security":[{"User":[]}]
-      }
-    },
-    "/error-response":{
-      "get":{
-        "tags":["Response"],"summary":"Declare Expected Errors",
-        "description":"This use case demonstrates documentation of expected errors.",
-        "operationId":"_examples/advanced-generic.errorResponse",
-        "parameters":[
-          {
-            "name":"type","in":"query","required":true,
-            "schema":{"enum":["ok","invalid_argument","conflict"],"type":"string"}
-          }
-        ],
-        "responses":{
-          "200":{
-            "description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOkResp"}}}
-          },
-          "400":{
-            "description":"Bad Request",
-            "content":{
-              "application/json":{
-                "schema":{
-                  "anyOf":[
-                    {"$ref":"#/components/schemas/AdvancedCustomErr"},
-                    {"$ref":"#/components/schemas/AdvancedAnotherErr"}
-                  ]
-                }
-              }
-            }
-          },
-          "409":{
-            "description":"Conflict",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
-          },
-          "412":{
-            "description":"Precondition Failed",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
-          }
-        },
-        "x-forbid-unknown-query":true
-      }
-    },
-    "/file-multi-upload":{
-      "post":{
-        "tags":["Request"],"summary":"Files Uploads With 'multipart/form-data'",
-        "operationId":"_examples/advanced-generic.fileMultiUploader",
-        "parameters":[
-          {
-            "name":"in_query","in":"query","description":"Simple scalar value in query.",
-            "schema":{"type":"integer","description":"Simple scalar value in query."}
-          }
-        ],
-        "requestBody":{"content":{"multipart/form-data":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedUploadType2"}}}},
-        "responses":{
-          "200":{
-            "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInfoType2"}}}
-          }
-        },
-        "x-forbid-unknown-query":true
-      }
-    },
-    "/file-upload":{
-      "post":{
-        "tags":["Request"],"summary":"File Upload With 'multipart/form-data'",
-        "operationId":"_examples/advanced-generic.fileUploader",
-        "parameters":[
-          {
-            "name":"in_query","in":"query","description":"Simple scalar value in query.",
-            "schema":{"type":"integer","description":"Simple scalar value in query."}
-          }
-        ],
-        "requestBody":{"content":{"multipart/form-data":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedUpload"}}}},
-        "responses":{
-          "200":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInfo"}}}}
-        },
-        "x-forbid-unknown-query":true
-      }
-    },
-    "/form":{
-      "post":{
-        "tags":["Request"],"summary":"Request With Form",
-        "description":"The `form` field tag acts as `query` and `formData`, with priority on `formData`.\n\nIt is decoded with `http.Request.Form` values.",
-        "operationId":"_examples/advanced-generic.form",
-        "parameters":[
-          {"name":"id","in":"query","schema":{"type":"integer"}},
-          {"name":"name","in":"query","schema":{"type":"string"}}
-        ],
-        "requestBody":{
-          "content":{"application/x-www-form-urlencoded":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedForm"}}}
-        },
-        "responses":{
-          "200":{
-            "description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutput"}}}
-          }
-        },
-        "x-forbid-unknown-query":true
-      }
-    },
-    "/gzip-pass-through":{
-      "get":{
-        "tags":["Response"],"summary":"Direct Gzip","operationId":"_examples/advanced-generic.directGzip",
-        "parameters":[
-          {
-            "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",
-            "schema":{"type":"boolean","description":"Output plain structure instead of gzip container."}
-          },
-          {
-            "name":"countItems","in":"query","description":"Invokes internal decoding of compressed data.",
-            "schema":{"type":"boolean","description":"Invokes internal decoding of compressed data."}
-          }
-        ],
-        "responses":{
-          "200":{
-            "description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}},
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedGzipPassThroughStruct"}}}
-          }
-        },
-        "x-forbid-unknown-query":true
-      },
-      "head":{
-        "tags":["Response"],"summary":"Direct Gzip","operationId":"_examples/advanced-generic.directGzip2",
-        "parameters":[
-          {
-            "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",
-            "schema":{"type":"boolean","description":"Output plain structure instead of gzip container."}
-          },
-          {
-            "name":"countItems","in":"query","description":"Invokes internal decoding of compressed data.",
-            "schema":{"type":"boolean","description":"Invokes internal decoding of compressed data."}
-          }
-        ],
-        "responses":{"200":{"description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}}}},
-        "x-forbid-unknown-query":true
-      }
-    },
-    "/html-response/{id}":{
-      "get":{
-        "tags":["Response"],"summary":"Request With HTML Response",
-        "description":"Request with templated HTML response.","operationId":"_examples/advanced-generic.htmlResponse",
-        "parameters":[
-          {"name":"filter","in":"query","schema":{"type":"string"}},
-          {"name":"id","in":"path","required":true,"schema":{"type":"integer"}},
-          {"name":"X-Header","in":"header","schema":{"type":"boolean"}}
-        ],
-        "responses":{
-          "200":{
-            "description":"OK","headers":{"X-Anti-Header":{"style":"simple","schema":{"type":"boolean"}}},
-            "content":{"text/html":{"schema":{"type":"string"}}}
-          }
-        },
-        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
-      }
-    },
-    "/json-body-manual/{in-path}":{
-      "post":{
-        "tags":["Request"],"summary":"Request With JSON Body and manual decoder",
-        "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
-        "operationId":"_examples/advanced-generic.jsonBodyManual",
-        "parameters":[
-          {
-            "name":"in_query","in":"query","description":"Simple scalar value in query.",
-            "schema":{"type":"string","description":"Simple scalar value in query.","format":"date"}
-          },
-          {
-            "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
-            "schema":{"type":"string","description":"Simple scalar value in path"}
-          },
-          {
-            "name":"X-Header","in":"header","description":"Simple scalar value in header.",
-            "schema":{"type":"string","description":"Simple scalar value in header."}
-          }
-        ],
-        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSONType3"}}}},
-        "responses":{
-          "201":{
-            "description":"Created",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType3"}}}
-          }
-        },
-        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
-      }
-    },
-    "/json-body-validation/{in-path}":{
-      "post":{
-        "tags":["Request","Response","Validation"],"summary":"Request With JSON Body and non-trivial validation",
-        "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
-        "operationId":"_examples/advanced-generic.jsonBodyValidation",
-        "parameters":[
-          {
-            "name":"in_query","in":"query","description":"Simple scalar value in query.",
-            "schema":{"minimum":100,"type":"integer","description":"Simple scalar value in query."}
-          },
-          {
-            "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
-            "schema":{"minLength":3,"type":"string","description":"Simple scalar value in path"}
-          },
-          {
-            "name":"X-Header","in":"header","description":"Simple scalar value in header.",
-            "schema":{"minLength":3,"type":"string","description":"Simple scalar value in header."}
-          }
-        ],
-        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSONType4"}}}},
-        "responses":{
-          "200":{
-            "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType4"}}}
-          }
-        },
-        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
-      }
-    },
-    "/json-body/{in-path}":{
-      "post":{
-        "tags":["Request"],"summary":"Request With JSON Body",
-        "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
-        "operationId":"_examples/advanced-generic.jsonBody",
-        "parameters":[
-          {
-            "name":"in_query","in":"query","description":"Simple scalar value in query.",
-            "schema":{"type":"string","description":"Simple scalar value in query.","format":"date"}
-          },
-          {
-            "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
-            "schema":{"type":"string","description":"Simple scalar value in path"}
-          },
-          {
-            "name":"X-Header","in":"header","description":"Simple scalar value in header.",
-            "schema":{"type":"string","description":"Simple scalar value in header."}
-          }
-        ],
-        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSONType2"}}}},
-        "responses":{
-          "201":{
-            "description":"Created",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType2"}}}
-          }
-        },
-        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
-      }
-    },
-    "/json-map-body":{
-      "post":{
-        "tags":["Request"],"summary":"Request With JSON Map In Body",
-        "description":"Request with JSON object (map) body.","operationId":"_examples/advanced-generic.jsonMapBody",
-        "parameters":[
-          {
-            "name":"in_query","in":"query","description":"Simple scalar value in query.",
-            "schema":{"type":"integer","description":"Simple scalar value in query."}
-          },
-          {
-            "name":"X-Header","in":"header","description":"Simple scalar value in header.",
-            "schema":{"type":"string","description":"Simple scalar value in header."}
-          }
-        ],
-        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonMapReq"}}}},
-        "responses":{
-          "200":{
-            "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonOutputType2"}}}
-          }
-        },
-        "x-forbid-unknown-query":true
-      }
-    },
-    "/json-param/{in-path}":{
-      "get":{
-        "tags":["Request"],"summary":"Request With JSON Query Parameter",
-        "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
-        "operationId":"_examples/advanced-generic.jsonParam",
-        "parameters":[
-          {
-            "name":"in_query","in":"query","description":"Simple scalar value in query.",
-            "schema":{"type":"integer","description":"Simple scalar value in query."}
-          },
-          {
-            "name":"identity","in":"query","description":"JSON value in query",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryAdvancedJSONPayload"}}}
-          },
-          {
-            "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
-            "schema":{"type":"string","description":"Simple scalar value in path"}
-          },
-          {
-            "name":"in_cookie","in":"cookie","description":"UUID in cookie.",
-            "schema":{"$ref":"#/components/schemas/CookieUuidUUID"}
-          },
-          {
-            "name":"X-Header","in":"header","description":"Simple scalar value in header.",
-            "schema":{"type":"string","description":"Simple scalar value in header."}
-          }
-        ],
-        "responses":{
-          "200":{
-            "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSON"}}}
-          }
-        },
-        "x-forbid-unknown-cookie":true,"x-forbid-unknown-path":true,"x-forbid-unknown-query":true
-      }
-    },
-    "/json-slice-body":{
-      "post":{
-        "tags":["Request"],"summary":"Request With JSON Array In Body",
-        "operationId":"_examples/advanced-generic.jsonSliceBody",
-        "parameters":[
-          {
-            "name":"in_query","in":"query","description":"Simple scalar value in query.",
-            "schema":{"type":"integer","description":"Simple scalar value in query."}
-          },
-          {
-            "name":"X-Header","in":"header","description":"Simple scalar value in header.",
-            "schema":{"type":"string","description":"Simple scalar value in header."}
-          }
-        ],
-        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonSliceReq"}}}},
-        "responses":{
-          "200":{
-            "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonOutput"}}}
-          }
-        },
-        "x-forbid-unknown-query":true
-      }
-    },
-    "/no-validation":{
-      "post":{
-        "tags":["Request","Response"],"summary":"No Validation","description":"Input/Output without validation.",
-        "operationId":"_examples/advanced-generic.noValidation",
-        "parameters":[
-          {"name":"q","in":"query","schema":{"type":"boolean"}},
-          {"name":"X-Input","in":"header","schema":{"type":"integer"}}
-        ],
-        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputPortType3"}}}},
-        "responses":{
-          "200":{
-            "description":"OK",
-            "headers":{
-              "X-Output":{"style":"simple","schema":{"type":"integer"}},
-              "X-Query":{"style":"simple","schema":{"type":"boolean"}}
-            },
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType3"}}}
-          }
-        },
-        "x-forbid-unknown-query":true
-      }
-    },
-    "/output-csv-writer":{
-      "get":{
-        "tags":["Response"],"summary":"Output With Stream Writer","description":"Output with stream writer.",
-        "operationId":"_examples/advanced-generic.outputCSVWriter",
-        "parameters":[
-          {
-            "name":"If-None-Match","in":"header","description":"Content hash.",
-            "schema":{"type":"string","description":"Content hash."}
-          }
-        ],
-        "responses":{
-          "200":{
-            "description":"OK",
-            "headers":{
-              "ETag":{
-                "style":"simple","description":"Content hash.","schema":{"type":"string","description":"Content hash."}
-              },
-              "X-Header":{
-                "style":"simple","description":"Sample response header.",
-                "schema":{"type":"string","description":"Sample response header."}
-              }
-            },
-            "content":{"text/csv":{"schema":{"type":"string"}}}
-          },
-          "304":{"description":"Not Modified"},
-          "500":{
-            "description":"Internal Server Error",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
-          }
-        }
-      }
-    },
-    "/output-headers":{
-      "get":{
-        "tags":["Response"],"summary":"Output With Headers","description":"Output with headers.",
-        "operationId":"_examples/advanced-generic.outputHeaders",
-        "parameters":[
-          {
-            "name":"X-foO","in":"header","description":"Reduced by 20 in response.","required":true,
-            "schema":{"minimum":10,"type":"integer","description":"Reduced by 20 in response."}
-          }
-        ],
-        "responses":{
-          "200":{
-            "description":"OK",
-            "headers":{
-              "X-foO":{
-                "style":"simple","description":"Reduced by 20 in response.","required":true,
-                "schema":{"minimum":10,"type":"integer","description":"Reduced by 20 in response."}
-              },
-              "x-HeAdEr":{
-                "style":"simple","description":"Sample response header.",
-                "schema":{"type":"string","description":"Sample response header."}
-              },
-              "x-omit-empty":{
-                "style":"simple","description":"Receives req value of X-Foo reduced by 30.",
-                "schema":{"type":"integer","description":"Receives req value of X-Foo reduced by 30."}
-              }
-            },
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedHeaderOutput"}}}
-          },
-          "500":{
-            "description":"Internal Server Error",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
-          }
-        }
-      },
-      "head":{
-        "tags":["Response"],"summary":"Output With Headers","description":"Output with headers.",
-        "operationId":"_examples/advanced-generic.outputHeaders2",
-        "parameters":[
-          {
-            "name":"X-foO","in":"header","description":"Reduced by 20 in response.","required":true,
-            "schema":{"minimum":10,"type":"integer","description":"Reduced by 20 in response."}
-          }
-        ],
-        "responses":{
-          "200":{
-            "description":"OK",
-            "headers":{
-              "X-foO":{
-                "style":"simple","description":"Reduced by 20 in response.","required":true,
-                "schema":{"minimum":10,"type":"integer","description":"Reduced by 20 in response."}
-              },
-              "x-HeAdEr":{
-                "style":"simple","description":"Sample response header.",
-                "schema":{"type":"string","description":"Sample response header."}
-              },
-              "x-omit-empty":{
-                "style":"simple","description":"Receives req value of X-Foo reduced by 30.",
-                "schema":{"type":"integer","description":"Receives req value of X-Foo reduced by 30."}
-              }
-            }
-          },
-          "500":{"description":"Internal Server Error"}
-        }
-      }
-    },
-    "/query-object":{
-      "get":{
-        "tags":["Request"],"summary":"Request With Object As Query Parameter",
-        "operationId":"_examples/advanced-generic.queryObject",
-        "parameters":[
-          {
-            "name":"in_query","in":"query","description":"Object value in query.","style":"deepObject","explode":true,
-            "schema":{"type":"object","additionalProperties":{"type":"number"},"description":"Object value in query."}
-          },
-          {
-            "name":"json_filter","in":"query","description":"JSON object value in query.",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryAdvancedJsonFilter"}}}
-          },
-          {
-            "name":"deep_object_filter","in":"query","description":"Deep object value in query params.",
-            "style":"deepObject","explode":true,"schema":{"$ref":"#/components/schemas/QueryAdvancedDeepObjectFilter"}
-          }
-        ],
-        "responses":{
-          "200":{
-            "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputQueryObject"}}}
-          }
-        },
-        "x-forbid-unknown-query":true
-      }
-    },
-    "/req-resp-mapping":{
-      "post":{
-        "tags":["Request","Response"],"summary":"Request Response Mapping",
-        "description":"This use case has transport concerns fully decoupled with external req/resp mapping.",
-        "operationId":"reqRespMapping",
-        "parameters":[
-          {
-            "name":"X-Header","in":"header","description":"Simple scalar value with sample validation.","required":true,
-            "schema":{"minLength":3,"type":"string","description":"Simple scalar value with sample validation."}
-          }
-        ],
-        "requestBody":{
-          "content":{"application/x-www-form-urlencoded":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedInputPort"}}}
-        },
-        "responses":{
-          "204":{
-            "description":"No Content",
-            "headers":{
-              "X-Value-1":{
-                "style":"simple","description":"Simple scalar value with sample validation.","required":true,
-                "schema":{"minLength":3,"type":"string","description":"Simple scalar value with sample validation."}
-              },
-              "X-Value-2":{
-                "style":"simple","description":"Simple scalar value with sample validation.","required":true,
-                "schema":{"minimum":3,"type":"integer","description":"Simple scalar value with sample validation."}
-              }
-            }
-          }
-        }
-      }
-    },
-    "/root-with-session":{
-      "get":{
-        "tags":["Other"],"summary":"Dummy","operationId":"_examples/advanced-generic.dummy",
-        "responses":{
-          "204":{"description":"No Content"},
-          "401":{
-            "description":"Unauthorized",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
-          }
-        },
-        "security":[{"User":[]}]
-      }
-    },
-    "/text-req-body-ptr/{path}":{
-      "post":{
-        "tags":["Request"],"summary":"Request With Text Body (ptr input)",
-        "description":"This usecase allows direct access to original `*http.Request` while keeping automated decoding of parameters.",
-        "operationId":"_examples/advanced-generic.textReqBodyPtr",
-        "parameters":[
-          {"name":"query","in":"query","schema":{"type":"integer"}},
-          {"name":"path","in":"path","required":true,"schema":{"type":"string"}}
-        ],
-        "requestBody":{"content":{"text/csv":{"schema":{"type":"string"}}}},
-        "responses":{
-          "200":{
-            "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputType3"}}}
-          }
-        },
-        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
-      }
-    },
-    "/text-req-body/{path}":{
-      "post":{
-        "tags":["Request"],"summary":"Request With Text Body",
-        "description":"This usecase allows direct access to original `*http.Request` while keeping automated decoding of parameters.",
-        "operationId":"_examples/advanced-generic.textReqBody",
-        "parameters":[
-          {"name":"query","in":"query","schema":{"type":"integer"}},
-          {"name":"path","in":"path","required":true,"schema":{"type":"string"}}
-        ],
-        "requestBody":{"content":{"text/csv":{"schema":{"type":"string"}}}},
-        "responses":{
-          "200":{
-            "description":"OK",
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputType2"}}}
-          }
-        },
-        "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
-      }
-    },
-    "/validation":{
-      "post":{
-        "tags":["Request","Response","Validation"],"summary":"Validation",
-        "description":"Input/Output with validation. Custom annotation.",
-        "operationId":"_examples/advanced-generic.validation",
-        "parameters":[
-          {
-            "name":"q","in":"query",
-            "description":"This parameter will bypass explicit validation as it does not have constraints.",
-            "schema":{
-              "type":"boolean",
-              "description":"This parameter will bypass explicit validation as it does not have constraints."
-            }
-          },
-          {
-            "name":"X-Input","in":"header","description":"Request minimum: 10, response maximum: 20.",
-            "schema":{"minimum":10,"type":"integer","description":"Request minimum: 10, response maximum: 20."}
-          }
-        ],
-        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputPortType2"}}}},
-        "responses":{
-          "200":{
-            "description":"OK",
-            "headers":{
-              "X-Output":{"style":"simple","schema":{"maximum":20,"type":"integer"}},
-              "X-Query":{
-                "style":"simple","description":"This header bypasses validation as it does not have constraints.",
-                "schema":{"type":"boolean","description":"This header bypasses validation as it does not have constraints."}
-              }
-            },
-            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType2"}}}
-          }
-        },
-        "x-forbid-unknown-query":true
-      }
-    }
+    "security":[{"User":[]}]
+   }
   },
-  "components":{
-    "schemas":{
-      "AdvancedAnotherErr":{"type":"object","properties":{"foo":{"type":"integer"}}},
-      "AdvancedCustomErr":{"type":"object","properties":{"details":{"type":"object","additionalProperties":{}},"msg":{"type":"string"}}},
-      "AdvancedDeepObjectFilter":{
-        "type":"object",
-        "properties":{"bar":{"minLength":3,"type":"string"},"baz":{"minLength":3,"type":"string","nullable":true}}
-      },
-      "AdvancedGzipPassThroughStruct":{
-        "type":"object",
-        "properties":{"id":{"type":"integer"},"text":{"type":"array","items":{"type":"string"},"nullable":true}}
-      },
-      "AdvancedHeaderOutput":{"type":"object","properties":{"inBody":{"type":"string","deprecated":true}}},
-      "AdvancedInfo":{
-        "type":"object",
-        "properties":{
-          "filename":{"type":"string"},"header":{"$ref":"#/components/schemas/TextprotoMIMEHeader"},
-          "inQuery":{"type":"integer"},"peek1":{"type":"string"},"peek2":{"type":"string"},"simple":{"type":"string"},
-          "size":{"type":"integer"}
-        }
-      },
-      "AdvancedInfoType2":{
-        "type":"object",
-        "properties":{
-          "filenames":{"type":"array","items":{"type":"string"},"nullable":true},
-          "headers":{"type":"array","items":{"$ref":"#/components/schemas/TextprotoMIMEHeader"},"nullable":true},
-          "inQuery":{"type":"integer"},"peeks1":{"type":"array","items":{"type":"string"},"nullable":true},
-          "peeks2":{"type":"array","items":{"type":"string"},"nullable":true},"simple":{"type":"string"},
-          "sizes":{"type":"array","items":{"type":"integer"},"nullable":true}
-        }
-      },
-      "AdvancedInputPortType2":{
-        "required":["data"],"type":"object",
-        "properties":{
-          "data":{
-            "type":"object",
-            "properties":{"value":{"minLength":3,"type":"string","description":"Request minLength: 3, response maxLength: 7"}},
-            "additionalProperties":false
-          }
-        },
-        "additionalProperties":false
-      },
-      "AdvancedInputPortType3":{
-        "type":"object",
-        "properties":{"data":{"type":"object","properties":{"value":{"type":"string"}},"additionalProperties":false}},
-        "additionalProperties":false
-      },
-      "AdvancedInputWithJSONType2":{
-        "type":"object",
-        "properties":{
-          "id":{"type":"integer"},"name":{"type":"string"},
-          "namedStruct":{"allOf":[{"deprecated":true},{"$ref":"#/components/schemas/AdvancedJSONPayloadType2"}]}
-        },
-        "additionalProperties":false
-      },
-      "AdvancedInputWithJSONType3":{
-        "type":"object",
-        "properties":{
-          "id":{"type":"integer"},"name":{"type":"string"},
-          "namedStruct":{"allOf":[{"deprecated":true},{"$ref":"#/components/schemas/AdvancedJSONPayloadType3"}]}
-        },
-        "additionalProperties":false
-      },
-      "AdvancedInputWithJSONType4":{
-        "type":"object","properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}},
-        "additionalProperties":false
-      },
-      "AdvancedJSONMapPayload":{"type":"object","additionalProperties":{"type":"number"}},
-      "AdvancedJSONPayloadType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
-      "AdvancedJSONPayloadType3":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
-      "AdvancedJSONSlicePayload":{"type":"array","items":{"type":"integer"},"nullable":true},
-      "AdvancedJsonFilter":{"type":"object","properties":{"foo":{"maxLength":5,"type":"string"}}},
-      "AdvancedJsonMapReq":{"type":"object","additionalProperties":{"type":"number"}},
-      "AdvancedJsonOutput":{
-        "type":"object",
-        "properties":{
-          "data":{"$ref":"#/components/schemas/AdvancedJSONSlicePayload"},"inHeader":{"type":"string"},
-          "inQuery":{"type":"integer"}
-        }
-      },
-      "AdvancedJsonOutputType2":{
-        "type":"object",
-        "properties":{
-          "data":{"$ref":"#/components/schemas/AdvancedJSONMapPayload"},"inHeader":{"type":"string"},
-          "inQuery":{"type":"integer"}
-        }
-      },
-      "AdvancedJsonSliceReq":{"type":"array","items":{"type":"integer"}},
-      "AdvancedOkResp":{"type":"object","properties":{"status":{"type":"string"}}},
-      "AdvancedOutput":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}}},
-      "AdvancedOutputPortType2":{
-        "required":["data"],"type":"object",
-        "properties":{"data":{"type":"object","properties":{"value":{"maxLength":7,"type":"string"}}}}
-      },
-      "AdvancedOutputPortType3":{"type":"object","properties":{"data":{"type":"object","properties":{"value":{"type":"string"}}}}},
-      "AdvancedOutputQueryObject":{
-        "type":"object",
-        "properties":{
-          "deepObjectFilter":{"$ref":"#/components/schemas/AdvancedDeepObjectFilter"},
-          "inQuery":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
-          "jsonFilter":{"$ref":"#/components/schemas/AdvancedJsonFilter"}
-        }
-      },
-      "AdvancedOutputType2":{"type":"object","properties":{"path":{"type":"string"},"query":{"type":"integer"},"text":{"type":"string"}}},
-      "AdvancedOutputType3":{"type":"object","properties":{"path":{"type":"string"},"query":{"type":"integer"},"text":{"type":"string"}}},
-      "AdvancedOutputWithJSON":{
-        "type":"object",
-        "properties":{
-          "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},"inQuery":{"type":"integer"},
-          "name":{"type":"string"}
-        }
-      },
-      "AdvancedOutputWithJSONType2":{
-        "type":"object",
-        "properties":{
-          "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},
-          "inQuery":{"type":"string","format":"date","deprecated":true},"name":{"type":"string"}
-        }
-      },
-      "AdvancedOutputWithJSONType3":{
-        "type":"object",
-        "properties":{
-          "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},
-          "inQuery":{"type":"string","format":"date","deprecated":true},"name":{"type":"string"}
-        }
-      },
-      "AdvancedOutputWithJSONType4":{
-        "type":"object",
-        "properties":{
-          "id":{"minimum":100,"type":"integer"},"inHeader":{"minLength":3,"type":"string"},
-          "inPath":{"minLength":3,"type":"string"},"inQuery":{"minimum":3,"type":"integer"},
-          "name":{"minLength":3,"type":"string"}
-        }
-      },
-      "CookieUuidUUID":{"type":"string","format":"uuid","example":"248df4b7-aa70-47b8-a036-33ac447e668d"},
-      "FormDataAdvancedForm":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
-      "FormDataAdvancedInputPort":{
-        "required":["val2"],"type":"object",
-        "properties":{"val2":{"minimum":3,"type":"integer","description":"Simple scalar value with sample validation."}},
-        "additionalProperties":false
-      },
-      "FormDataAdvancedUpload":{
-        "type":"object",
-        "properties":{
-          "simple":{"type":"string","description":"Simple scalar value in body."},
-          "upload1":{"$ref":"#/components/schemas/FormDataMultipartFileHeader"},
-          "upload2":{"$ref":"#/components/schemas/FormDataMultipartFile"}
-        },
-        "additionalProperties":false
-      },
-      "FormDataAdvancedUploadType2":{
-        "type":"object",
-        "properties":{
-          "simple":{"type":"string","description":"Simple scalar value in body."},
-          "uploads1":{
-            "type":"array","items":{"$ref":"#/components/schemas/FormDataMultipartFileHeader"},
-            "description":"Uploads with *multipart.FileHeader.","nullable":true
-          },
-          "uploads2":{
-            "type":"array","items":{"$ref":"#/components/schemas/FormDataMultipartFile"},
-            "description":"Uploads with multipart.File.","nullable":true
-          }
-        },
-        "additionalProperties":false
-      },
-      "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
-      "FormDataMultipartFileHeader":{"type":"string","format":"binary","nullable":true},
-      "QueryAdvancedDeepObjectFilter":{
-        "type":"object",
-        "properties":{"bar":{"minLength":3,"type":"string"},"baz":{"minLength":3,"type":"string","nullable":true}},
-        "additionalProperties":false
-      },
-      "QueryAdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
-      "QueryAdvancedJsonFilter":{"type":"object","properties":{"foo":{"maxLength":5,"type":"string"}},"additionalProperties":false},
-      "RestErrResponse":{
-        "type":"object",
-        "properties":{
-          "code":{"type":"integer","description":"Application-specific error code."},
-          "context":{"type":"object","additionalProperties":{},"description":"Application context."},
-          "error":{"type":"string","description":"Error message."},
-          "status":{"type":"string","description":"Status text."}
-        }
-      },
-      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}}
+  "/deeper-with-session/two":{
+   "get":{
+    "tags":["Other"],"summary":"Dummy","operationId":"_examples/advanced-generic-openapi31.dummy3",
+    "responses":{
+     "204":{"description":"No Content"},
+     "401":{
+      "description":"Unauthorized",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
+     }
     },
-    "securitySchemes":{"User":{"type":"apiKey","name":"sessid","in":"cookie"}}
+    "security":[{"User":[]}]
+   }
+  },
+  "/error-response":{
+   "get":{
+    "tags":["Response"],"summary":"Declare Expected Errors",
+    "description":"This use case demonstrates documentation of expected errors.",
+    "operationId":"_examples/advanced-generic-openapi31.errorResponse",
+    "parameters":[
+     {
+      "name":"type","in":"query","required":true,
+      "schema":{"enum":["ok","invalid_argument","conflict"],"type":"string"}
+     }
+    ],
+    "responses":{
+     "200":{
+      "description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOkResp"}}}
+     },
+     "400":{
+      "description":"Bad Request",
+      "content":{
+       "application/json":{
+        "schema":{
+         "anyOf":[
+          {"$ref":"#/components/schemas/AdvancedCustomErr"},
+          {"$ref":"#/components/schemas/AdvancedAnotherErr"}
+         ]
+        }
+       }
+      }
+     },
+     "409":{
+      "description":"Conflict",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+     },
+     "412":{
+      "description":"Precondition Failed",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+     }
+    },
+    "x-forbid-unknown-query":true
+   }
+  },
+  "/file-multi-upload":{
+   "post":{
+    "tags":["Request"],"summary":"Files Uploads With 'multipart/form-data'",
+    "operationId":"_examples/advanced-generic-openapi31.fileMultiUploader",
+    "parameters":[
+     {
+      "name":"in_query","in":"query","description":"Simple scalar value in query.",
+      "schema":{"description":"Simple scalar value in query.","type":"integer"}
+     }
+    ],
+    "requestBody":{"content":{"multipart/form-data":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedUploadType2"}}}},
+    "responses":{
+     "200":{
+      "description":"OK",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInfoType2"}}}
+     }
+    },
+    "x-forbid-unknown-query":true
+   }
+  },
+  "/file-upload":{
+   "post":{
+    "tags":["Request"],"summary":"File Upload With 'multipart/form-data'",
+    "operationId":"_examples/advanced-generic-openapi31.fileUploader",
+    "parameters":[
+     {
+      "name":"in_query","in":"query","description":"Simple scalar value in query.",
+      "schema":{"description":"Simple scalar value in query.","type":"integer"}
+     }
+    ],
+    "requestBody":{"content":{"multipart/form-data":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedUpload"}}}},
+    "responses":{
+     "200":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInfo"}}}}
+    },
+    "x-forbid-unknown-query":true
+   }
+  },
+  "/form":{
+   "post":{
+    "tags":["Request"],"summary":"Request With Form",
+    "description":"The `form` field tag acts as `query` and `formData`, with priority on `formData`.\n\nIt is decoded with `http.Request.Form` values.",
+    "operationId":"_examples/advanced-generic-openapi31.form",
+    "parameters":[
+     {"name":"id","in":"query","schema":{"type":"integer"}},
+     {"name":"name","in":"query","schema":{"type":"string"}}
+    ],
+    "requestBody":{
+     "content":{"application/x-www-form-urlencoded":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedForm"}}}
+    },
+    "responses":{
+     "200":{
+      "description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutput"}}}
+     }
+    },
+    "x-forbid-unknown-query":true
+   }
+  },
+  "/gzip-pass-through":{
+   "get":{
+    "tags":["Response"],"summary":"Direct Gzip","operationId":"_examples/advanced-generic-openapi31.directGzip",
+    "parameters":[
+     {
+      "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",
+      "schema":{"description":"Output plain structure instead of gzip container.","type":"boolean"}
+     },
+     {
+      "name":"countItems","in":"query","description":"Invokes internal decoding of compressed data.",
+      "schema":{"description":"Invokes internal decoding of compressed data.","type":"boolean"}
+     }
+    ],
+    "responses":{
+     "200":{
+      "description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}},
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedGzipPassThroughStruct"}}}
+     }
+    },
+    "x-forbid-unknown-query":true
+   },
+   "head":{
+    "tags":["Response"],"summary":"Direct Gzip","operationId":"_examples/advanced-generic-openapi31.directGzip2",
+    "parameters":[
+     {
+      "name":"plainStruct","in":"query","description":"Output plain structure instead of gzip container.",
+      "schema":{"description":"Output plain structure instead of gzip container.","type":"boolean"}
+     },
+     {
+      "name":"countItems","in":"query","description":"Invokes internal decoding of compressed data.",
+      "schema":{"description":"Invokes internal decoding of compressed data.","type":"boolean"}
+     }
+    ],
+    "responses":{"200":{"description":"OK","headers":{"X-Header":{"style":"simple","schema":{"type":"string"}}}}},
+    "x-forbid-unknown-query":true
+   }
+  },
+  "/html-response/{id}":{
+   "get":{
+    "tags":["Response"],"summary":"Request With HTML Response",
+    "description":"Request with templated HTML response.",
+    "operationId":"_examples/advanced-generic-openapi31.htmlResponse",
+    "parameters":[
+     {"name":"filter","in":"query","schema":{"type":"string"}},
+     {"name":"id","in":"path","required":true,"schema":{"type":"integer"}},
+     {"name":"X-Header","in":"header","schema":{"type":"boolean"}}
+    ],
+    "responses":{
+     "200":{
+      "description":"OK","headers":{"X-Anti-Header":{"style":"simple","schema":{"type":"boolean"}}},
+      "content":{"text/html":{"schema":{"type":"string"}}}
+     }
+    },
+    "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+   }
+  },
+  "/json-body-manual/{in-path}":{
+   "post":{
+    "tags":["Request"],"summary":"Request With JSON Body and manual decoder",
+    "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
+    "operationId":"_examples/advanced-generic-openapi31.jsonBodyManual",
+    "parameters":[
+     {
+      "name":"in_query","in":"query","description":"Simple scalar value in query.",
+      "schema":{"description":"Simple scalar value in query.","format":"date","type":"string"}
+     },
+     {
+      "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
+      "schema":{"description":"Simple scalar value in path","type":"string"}
+     },
+     {
+      "name":"X-Header","in":"header","description":"Simple scalar value in header.",
+      "schema":{"description":"Simple scalar value in header.","type":"string"}
+     }
+    ],
+    "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSONType3"}}}},
+    "responses":{
+     "201":{
+      "description":"Created",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType3"}}}
+     }
+    },
+    "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+   }
+  },
+  "/json-body-validation/{in-path}":{
+   "post":{
+    "tags":["Request","Response","Validation"],"summary":"Request With JSON Body and non-trivial validation",
+    "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
+    "operationId":"_examples/advanced-generic-openapi31.jsonBodyValidation",
+    "parameters":[
+     {
+      "name":"in_query","in":"query","description":"Simple scalar value in query.",
+      "schema":{"description":"Simple scalar value in query.","minimum":100,"type":"integer"}
+     },
+     {
+      "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
+      "schema":{"description":"Simple scalar value in path","minLength":3,"type":"string"}
+     },
+     {
+      "name":"X-Header","in":"header","description":"Simple scalar value in header.",
+      "schema":{"description":"Simple scalar value in header.","minLength":3,"type":"string"}
+     }
+    ],
+    "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSONType4"}}}},
+    "responses":{
+     "200":{
+      "description":"OK",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType4"}}}
+     }
+    },
+    "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+   }
+  },
+  "/json-body/{in-path}":{
+   "post":{
+    "tags":["Request"],"summary":"Request With JSON Body",
+    "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
+    "operationId":"_examples/advanced-generic-openapi31.jsonBody",
+    "parameters":[
+     {
+      "name":"in_query","in":"query","description":"Simple scalar value in query.",
+      "schema":{"description":"Simple scalar value in query.","format":"date","type":"string"}
+     },
+     {
+      "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
+      "schema":{"description":"Simple scalar value in path","type":"string"}
+     },
+     {
+      "name":"X-Header","in":"header","description":"Simple scalar value in header.",
+      "schema":{"description":"Simple scalar value in header.","type":"string"}
+     }
+    ],
+    "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputWithJSONType2"}}}},
+    "responses":{
+     "201":{
+      "description":"Created",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSONType2"}}}
+     }
+    },
+    "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+   }
+  },
+  "/json-map-body":{
+   "post":{
+    "tags":["Request"],"summary":"Request With JSON Map In Body",
+    "description":"Request with JSON object (map) body.",
+    "operationId":"_examples/advanced-generic-openapi31.jsonMapBody",
+    "parameters":[
+     {
+      "name":"in_query","in":"query","description":"Simple scalar value in query.",
+      "schema":{"description":"Simple scalar value in query.","type":"integer"}
+     },
+     {
+      "name":"X-Header","in":"header","description":"Simple scalar value in header.",
+      "schema":{"description":"Simple scalar value in header.","type":"string"}
+     }
+    ],
+    "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonMapReq"}}}},
+    "responses":{
+     "200":{
+      "description":"OK",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonOutputType2"}}}
+     }
+    },
+    "x-forbid-unknown-query":true
+   }
+  },
+  "/json-param/{in-path}":{
+   "get":{
+    "tags":["Request"],"summary":"Request With JSON Query Parameter",
+    "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
+    "operationId":"_examples/advanced-generic-openapi31.jsonParam",
+    "parameters":[
+     {
+      "name":"in_query","in":"query","description":"Simple scalar value in query.",
+      "schema":{"description":"Simple scalar value in query.","type":"integer"}
+     },
+     {
+      "name":"identity","in":"query","description":"JSON value in query",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryAdvancedJSONPayload"}}}
+     },
+     {
+      "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
+      "schema":{"description":"Simple scalar value in path","type":"string"}
+     },
+     {
+      "name":"in_cookie","in":"cookie","description":"UUID in cookie.",
+      "schema":{"$ref":"#/components/schemas/CookieUuidUUID","description":"UUID in cookie."}
+     },
+     {
+      "name":"X-Header","in":"header","description":"Simple scalar value in header.",
+      "schema":{"description":"Simple scalar value in header.","type":"string"}
+     }
+    ],
+    "responses":{
+     "200":{
+      "description":"OK",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputWithJSON"}}}
+     }
+    },
+    "x-forbid-unknown-cookie":true,"x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+   }
+  },
+  "/json-slice-body":{
+   "post":{
+    "tags":["Request"],"summary":"Request With JSON Array In Body",
+    "operationId":"_examples/advanced-generic-openapi31.jsonSliceBody",
+    "parameters":[
+     {
+      "name":"in_query","in":"query","description":"Simple scalar value in query.",
+      "schema":{"description":"Simple scalar value in query.","type":"integer"}
+     },
+     {
+      "name":"X-Header","in":"header","description":"Simple scalar value in header.",
+      "schema":{"description":"Simple scalar value in header.","type":"string"}
+     }
+    ],
+    "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonSliceReq"}}}},
+    "responses":{
+     "200":{
+      "description":"OK",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonOutput"}}}
+     }
+    },
+    "x-forbid-unknown-query":true
+   }
+  },
+  "/no-validation":{
+   "post":{
+    "tags":["Request","Response"],"summary":"No Validation","description":"Input/Output without validation.",
+    "operationId":"_examples/advanced-generic-openapi31.noValidation",
+    "parameters":[
+     {"name":"q","in":"query","schema":{"type":"boolean"}},
+     {"name":"X-Input","in":"header","schema":{"type":"integer"}}
+    ],
+    "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputPortType3"}}}},
+    "responses":{
+     "200":{
+      "description":"OK",
+      "headers":{
+       "X-Output":{"style":"simple","schema":{"type":"integer"}},
+       "X-Query":{"style":"simple","schema":{"type":"boolean"}}
+      },
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType3"}}}
+     }
+    },
+    "x-forbid-unknown-query":true
+   }
+  },
+  "/output-csv-writer":{
+   "get":{
+    "tags":["Response"],"summary":"Output With Stream Writer","description":"Output with stream writer.",
+    "operationId":"_examples/advanced-generic-openapi31.outputCSVWriter",
+    "parameters":[
+     {
+      "name":"If-None-Match","in":"header","description":"Content hash.",
+      "schema":{"description":"Content hash.","type":"string"}
+     }
+    ],
+    "responses":{
+     "200":{
+      "description":"OK",
+      "headers":{
+       "ETag":{
+        "style":"simple","description":"Content hash.","schema":{"description":"Content hash.","type":"string"}
+       },
+       "X-Header":{
+        "style":"simple","description":"Sample response header.",
+        "schema":{"description":"Sample response header.","type":"string"}
+       }
+      },
+      "content":{"text/csv":{"schema":{"type":"string"}}}
+     },
+     "304":{"description":"Not Modified"},
+     "500":{
+      "description":"Internal Server Error",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+     }
+    }
+   }
+  },
+  "/output-headers":{
+   "get":{
+    "tags":["Response"],"summary":"Output With Headers","description":"Output with headers.",
+    "operationId":"_examples/advanced-generic-openapi31.outputHeaders",
+    "parameters":[
+     {
+      "name":"X-foO","in":"header","description":"Reduced by 20 in response.","required":true,
+      "schema":{"description":"Reduced by 20 in response.","minimum":10,"type":"integer"}
+     }
+    ],
+    "responses":{
+     "200":{
+      "description":"OK",
+      "headers":{
+       "X-foO":{
+        "style":"simple","description":"Reduced by 20 in response.","required":true,
+        "schema":{"description":"Reduced by 20 in response.","minimum":10,"type":"integer"}
+       },
+       "x-HeAdEr":{
+        "style":"simple","description":"Sample response header.",
+        "schema":{"description":"Sample response header.","type":"string"}
+       },
+       "x-omit-empty":{
+        "style":"simple","description":"Receives req value of X-Foo reduced by 30.",
+        "schema":{"description":"Receives req value of X-Foo reduced by 30.","type":"integer"}
+       }
+      },
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedHeaderOutput"}}}
+     },
+     "500":{
+      "description":"Internal Server Error",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+     }
+    }
+   },
+   "head":{
+    "tags":["Response"],"summary":"Output With Headers","description":"Output with headers.",
+    "operationId":"_examples/advanced-generic-openapi31.outputHeaders2",
+    "parameters":[
+     {
+      "name":"X-foO","in":"header","description":"Reduced by 20 in response.","required":true,
+      "schema":{"description":"Reduced by 20 in response.","minimum":10,"type":"integer"}
+     }
+    ],
+    "responses":{
+     "200":{
+      "description":"OK",
+      "headers":{
+       "X-foO":{
+        "style":"simple","description":"Reduced by 20 in response.","required":true,
+        "schema":{"description":"Reduced by 20 in response.","minimum":10,"type":"integer"}
+       },
+       "x-HeAdEr":{
+        "style":"simple","description":"Sample response header.",
+        "schema":{"description":"Sample response header.","type":"string"}
+       },
+       "x-omit-empty":{
+        "style":"simple","description":"Receives req value of X-Foo reduced by 30.",
+        "schema":{"description":"Receives req value of X-Foo reduced by 30.","type":"integer"}
+       }
+      }
+     },
+     "500":{"description":"Internal Server Error"}
+    }
+   }
+  },
+  "/query-object":{
+   "get":{
+    "tags":["Request"],"summary":"Request With Object As Query Parameter",
+    "operationId":"_examples/advanced-generic-openapi31.queryObject",
+    "parameters":[
+     {
+      "name":"in_query","in":"query","description":"Object value in query.",
+      "schema":{"additionalProperties":{"type":"number"},"description":"Object value in query.","type":["object","null"]},
+      "style":"deepObject","explode":true
+     },
+     {
+      "name":"json_filter","in":"query","description":"JSON object value in query.",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryAdvancedJsonFilter"}}}
+     },
+     {
+      "name":"deep_object_filter","in":"query","description":"Deep object value in query params.",
+      "schema":{
+       "$ref":"#/components/schemas/QueryAdvancedDeepObjectFilter",
+       "description":"Deep object value in query params."
+      },
+      "style":"deepObject","explode":true
+     }
+    ],
+    "responses":{
+     "200":{
+      "description":"OK",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputQueryObject"}}}
+     }
+    },
+    "x-forbid-unknown-query":true
+   }
+  },
+  "/req-resp-mapping":{
+   "post":{
+    "tags":["Request","Response"],"summary":"Request Response Mapping",
+    "description":"This use case has transport concerns fully decoupled with external req/resp mapping.",
+    "operationId":"reqRespMapping",
+    "parameters":[
+     {
+      "name":"X-Header","in":"header","description":"Simple scalar value with sample validation.","required":true,
+      "schema":{"description":"Simple scalar value with sample validation.","minLength":3,"type":"string"}
+     }
+    ],
+    "requestBody":{
+     "content":{"application/x-www-form-urlencoded":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedInputPort"}}}
+    },
+    "responses":{
+     "204":{
+      "description":"No Content",
+      "headers":{
+       "X-Value-1":{
+        "style":"simple","description":"Simple scalar value with sample validation.","required":true,
+        "schema":{"description":"Simple scalar value with sample validation.","minLength":3,"type":"string"}
+       },
+       "X-Value-2":{
+        "style":"simple","description":"Simple scalar value with sample validation.","required":true,
+        "schema":{"description":"Simple scalar value with sample validation.","minimum":3,"type":"integer"}
+       }
+      }
+     }
+    }
+   }
+  },
+  "/root-with-session":{
+   "get":{
+    "tags":["Other"],"summary":"Dummy","operationId":"_examples/advanced-generic-openapi31.dummy",
+    "responses":{
+     "204":{"description":"No Content"},
+     "401":{
+      "description":"Unauthorized",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/RestErrResponse"}}}
+     }
+    },
+    "security":[{"User":[]}]
+   }
+  },
+  "/text-req-body-ptr/{path}":{
+   "post":{
+    "tags":["Request"],"summary":"Request With Text Body (ptr input)",
+    "description":"This usecase allows direct access to original `*http.Request` while keeping automated decoding of parameters.",
+    "operationId":"_examples/advanced-generic-openapi31.textReqBodyPtr",
+    "parameters":[
+     {"name":"query","in":"query","schema":{"type":"integer"}},
+     {"name":"path","in":"path","required":true,"schema":{"type":"string"}}
+    ],
+    "requestBody":{"content":{"text/csv":{"schema":{"type":"string"}}}},
+    "responses":{
+     "200":{
+      "description":"OK",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputType3"}}}
+     }
+    },
+    "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+   }
+  },
+  "/text-req-body/{path}":{
+   "post":{
+    "tags":["Request"],"summary":"Request With Text Body",
+    "description":"This usecase allows direct access to original `*http.Request` while keeping automated decoding of parameters.",
+    "operationId":"_examples/advanced-generic-openapi31.textReqBody",
+    "parameters":[
+     {"name":"query","in":"query","schema":{"type":"integer"}},
+     {"name":"path","in":"path","required":true,"schema":{"type":"string"}}
+    ],
+    "requestBody":{"content":{"text/csv":{"schema":{"type":"string"}}}},
+    "responses":{
+     "200":{
+      "description":"OK",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputType2"}}}
+     }
+    },
+    "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+   }
+  },
+  "/validation":{
+   "post":{
+    "tags":["Request","Response","Validation"],"summary":"Validation",
+    "description":"Input/Output with validation. Custom annotation.",
+    "operationId":"_examples/advanced-generic-openapi31.validation",
+    "parameters":[
+     {
+      "name":"q","in":"query",
+      "description":"This parameter will bypass explicit validation as it does not have constraints.",
+      "schema":{
+       "description":"This parameter will bypass explicit validation as it does not have constraints.",
+       "type":"boolean"
+      }
+     },
+     {
+      "name":"X-Input","in":"header","description":"Request minimum: 10, response maximum: 20.",
+      "schema":{"description":"Request minimum: 10, response maximum: 20.","minimum":10,"type":"integer"}
+     }
+    ],
+    "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedInputPortType2"}}}},
+    "responses":{
+     "200":{
+      "description":"OK",
+      "headers":{
+       "X-Output":{"style":"simple","schema":{"maximum":20,"type":"integer"}},
+       "X-Query":{
+        "style":"simple","description":"This header bypasses validation as it does not have constraints.",
+        "schema":{"description":"This header bypasses validation as it does not have constraints.","type":"boolean"}
+       }
+      },
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedOutputPortType2"}}}
+     }
+    },
+    "x-forbid-unknown-query":true
+   }
   }
+ },
+ "components":{
+  "schemas":{
+   "AdvancedAnotherErr":{"properties":{"foo":{"type":"integer"}},"type":"object"},
+   "AdvancedCustomErr":{"properties":{"details":{"additionalProperties":{},"type":"object"},"msg":{"type":"string"}},"type":"object"},
+   "AdvancedDeepObjectFilter":{
+    "properties":{"bar":{"minLength":3,"type":"string"},"baz":{"minLength":3,"type":["null","string"]}},
+    "type":"object"
+   },
+   "AdvancedGzipPassThroughStruct":{
+    "properties":{"id":{"type":"integer"},"text":{"items":{"type":"string"},"type":["array","null"]}},
+    "type":"object"
+   },
+   "AdvancedHeaderOutput":{"properties":{"inBody":{"deprecated":true,"type":"string"}},"type":"object"},
+   "AdvancedInfo":{
+    "properties":{
+     "filename":{"type":"string"},"header":{"$ref":"#/components/schemas/TextprotoMIMEHeader"},
+     "inQuery":{"type":"integer"},"peek1":{"type":"string"},"peek2":{"type":"string"},"simple":{"type":"string"},
+     "size":{"type":"integer"}
+    },
+    "type":"object"
+   },
+   "AdvancedInfoType2":{
+    "properties":{
+     "filenames":{"items":{"type":"string"},"type":["array","null"]},
+     "headers":{"items":{"$ref":"#/components/schemas/TextprotoMIMEHeader"},"type":["array","null"]},
+     "inQuery":{"type":"integer"},"peeks1":{"items":{"type":"string"},"type":["array","null"]},
+     "peeks2":{"items":{"type":"string"},"type":["array","null"]},"simple":{"type":"string"},
+     "sizes":{"items":{"type":"integer"},"type":["array","null"]}
+    },
+    "type":"object"
+   },
+   "AdvancedInputPortType2":{
+    "additionalProperties":false,
+    "properties":{
+     "data":{
+      "additionalProperties":false,
+      "properties":{"value":{"description":"Request minLength: 3, response maxLength: 7","minLength":3,"type":"string"}},
+      "type":"object"
+     }
+    },
+    "required":["data"],"type":"object"
+   },
+   "AdvancedInputPortType3":{
+    "additionalProperties":false,
+    "properties":{"data":{"additionalProperties":false,"properties":{"value":{"type":"string"}},"type":"object"}},
+    "type":"object"
+   },
+   "AdvancedInputWithJSONType2":{
+    "additionalProperties":false,
+    "properties":{
+     "id":{"type":"integer"},"name":{"type":"string"},
+     "namedStruct":{"$ref":"#/components/schemas/AdvancedJSONPayloadType2","deprecated":true}
+    },
+    "type":"object"
+   },
+   "AdvancedInputWithJSONType3":{
+    "additionalProperties":false,
+    "properties":{
+     "id":{"type":"integer"},"name":{"type":"string"},
+     "namedStruct":{"$ref":"#/components/schemas/AdvancedJSONPayloadType3","deprecated":true}
+    },
+    "type":"object"
+   },
+   "AdvancedInputWithJSONType4":{
+    "additionalProperties":false,
+    "properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}},"type":"object"
+   },
+   "AdvancedJSONMapPayload":{"additionalProperties":{"type":"number"},"type":"object"},
+   "AdvancedJSONPayloadType2":{"additionalProperties":false,"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
+   "AdvancedJSONPayloadType3":{"additionalProperties":false,"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
+   "AdvancedJSONSlicePayload":{"items":{"type":"integer"},"type":["array","null"]},
+   "AdvancedJsonFilter":{"properties":{"foo":{"maxLength":5,"type":"string"}},"type":"object"},
+   "AdvancedJsonMapReq":{"additionalProperties":{"type":"number"},"type":"object"},
+   "AdvancedJsonOutput":{
+    "properties":{
+     "data":{"$ref":"#/components/schemas/AdvancedJSONSlicePayload"},"inHeader":{"type":"string"},
+     "inQuery":{"type":"integer"}
+    },
+    "type":"object"
+   },
+   "AdvancedJsonOutputType2":{
+    "properties":{
+     "data":{"$ref":"#/components/schemas/AdvancedJSONMapPayload"},"inHeader":{"type":"string"},
+     "inQuery":{"type":"integer"}
+    },
+    "type":"object"
+   },
+   "AdvancedJsonSliceReq":{"items":{"type":"integer"},"type":"array"},
+   "AdvancedOkResp":{"properties":{"status":{"type":"string"}},"type":"object"},
+   "AdvancedOutput":{"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
+   "AdvancedOutputPortType2":{
+    "properties":{"data":{"properties":{"value":{"maxLength":7,"type":"string"}},"type":"object"}},
+    "required":["data"],"type":"object"
+   },
+   "AdvancedOutputPortType3":{"properties":{"data":{"properties":{"value":{"type":"string"}},"type":"object"}},"type":"object"},
+   "AdvancedOutputQueryObject":{
+    "properties":{
+     "deepObjectFilter":{"$ref":"#/components/schemas/AdvancedDeepObjectFilter"},
+     "inQuery":{"additionalProperties":{"type":"number"},"type":["object","null"]},
+     "jsonFilter":{"$ref":"#/components/schemas/AdvancedJsonFilter"}
+    },
+    "type":"object"
+   },
+   "AdvancedOutputType2":{"properties":{"path":{"type":"string"},"query":{"type":"integer"},"text":{"type":"string"}},"type":"object"},
+   "AdvancedOutputType3":{"properties":{"path":{"type":"string"},"query":{"type":"integer"},"text":{"type":"string"}},"type":"object"},
+   "AdvancedOutputWithJSON":{
+    "properties":{
+     "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},"inQuery":{"type":"integer"},
+     "name":{"type":"string"}
+    },
+    "type":"object"
+   },
+   "AdvancedOutputWithJSONType2":{
+    "properties":{
+     "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},
+     "inQuery":{"deprecated":true,"format":"date","type":"string"},"name":{"type":"string"}
+    },
+    "type":"object"
+   },
+   "AdvancedOutputWithJSONType3":{
+    "properties":{
+     "id":{"type":"integer"},"inHeader":{"type":"string"},"inPath":{"type":"string"},
+     "inQuery":{"deprecated":true,"format":"date","type":"string"},"name":{"type":"string"}
+    },
+    "type":"object"
+   },
+   "AdvancedOutputWithJSONType4":{
+    "properties":{
+     "id":{"minimum":100,"type":"integer"},"inHeader":{"minLength":3,"type":"string"},
+     "inPath":{"minLength":3,"type":"string"},"inQuery":{"minimum":3,"type":"integer"},
+     "name":{"minLength":3,"type":"string"}
+    },
+    "type":"object"
+   },
+   "CookieUuidUUID":{"examples":["248df4b7-aa70-47b8-a036-33ac447e668d"],"format":"uuid","type":"string"},
+   "FormDataAdvancedForm":{"additionalProperties":false,"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
+   "FormDataAdvancedInputPort":{
+    "additionalProperties":false,
+    "properties":{"val2":{"description":"Simple scalar value with sample validation.","minimum":3,"type":"integer"}},
+    "required":["val2"],"type":"object"
+   },
+   "FormDataAdvancedUpload":{
+    "additionalProperties":false,
+    "properties":{
+     "simple":{"description":"Simple scalar value in body.","type":"string"},
+     "upload1":{
+      "$ref":"#/components/schemas/FormDataMultipartFileHeader",
+      "description":"Upload with *multipart.FileHeader."
+     },
+     "upload2":{"$ref":"#/components/schemas/FormDataMultipartFile","description":"Upload with multipart.File."}
+    },
+    "type":"object"
+   },
+   "FormDataAdvancedUploadType2":{
+    "additionalProperties":false,
+    "properties":{
+     "simple":{"description":"Simple scalar value in body.","type":"string"},
+     "uploads1":{
+      "description":"Uploads with *multipart.FileHeader.",
+      "items":{"$ref":"#/components/schemas/FormDataMultipartFileHeader"},"type":["array","null"]
+     },
+     "uploads2":{
+      "description":"Uploads with multipart.File.","items":{"$ref":"#/components/schemas/FormDataMultipartFile"},
+      "type":["array","null"]
+     }
+    },
+    "type":"object"
+   },
+   "FormDataMultipartFile":{"format":"binary","type":["null","string"]},
+   "FormDataMultipartFileHeader":{"format":"binary","type":["null","string"]},
+   "QueryAdvancedDeepObjectFilter":{
+    "additionalProperties":false,
+    "properties":{"bar":{"minLength":3,"type":"string"},"baz":{"minLength":3,"type":["null","string"]}},
+    "type":"object"
+   },
+   "QueryAdvancedJSONPayload":{"additionalProperties":false,"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
+   "QueryAdvancedJsonFilter":{"additionalProperties":false,"properties":{"foo":{"maxLength":5,"type":"string"}},"type":"object"},
+   "RestErrResponse":{
+    "properties":{
+     "code":{"description":"Application-specific error code.","type":"integer"},
+     "context":{"additionalProperties":{},"description":"Application context.","type":"object"},
+     "error":{"description":"Error message.","type":"string"},
+     "status":{"description":"Status text.","type":"string"}
+    },
+    "type":"object"
+   },
+   "TextprotoMIMEHeader":{"additionalProperties":{"items":{"type":"string"},"type":"array"},"type":"object"}
+  },
+  "securitySchemes":{"User":{"description":"Session cookie.","type":"apiKey","name":"sessid","in":"cookie"}}
+ }
 }

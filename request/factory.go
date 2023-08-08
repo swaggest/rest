@@ -92,7 +92,7 @@ func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(r *http.Re
 // MakeDecoder creates request.RequestDecoder for a http method and request structure.
 //
 // Input is checked for `json`, `file` tags only for methods with body semantics (POST, PUT, PATCH) or
-// if input implements openapi3.RequestBodyEnforcer.
+// if input implements openapi.RequestBodyEnforcer.
 //
 // CustomMapping can be nil, otherwise it is used instead of field tags to match decoded fields with struct.
 func (df *DecoderFactory) MakeDecoder(

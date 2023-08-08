@@ -31,7 +31,7 @@ to build REST services.
 * Modular flexible structure.
 * HTTP [request mapping](#request-decoder) into Go value based on field tags.
 * Decoupled business logic with Clean Architecture use cases.
-* Automatic type-safe OpenAPI 3 documentation with [`github.com/swaggest/openapi-go`](https://github.com/swaggest/openapi-go).
+* Automatic type-safe OpenAPI 3.0/3.1 documentation with [`github.com/swaggest/openapi-go`](https://github.com/swaggest/openapi-go).
 * Single source of truth for the documentation and endpoint interface.
 * Automatic request/response JSON schema validation with [`github.com/santhosh-tekuri/jsonschema`](https://github.com/santhosh-tekuri/jsonschema).
 * Dynamic gzip compression and fast pass through mode.
@@ -200,29 +200,6 @@ u := usecase.NewInteractor(func(ctx context.Context, input helloInput, output *h
 })
 ```
 
-For modularity particular use case interactor instance can be assembled by embedding relevant traits in a struct,
-for example you can skip adding `usecase.WithInput` if your use case does not imply any input.
-
-```go
-// Create use case interactor.
-u := struct {
-    usecase.Info
-    usecase.Interactor
-    usecase.WithInput
-    usecase.WithOutput
-}{}
-
-// Describe use case interactor.
-u.SetTitle("Greeter")
-u.SetDescription("Greeter greets you.")
-u.Input = new(helloInput)
-u.Output = new(helloOutput)
-u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
-    // Do something about input to prepare output.
-    return nil
-})
-```
-
 ### Initializing Web Service
 
 [Web Service](https://pkg.go.dev/github.com/swaggest/rest/web#DefaultService) is an instrumented facade in front of 
@@ -230,12 +207,12 @@ router, it simplifies configuration and provides more compact API to add use cas
 
 ```go
 // Service initializes router with required middlewares.
-service := web.DefaultService()
+service := web.NewService(openapi31.NewReflector())
 
 // It allows OpenAPI configuration.
-service.OpenAPI.Info.Title = "Albums API"
-service.OpenAPI.Info.WithDescription("This service provides API to manage albums.")
-service.OpenAPI.Info.Version = "v1.0.0"
+service.OpenAPISchema().SetTitle("Albums API")
+service.OpenAPISchema().SetDescription("This service provides API to manage albums.")
+service.OpenAPISchema().SetVersion("v1.0.0")
 
 // Additional middlewares can be added.
 service.Use(
@@ -258,75 +235,10 @@ if err := http.ListenAndServe("localhost:8080", service); err != nil {
 Usually, `web.Service` API is sufficient, but if it is not, router can be configured manually, please check 
 the documentation below.
 
-### Adding use case to router
-
-```go
-// Add use case handler to router.
-r.Method(http.MethodGet, "/hello/{name}", nethttp.NewHandler(u))
-```
-
-## API Schema Collector
-
-OpenAPI schema should be initialized with general information about REST API.
-
-It uses [type-safe mapping](https://github.com/swaggest/openapi-go) for the configuration, 
-so any IDE will help with available fields. 
-
-```go
-// Init API documentation schema.
-apiSchema := &openapi.Collector{}
-apiSchema.Reflector().SpecEns().Info.Title = "Basic Example"
-apiSchema.Reflector().SpecEns().Info.WithDescription("This app showcases a trivial REST API.")
-apiSchema.Reflector().SpecEns().Info.Version = "v1.2.3"
-```
-
-## Router Setup
-
-REST router is based on [`github.com/go-chi/chi`](https://github.com/go-chi/chi), wrapper allows unwrapping instrumented
-handler in middleware.
-
-These middlewares are required:
-* `nethttp.OpenAPIMiddleware(apiSchema)`, 
-* `request.DecoderMiddleware(decoderFactory)`,
-* `response.EncoderMiddleware`.
-
-Optionally you can add more middlewares with some performance impact:
-* `request.ValidatorMiddleware(validatorFactory)` (request validation, recommended)
-* `response.ValidatorMiddleware(validatorFactory)`
-* `gzip.Middleware`
-
-You can also add any other 3rd party middlewares compatible with `net/http` at your discretion.
-
-```go
-// Setup request decoder and validator.
-validatorFactory := jsonschema.NewFactory(apiSchema, apiSchema)
-decoderFactory := request.NewDecoderFactory()
-decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
-
-// Create router.
-r := chirouter.NewWrapper(chi.NewRouter())
-
-// Setup middlewares.
-r.Use(
-    middleware.Recoverer,                          // Panic recovery.
-    nethttp.OpenAPIMiddleware(apiSchema),          // Documentation collector.
-    request.DecoderMiddleware(decoderFactory),     // Request decoder setup.
-    request.ValidatorMiddleware(validatorFactory), // Request validator setup.
-    response.EncoderMiddleware,                    // Response encoder setup.
-    gzip.Middleware,                               // Response compression with support for direct gzip pass through.
-)
-```
-
-Register Swagger UI to serve documentation at `/docs`.
-
-```go
-// Swagger UI endpoint at /docs.
-r.Method(http.MethodGet, "/docs/openapi.json", apiSchema)
-r.Mount("/docs", v3cdn.NewHandler(apiSchema.Reflector().Spec.Info.Title,
-    "/docs/openapi.json", "/docs"))
-```
 
 ## Security Setup
+
+Example with HTTP Basic Auth.
 
 ```go
 // Prepare middleware with suitable security schema.
@@ -340,10 +252,44 @@ adminSecuritySchema := nethttp.HTTPBasicSecurityMiddleware(apiSchema, "Admin", "
 // Endpoints with admin access.
 r.Route("/admin", func(r chi.Router) {
     r.Group(func(r chi.Router) {
-        r.Wrap(adminAuth, adminSecuritySchema) // Add both middlewares to routing group to enforce and document security.
+        r.Use(adminAuth, adminSecuritySchema) // Add both middlewares to routing group to enforce and document security.
         r.Method(http.MethodPut, "/hello/{name}", nethttp.NewHandler(u))
     })
 })
+```
+
+Example with cookie.
+
+```go
+// Security middlewares.
+//  - sessMW is the actual request-level processor,
+//  - sessDoc is a handler-level wrapper to expose docs.
+sessMW := func(handler http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        if c, err := r.Cookie("sessid"); err == nil {
+            r = r.WithContext(context.WithValue(r.Context(), "sessionID", c.Value))
+        }
+
+        handler.ServeHTTP(w, r)
+    })
+}
+
+sessDoc := nethttp.APIKeySecurityMiddleware(s.OpenAPICollector, "User",
+    "sessid", oapi.InCookie, "Session cookie.")
+
+// Security schema is configured for a single top-level route.
+s.With(sessMW, sessDoc).Method(http.MethodGet, "/root-with-session", nethttp.NewHandler(dummy()))
+
+// Security schema is configured on a sub-router.
+s.Route("/deeper-with-session", func(r chi.Router) {
+    r.Group(func(r chi.Router) {
+        r.Use(sessMW, sessDoc)
+
+        r.Method(http.MethodGet, "/one", nethttp.NewHandler(dummy()))
+        r.Method(http.MethodGet, "/two", nethttp.NewHandler(dummy()))
+    })
+})
+
 ```
 
 See [example](./_examples/task-api/internal/infra/nethttp/router.go).
@@ -372,20 +318,21 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/swaggest/openapi-go/openapi31"
 	"github.com/swaggest/rest/response/gzip"
 	"github.com/swaggest/rest/web"
-	swgui "github.com/swaggest/swgui/v4emb"
+	swgui "github.com/swaggest/swgui/v5emb"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 )
 
 func main() {
-	s := web.DefaultService()
+	s := web.NewService(openapi31.NewReflector())
 
 	// Init API documentation schema.
-	s.OpenAPI.Info.Title = "Basic Example"
-	s.OpenAPI.Info.WithDescription("This app showcases a trivial REST API.")
-	s.OpenAPI.Info.Version = "v1.2.3"
+	s.OpenAPISchema().SetTitle("Basic Example")
+	s.OpenAPISchema().SetDescription("This app showcases a trivial REST API.")
+	s.OpenAPISchema().SetVersion("v1.2.3")
 
 	// Setup middlewares.
 	s.Wrap(
@@ -443,7 +390,7 @@ func main() {
 
 	// Start server.
 	log.Println("http://localhost:8011/docs")
-	if err := http.ListenAndServe(":8011", s); err != nil {
+	if err := http.ListenAndServe("localhost:8011", s); err != nil {
 		log.Fatal(err)
 	}
 }
@@ -484,3 +431,7 @@ Before version `1.0.0`, breaking changes are tagged with `MINOR` bump, features 
 After version `1.0.0`, breaking changes are tagged with `MAJOR` bump.
 
 Breaking changes are described in [UPGRADE.md](./UPGRADE.md).
+
+## Advanced Usage
+
+[Advanced Usage](./ADVANCED.md)

@@ -2,7 +2,6 @@ package web_test
 
 import (
 	"context"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/assertjson"
+	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/web"
 	"github.com/swaggest/usecase"
@@ -33,18 +33,15 @@ func albumByID() usecase.Interactor {
 func TestDefaultService(t *testing.T) {
 	var l []string
 
-	service := web.DefaultService(
-		func(s *web.Service, initialized bool) {
-			l = append(l, fmt.Sprintf("one:%v", initialized))
-		},
-		func(s *web.Service, initialized bool) {
-			l = append(l, fmt.Sprintf("two:%v", initialized))
-		},
+	service := web.NewService(
+		openapi3.NewReflector(),
+		func(s *web.Service) { l = append(l, "one") },
+		func(s *web.Service) { l = append(l, "two") },
 	)
 
-	service.OpenAPI.Info.Title = "Albums API"
-	service.OpenAPI.Info.WithDescription("This service provides API to manage albums.")
-	service.OpenAPI.Info.Version = "v1.0.0"
+	service.OpenAPISchema().SetTitle("Albums API")
+	service.OpenAPISchema().SetDescription("This service provides API to manage albums.")
+	service.OpenAPISchema().SetVersion("v1.0.0")
 
 	service.Delete("/albums/{id}", albumByID())
 	service.Head("/albums/{id}", albumByID())
@@ -65,11 +62,11 @@ func TestDefaultService(t *testing.T) {
 	service.ServeHTTP(rw, r)
 
 	assert.Equal(t, http.StatusOK, rw.Code)
-	assertjson.EqualMarshal(t, rw.Body.Bytes(), service.OpenAPI)
+	assertjson.EqualMarshal(t, rw.Body.Bytes(), service.OpenAPISchema())
 
 	expected, err := ioutil.ReadFile("_testdata/openapi.json")
 	require.NoError(t, err)
-	assertjson.EqualMarshal(t, expected, service.OpenAPI)
+	assertjson.EqualMarshal(t, expected, service.OpenAPISchema())
 
-	assert.Equal(t, []string{"one:false", "two:false", "one:true", "two:true"}, l)
+	assert.Equal(t, []string{"one", "two"}, l)
 }

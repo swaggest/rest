@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/assertjson"
-	"github.com/swaggest/openapi-go/openapi3"
+	oapi "github.com/swaggest/openapi-go"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/openapi"
 	"github.com/swaggest/usecase"
@@ -42,8 +42,8 @@ func TestOpenAPIMiddleware(t *testing.T) {
 		nethttp.ResponseHeaderMapping(new(struct {
 			Header int `header:"X-Hd"`
 		})),
-		nethttp.AnnotateOperation(func(op *openapi3.Operation) error {
-			op.WithDescription("Hello!")
+		nethttp.AnnotateOpenAPIOperation(func(oc oapi.OperationContext) error {
+			oc.SetDescription("Hello!")
 
 			return nil
 		}),

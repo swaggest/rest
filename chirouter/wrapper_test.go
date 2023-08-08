@@ -14,6 +14,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/assertjson"
+	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/chirouter"
 	"github.com/swaggest/rest/nethttp"
@@ -262,10 +263,10 @@ func TestWrapper_Use_StripSlashes(t *testing.T) {
 }
 
 func TestWrapper_Mount(t *testing.T) {
-	service := web.DefaultService()
+	service := web.NewService(openapi3.NewReflector())
 	service.OpenAPISchema().SetTitle("Security and Mount Example")
 
-	apiV1 := web.DefaultService()
+	apiV1 := web.NewService(openapi3.NewReflector())
 
 	apiV1.Wrap(
 		middleware.BasicAuth("Admin Access", map[string]string{"admin": "admin"}),

@@ -5,26 +5,17 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/swaggest/assertjson"
+	oapi "github.com/swaggest/openapi-go"
 	"github.com/swaggest/openapi-go/openapi3"
-	"github.com/swaggest/rest/chirouter"
 	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/openapi"
+	"github.com/swaggest/rest/web"
 	"github.com/swaggest/usecase"
 )
 
 func ExampleSecurityMiddleware() {
 	// Create router.
-	r := chirouter.NewWrapper(chi.NewRouter())
-
-	// Init API documentation schema.
-	apiSchema := &openapi.Collector{}
-
-	// Setup middlewares (non-documentation middlewares omitted for brevity).
-	r.Wrap(
-		nethttp.OpenAPIMiddleware(apiSchema), // Documentation collector.
-	)
+	s := web.NewService(openapi3.NewReflector())
 
 	// Configure an actual security middleware.
 	serviceTokenAuth := func(h http.Handler) http.Handler {
@@ -40,12 +31,8 @@ func ExampleSecurityMiddleware() {
 	}
 
 	// Configure documentation middleware to describe actual security middleware.
-	serviceTokenDoc := nethttp.SecurityMiddleware(apiSchema, "serviceToken", openapi3.SecurityScheme{
-		APIKeySecurityScheme: &openapi3.APIKeySecurityScheme{
-			Name: "Authorization",
-			In:   openapi3.APIKeySecuritySchemeInHeader,
-		},
-	})
+	serviceTokenDoc := nethttp.APIKeySecurityMiddleware(s.OpenAPICollector,
+		"serviceToken", "Authorization", oapi.InHeader, "Service token.")
 
 	u := usecase.NewIOI(nil, nil, func(ctx context.Context, input, output interface{}) error {
 		// Do something.
@@ -53,11 +40,11 @@ func ExampleSecurityMiddleware() {
 	})
 
 	// Add use case handler to router with security middleware.
-	r.
+	s.
 		With(serviceTokenAuth, serviceTokenDoc). // Apply a pair of middlewares: actual security and documentation.
 		Method(http.MethodGet, "/foo", nethttp.NewHandler(u))
 
-	schema, _ := assertjson.MarshalIndentCompact(apiSchema.SpecSchema(), "", " ", 120)
+	schema, _ := assertjson.MarshalIndentCompact(s.OpenAPISchema(), "", " ", 120)
 	fmt.Println(string(schema))
 
 	// Output:
@@ -89,7 +76,7 @@ func ExampleSecurityMiddleware() {
 	//     }
 	//    }
 	//   },
-	//   "securitySchemes":{"serviceToken":{"type":"apiKey","name":"Authorization","in":"header"}}
+	//   "securitySchemes":{"serviceToken":{"type":"apiKey","name":"Authorization","in":"header","description":"Service token."}}
 	//  }
 	// }
 }

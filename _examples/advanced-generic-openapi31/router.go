@@ -5,7 +5,6 @@ package main
 import (
 	"context"
 	"errors"
-	"github.com/swaggest/rest/openapi"
 	"log"
 	"net/http"
 	"reflect"
@@ -27,10 +26,7 @@ import (
 )
 
 func NewRouter() http.Handler {
-	openapiRefl := openapi31.NewReflector()
-	s := web.DefaultService(func(s *web.Service, initialized bool) {
-		s.OpenAPICollector = openapi.NewCollector(openapiRefl)
-	})
+	s := web.NewService(openapi31.NewReflector())
 
 	s.OpenAPISchema().SetTitle("Advanced Example")
 	s.OpenAPISchema().SetDescription("This app showcases a variety of features.")
@@ -40,7 +36,7 @@ func NewRouter() http.Handler {
 
 	jsr.DefaultOptions = append(jsr.DefaultOptions, jsonschema.InterceptDefName(
 		func(t reflect.Type, defaultDefName string) string {
-			return strings.ReplaceAll(defaultDefName, "Generic", "")
+			return strings.ReplaceAll(defaultDefName, "GenericOpenapi31", "")
 		},
 	))
 
@@ -219,9 +215,8 @@ func NewRouter() http.Handler {
 		})
 	}
 
-	sessDoc := nethttp.AuthMiddleware(s.OpenAPICollector, "User")
-	s.OpenAPICollector.SpecSchema().
-		SetAPIKeySecurity("User", "sessid", oapi.InCookie, "Session cookie.")
+	sessDoc := nethttp.APIKeySecurityMiddleware(s.OpenAPICollector, "User",
+		"sessid", oapi.InCookie, "Session cookie.")
 
 	// Security schema is configured for a single top-level route.
 	s.With(sessMW, sessDoc).Method(http.MethodGet, "/root-with-session", nethttp.NewHandler(dummy()))

@@ -26,7 +26,7 @@ import (
 )
 
 func NewRouter() http.Handler {
-	s := web.DefaultService()
+	s := web.NewService(openapi3.NewReflector())
 
 	s.OpenAPISchema().SetTitle("Advanced Example")
 	s.OpenAPISchema().SetDescription("This app showcases a variety of features.")
@@ -216,8 +216,7 @@ func NewRouter() http.Handler {
 	}
 
 	sessDoc := nethttp.AuthMiddleware(s.OpenAPICollector, "User")
-	s.OpenAPICollector.SpecSchema().
-		SetAPIKeySecurity("User", "sessid", oapi.InCookie, "Session cookie.")
+	s.OpenAPISchema().SetAPIKeySecurity("User", "sessid", oapi.InCookie, "Session cookie.")
 
 	// Security schema is configured for a single top-level route.
 	s.With(sessMW, sessDoc).Method(http.MethodGet, "/root-with-session", nethttp.NewHandler(dummy()))

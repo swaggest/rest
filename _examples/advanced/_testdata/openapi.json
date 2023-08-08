@@ -606,6 +606,6 @@
       },
       "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}}
     },
-    "securitySchemes":{"User":{"type":"apiKey","name":"sessid","in":"cookie"}}
+    "securitySchemes":{"User":{"type":"apiKey","name":"sessid","in":"cookie","description":"Session cookie."}}
   }
 }
