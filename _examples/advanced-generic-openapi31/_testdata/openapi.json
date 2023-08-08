@@ -305,7 +305,7 @@
      },
      {
       "name":"identity","in":"query","description":"JSON value in query",
-      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryAdvancedJSONPayload"}}}
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJSONPayload"}}}
      },
      {
       "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
@@ -313,7 +313,7 @@
      },
      {
       "name":"in_cookie","in":"cookie","description":"UUID in cookie.",
-      "schema":{"$ref":"#/components/schemas/CookieUuidUUID","description":"UUID in cookie."}
+      "schema":{"$ref":"#/components/schemas/UuidUUID","description":"UUID in cookie."}
      },
      {
       "name":"X-Header","in":"header","description":"Simple scalar value in header.",
@@ -485,13 +485,12 @@
      },
      {
       "name":"json_filter","in":"query","description":"JSON object value in query.",
-      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/QueryAdvancedJsonFilter"}}}
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonFilter"}}}
      },
      {
       "name":"deep_object_filter","in":"query","description":"Deep object value in query params.",
       "schema":{
-       "$ref":"#/components/schemas/QueryAdvancedDeepObjectFilter",
-       "description":"Deep object value in query params."
+       "$ref":"#/components/schemas/AdvancedDeepObjectFilter","description":"Deep object value in query params."
       },
       "style":"deepObject","explode":true
      }
@@ -692,6 +691,7 @@
     "properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}},"type":"object"
    },
    "AdvancedJSONMapPayload":{"additionalProperties":{"type":"number"},"type":"object"},
+   "AdvancedJSONPayload":{"additionalProperties":false,"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
    "AdvancedJSONPayloadType2":{"additionalProperties":false,"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
    "AdvancedJSONPayloadType3":{"additionalProperties":false,"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
    "AdvancedJSONSlicePayload":{"items":{"type":"integer"},"type":["array","null"]},
@@ -758,7 +758,6 @@
     },
     "type":"object"
    },
-   "CookieUuidUUID":{"examples":["248df4b7-aa70-47b8-a036-33ac447e668d"],"format":"uuid","type":"string"},
    "FormDataAdvancedForm":{"additionalProperties":false,"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
    "FormDataAdvancedInputPort":{
     "additionalProperties":false,
@@ -794,13 +793,6 @@
    },
    "FormDataMultipartFile":{"format":"binary","type":["null","string"]},
    "FormDataMultipartFileHeader":{"format":"binary","type":["null","string"]},
-   "QueryAdvancedDeepObjectFilter":{
-    "additionalProperties":false,
-    "properties":{"bar":{"minLength":3,"type":"string"},"baz":{"minLength":3,"type":["null","string"]}},
-    "type":"object"
-   },
-   "QueryAdvancedJSONPayload":{"additionalProperties":false,"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
-   "QueryAdvancedJsonFilter":{"additionalProperties":false,"properties":{"foo":{"maxLength":5,"type":"string"}},"type":"object"},
    "RestErrResponse":{
     "properties":{
      "code":{"description":"Application-specific error code.","type":"integer"},
@@ -810,7 +802,8 @@
     },
     "type":"object"
    },
-   "TextprotoMIMEHeader":{"additionalProperties":{"items":{"type":"string"},"type":"array"},"type":"object"}
+   "TextprotoMIMEHeader":{"additionalProperties":{"items":{"type":"string"},"type":"array"},"type":"object"},
+   "UuidUUID":{"examples":["248df4b7-aa70-47b8-a036-33ac447e668d"],"format":"uuid","type":"string"}
   },
   "securitySchemes":{"User":{"description":"Session cookie.","type":"apiKey","name":"sessid","in":"cookie"}}
  }
