@@ -39,7 +39,24 @@ func OpenAPIMiddleware(s *openapi.Collector) func(http.Handler) http.Handler {
 	}
 }
 
+// AuthMiddleware creates middleware to expose security scheme.
+func AuthMiddleware(
+	c *openapi.Collector,
+	name string,
+	options ...func(*MiddlewareConfig),
+) func(http.Handler) http.Handler {
+	cfg := MiddlewareConfig{}
+
+	for _, o := range options {
+		o(&cfg)
+	}
+
+	return securityMiddleware(c, name, cfg)
+}
+
 // SecurityMiddleware creates middleware to expose security scheme.
+//
+// Deprecated: use AuthMiddleware.
 func SecurityMiddleware(
 	c *openapi.Collector,
 	name string,
@@ -62,23 +79,26 @@ func SecurityMiddleware(
 	return securityMiddleware(c, name, cfg)
 }
 
-// HTTPBasicSecurityMiddleware creates middleware to expose Basic Security schema.
+// APIKeySecurityMiddleware creates middleware to expose API Key security schema.
+func APIKeySecurityMiddleware(
+	c *openapi.Collector,
+	name string, fieldName string, fieldIn oapi.In, description string,
+	options ...func(*MiddlewareConfig),
+) func(http.Handler) http.Handler {
+	c.SpecSchema().SetAPIKeySecurity(name, fieldName, fieldIn, description)
+
+	return AuthMiddleware(c, name, options...)
+}
+
+// HTTPBasicSecurityMiddleware creates middleware to expose HTTP Basic security schema.
 func HTTPBasicSecurityMiddleware(
 	c *openapi.Collector,
 	name, description string,
 	options ...func(*MiddlewareConfig),
 ) func(http.Handler) http.Handler {
-	hss := openapi3.HTTPSecurityScheme{}
+	c.SpecSchema().SetHTTPBasicSecurity(name, description)
 
-	hss.WithScheme("basic")
-
-	if description != "" {
-		hss.WithDescription(description)
-	}
-
-	return SecurityMiddleware(c, name, openapi3.SecurityScheme{
-		HTTPSecurityScheme: &hss,
-	}, options...)
+	return AuthMiddleware(c, name, options...)
 }
 
 // HTTPBearerSecurityMiddleware creates middleware to expose HTTP Bearer security schema.
@@ -87,21 +107,9 @@ func HTTPBearerSecurityMiddleware(
 	name, description, bearerFormat string,
 	options ...func(*MiddlewareConfig),
 ) func(http.Handler) http.Handler {
-	hss := openapi3.HTTPSecurityScheme{}
+	c.SpecSchema().SetHTTPBearerTokenSecurity(name, bearerFormat, description)
 
-	hss.WithScheme("bearer")
-
-	if bearerFormat != "" {
-		hss.WithBearerFormat(bearerFormat)
-	}
-
-	if description != "" {
-		hss.WithDescription(description)
-	}
-
-	return SecurityMiddleware(c, name, openapi3.SecurityScheme{
-		HTTPSecurityScheme: &hss,
-	}, options...)
+	return AuthMiddleware(c, name, options...)
 }
 
 // AnnotateOpenAPI applies OpenAPI annotation to relevant handlers.
@@ -160,9 +168,12 @@ func OpenAPIAnnotationsMiddleware(
 		var withRoute rest.HandlerWithRoute
 
 		if HandlerAs(next, &withRoute) {
+			method := withRoute.RouteMethod()
+			pattern := withRoute.RoutePattern()
+
 			s.AnnotateOperation(
-				withRoute.RouteMethod(),
-				withRoute.RoutePattern(),
+				method,
+				pattern,
 				annotations...,
 			)
 		}

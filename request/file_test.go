@@ -41,7 +41,7 @@ func TestDecoder_Decode_fileUploadOptional(t *testing.T) {
 		return nil
 	})
 
-	s := web.DefaultService()
+	s := web.NewService(openapi3.NewReflector())
 	s.Post("/", u)
 
 	b := bytes.NewBuffer(nil)

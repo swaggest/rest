@@ -169,6 +169,9 @@ func ExampleNewOpenAPICollector() {
 	//       parameters:
 	//       - in: path
 	//         name: path-item
+	//         required: true
+	//         schema:
+	//           type: string
 	//       responses:
 	//         "200":
 	//           content:

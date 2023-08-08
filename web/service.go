@@ -19,26 +19,17 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-// DefaultService initializes router and other basic components of web service.
-//
-// Provided functional options are invoked twice, before and after initialization.
-func DefaultService(options ...func(s *Service, initialized bool)) *Service {
+// NewService initializes router and other basic components of web service.
+func NewService(refl oapi.Reflector, options ...func(s *Service)) *Service {
 	s := Service{}
 
 	for _, option := range options {
-		option(&s, false)
-	}
-
-	if s.OpenAPI == nil {
-		s.OpenAPI = &openapi3.Spec{Openapi: "3.0.3"}
+		option(&s)
 	}
 
 	// Init API documentation schema.
 	if s.OpenAPICollector == nil {
-		r := openapi3.NewReflector()
-		r.Spec = s.OpenAPI
-
-		c := openapi.NewCollector(r)
+		c := openapi.NewCollector(refl)
 
 		c.DefaultSuccessResponseContentType = response.DefaultSuccessResponseContentType
 		c.DefaultErrorResponseContentType = response.DefaultErrorResponseContentType
@@ -74,11 +65,30 @@ func DefaultService(options ...func(s *Service, initialized bool)) *Service {
 		response.EncoderMiddleware,                    // Response encoder setup.
 	)
 
-	for _, option := range options {
-		option(&s, true)
+	return &s
+}
+
+// DefaultService initializes router and other basic components of web service.
+//
+// Provided functional options are invoked twice, before and after initialization.
+//
+// Deprecated: use NewService.
+func DefaultService(options ...func(s *Service, initialized bool)) *Service {
+	s := NewService(openapi3.NewReflector(), func(s *Service) {
+		for _, o := range options {
+			o(s, false)
+		}
+	})
+
+	if r3, ok := s.OpenAPIReflector().(*openapi3.Reflector); ok && s.OpenAPI == nil {
+		s.OpenAPI = r3.Spec
 	}
 
-	return &s
+	for _, o := range options {
+		o(s, true)
+	}
+
+	return s
 }
 
 // Service keeps instrumented router and documentation collector.
@@ -87,7 +97,7 @@ type Service struct {
 
 	PanicRecoveryMiddleware func(handler http.Handler) http.Handler // Default is middleware.Recoverer.
 
-	// Deprecated: use openapi.Collector.
+	// Deprecated: use OpenAPISchema().
 	OpenAPI *openapi3.Spec
 
 	OpenAPICollector *openapi.Collector
@@ -101,7 +111,7 @@ type Service struct {
 
 // OpenAPISchema returns OpenAPI schema.
 //
-// Returned value can be type asserted to *openapi3.Spec or marshaled.
+// Returned value can be type asserted to *openapi3.Spec, *openapi31.Spec or marshaled.
 func (s *Service) OpenAPISchema() oapi.SpecSchema {
 	return s.OpenAPICollector.SpecSchema()
 }
@@ -169,5 +179,5 @@ func (s *Service) Trace(pattern string, uc usecase.Interactor, options ...func(h
 func (s *Service) Docs(pattern string, swgui func(title, schemaURL, basePath string) http.Handler) {
 	pattern = strings.TrimRight(pattern, "/")
 	s.Method(http.MethodGet, pattern+"/openapi.json", s.OpenAPICollector)
-	s.Mount(pattern, swgui(s.OpenAPI.Info.Title, pattern+"/openapi.json", pattern))
+	s.Mount(pattern, swgui(s.OpenAPISchema().Title(), pattern+"/openapi.json", pattern))
 }

@@ -40,7 +40,7 @@ func TestRequestBodyContent(t *testing.T) {
 }
 
 func TestRequestBodyContent_webService(t *testing.T) {
-	s := web.DefaultService()
+	s := web.NewService(openapi3.NewReflector())
 
 	u := usecase.NewIOI(new(string), nil, func(ctx context.Context, input, output interface{}) error {
 		return nil

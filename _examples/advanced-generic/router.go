@@ -21,12 +21,12 @@ import (
 	"github.com/swaggest/rest/response"
 	"github.com/swaggest/rest/response/gzip"
 	"github.com/swaggest/rest/web"
-	swgui "github.com/swaggest/swgui/v4emb"
+	swgui "github.com/swaggest/swgui/v5emb"
 	"github.com/swaggest/usecase"
 )
 
 func NewRouter() http.Handler {
-	s := web.DefaultService()
+	s := web.NewService(openapi3.NewReflector())
 
 	s.OpenAPISchema().SetTitle("Advanced Example")
 	s.OpenAPISchema().SetDescription("This app showcases a variety of features.")
@@ -215,12 +215,8 @@ func NewRouter() http.Handler {
 		})
 	}
 
-	sessDoc := nethttp.SecurityMiddleware(s.OpenAPICollector, "User", openapi3.SecurityScheme{
-		APIKeySecurityScheme: &openapi3.APIKeySecurityScheme{
-			In:   "cookie",
-			Name: "sessid",
-		},
-	})
+	sessDoc := nethttp.AuthMiddleware(s.OpenAPICollector, "User")
+	s.OpenAPISchema().SetAPIKeySecurity("User", "sessid", oapi.InCookie, "Session cookie.")
 
 	// Security schema is configured for a single top-level route.
 	s.With(sessMW, sessDoc).Method(http.MethodGet, "/root-with-session", nethttp.NewHandler(dummy()))

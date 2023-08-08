@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest/response/gzip"
 	"github.com/swaggest/rest/web"
 	swgui "github.com/swaggest/swgui/v5emb"
@@ -16,7 +17,7 @@ import (
 )
 
 func main() {
-	s := web.DefaultService()
+	s := web.NewService(openapi3.NewReflector())
 
 	// Init API documentation schema.
 	s.OpenAPISchema().SetTitle("Basic Example")

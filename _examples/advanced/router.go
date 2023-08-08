@@ -22,7 +22,7 @@ func NewRouter() http.Handler {
 	response.DefaultErrorResponseContentType = "application/problem+json"
 	response.DefaultSuccessResponseContentType = "application/dummy+json"
 
-	s := web.DefaultService()
+	s := web.NewService(openapi3.NewReflector())
 
 	s.OpenAPISchema().SetTitle("Advanced Example")
 	s.OpenAPISchema().SetDescription("This app showcases a variety of features.")
@@ -162,12 +162,8 @@ func NewRouter() http.Handler {
 		})
 	}
 
-	sessDoc := nethttp.SecurityMiddleware(s.OpenAPICollector, "User", openapi3.SecurityScheme{
-		APIKeySecurityScheme: &openapi3.APIKeySecurityScheme{
-			In:   "cookie",
-			Name: "sessid",
-		},
-	})
+	sessDoc := nethttp.APIKeySecurityMiddleware(s.OpenAPICollector, "User",
+		"sessid", oapi.InCookie, "Session cookie.")
 
 	// Security schema is configured for a single top-level route.
 	s.With(sessMW, sessDoc).Method(http.MethodGet, "/root-with-session", nethttp.NewHandler(dummy()))

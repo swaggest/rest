@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/web"
 	"github.com/swaggest/usecase"
@@ -33,12 +34,12 @@ func postAlbums() usecase.Interactor {
 
 func ExampleDefaultService() {
 	// Service initializes router with required middlewares.
-	service := web.DefaultService()
+	service := web.NewService(openapi3.NewReflector())
 
 	// It allows OpenAPI configuration.
-	service.OpenAPI.Info.Title = "Albums API"
-	service.OpenAPI.Info.WithDescription("This service provides API to manage albums.")
-	service.OpenAPI.Info.Version = "v1.0.0"
+	service.OpenAPISchema().SetTitle("Albums API")
+	service.OpenAPISchema().SetDescription("This service provides API to manage albums.")
+	service.OpenAPISchema().SetVersion("v1.0.0")
 
 	// Additional middlewares can be added.
 	service.Use(

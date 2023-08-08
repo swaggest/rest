@@ -7,6 +7,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/swaggest/openapi-go"
+	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/_examples/task-api/internal/infra/schema"
 	"github.com/swaggest/rest/_examples/task-api/internal/infra/service"
@@ -18,7 +19,7 @@ import (
 
 // NewRouter creates HTTP router.
 func NewRouter(locator *service.Locator) http.Handler {
-	s := web.DefaultService()
+	s := web.NewService(openapi3.NewReflector())
 
 	schema.SetupOpenAPICollector(s.OpenAPICollector)
 

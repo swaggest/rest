@@ -2,10 +2,11 @@ package gorillamux
 
 import (
 	"net/http"
+	"reflect"
 
 	"github.com/gorilla/mux"
+	"github.com/swaggest/jsonschema-go"
 	oapi "github.com/swaggest/openapi-go"
-	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/openapi"
 )
@@ -110,19 +111,16 @@ func (dc *OpenAPICollector) collect(method, path string, preparer preparerFunc) 
 		}
 
 		if len(pathItems) > 0 {
-			if o3, ok := oc.(openapi3.OperationExposer); ok {
-				op := o3.Operation()
-
-				for _, p := range pathItems {
-					param := openapi3.ParameterOrRef{}
-					param.WithParameter(openapi3.Parameter{
-						Name: p,
-						In:   openapi3.ParameterInPath,
-					})
-
-					op.Parameters = append(op.Parameters, param)
-				}
+			req := jsonschema.Struct{}
+			for _, p := range pathItems {
+				req.Fields = append(req.Fields, jsonschema.Field{
+					Name:  "F" + p,
+					Tag:   reflect.StructTag(`path:"` + p + `"`),
+					Value: "",
+				})
 			}
+
+			oc.AddReqStructure(req)
 		}
 
 		oc.SetDescription("Information about this operation was obtained using only HTTP method and path pattern. " +

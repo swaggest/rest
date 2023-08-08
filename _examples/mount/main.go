@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/web"
 	swgui "github.com/swaggest/swgui/v5emb"
@@ -36,10 +37,10 @@ func sum() usecase.Interactor {
 }
 
 func main() {
-	service := web.DefaultService()
+	service := web.NewService(openapi3.NewReflector())
 	service.OpenAPISchema().SetTitle("Security and Mount Example")
 
-	apiV1 := web.DefaultService()
+	apiV1 := web.NewService(service.OpenAPIReflector())
 
 	apiV1.Wrap(
 		middleware.BasicAuth("Admin Access", map[string]string{"admin": "admin"}),
