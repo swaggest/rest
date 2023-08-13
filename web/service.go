@@ -128,7 +128,8 @@ func (s *Service) Delete(pattern string, uc usecase.Interactor, options ...func(
 
 // Get adds the route `pattern` that matches a GET http method to invoke use case interactor.
 func (s *Service) Get(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
-	s.Method(http.MethodGet, pattern, nethttp.NewHandler(uc, options...))
+	h := nethttp.NewHandler(uc, options...)
+	s.Method(http.MethodGet, pattern, h)
 }
 
 // Head adds the route `pattern` that matches a HEAD http method to invoke use case interactor.
