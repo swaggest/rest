@@ -45,9 +45,9 @@ func DecoderMiddleware(factory DecoderMaker) func(http.Handler) http.Handler {
 
 		input := useCaseWithInput.InputPort()
 		if input != nil {
-			setRequestDecoder.SetRequestDecoder(
-				factory.MakeDecoder(withRoute.RouteMethod(), useCaseWithInput.InputPort(), customMapping),
-			)
+			method := withRoute.RouteMethod()
+			dec := factory.MakeDecoder(method, input, customMapping)
+			setRequestDecoder.SetRequestDecoder(dec)
 		}
 
 		return handler

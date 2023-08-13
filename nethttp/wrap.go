@@ -18,10 +18,13 @@ func WrapHandler(h http.Handler, mw ...func(http.Handler) http.Handler) http.Han
 			panic("nil handler returned from middleware: " + runtime.FuncForPC(reflect.ValueOf(mw[i]).Pointer()).Name())
 		}
 
+		fp := reflect.ValueOf(mw[i]).Pointer()
+		mwName := runtime.FuncForPC(fp).Name()
+
 		h = &wrappedHandler{
 			Handler: w,
 			wrapped: h,
-			mwName:  runtime.FuncForPC(reflect.ValueOf(mw[i]).Pointer()).Name(),
+			mwName:  mwName,
 		}
 	}
 

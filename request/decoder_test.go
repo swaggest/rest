@@ -552,3 +552,16 @@ func TestDecoder_Decode_unknownParams(t *testing.T) {
 	assert.Equal(t, rest.ValidationErrors{"query:quux": []string{"unknown parameter with value 123"}}, err,
 		fmt.Sprintf("%#v", err))
 }
+
+func TestDecoderFactory_MakeDecoder_default_unexported(t *testing.T) {
+	type showImageInput struct {
+		Hash int `path:"hash"`
+		req  *http.Request
+	}
+
+	f := request.NewDecoderFactory()
+	f.ApplyDefaults = true
+
+	dec := f.MakeDecoder(http.MethodGet, showImageInput{}, nil)
+	assert.NotNil(t, dec)
+}
