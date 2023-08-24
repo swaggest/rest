@@ -2,8 +2,9 @@ github.com/bool64/dev v0.2.17/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8
 github.com/bool64/dev v0.2.24/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8ACg=
 github.com/bool64/dev v0.2.25/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8ACg=
 github.com/bool64/dev v0.2.27/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8ACg=
-github.com/bool64/dev v0.2.29 h1:x+syGyh+0eWtOzQ1ItvLzOGIWyNWnyjXpHIcpF2HvL4=
 github.com/bool64/dev v0.2.29/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8ACg=
+github.com/bool64/dev v0.2.31 h1:OS57EqYaYe2M/2bw9uhDCIFiZZwywKFS/4qMLN6JUmQ=
+github.com/bool64/dev v0.2.31/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8ACg=
 github.com/bool64/httpmock v0.1.13 h1:3QpRXQ5kwHLW8xnVT8+Ug7VS6RerhdEFV+RWYC61aVo=
 github.com/bool64/httpmock v0.1.13/go.mod h1:YMTLaypQ3o5DAx78eA/kDRSLec0f+42sLMDmHdmeY+E=
 github.com/bool64/shared v0.1.5 h1:fp3eUhBsrSjNCQPcSdQqZxxh9bBwrYiZ+zOKFkM0/2E=
@@ -76,8 +77,9 @@ github.com/swaggest/assertjson v1.9.0 h1:dKu0BfJkIxv/xe//mkCrK5yZbs79jL7OVf9Ija7
 github.com/swaggest/assertjson v1.9.0/go.mod h1:b+ZKX2VRiUjxfUIal0HDN85W0nHPAYUbYH5WkkSsFsU=
 github.com/swaggest/form/v5 v5.1.1 h1:ct6/rOQBGrqWUQ0FUv3vW5sHvTUb31AwTUWj947N6cY=
 github.com/swaggest/form/v5 v5.1.1/go.mod h1:X1hraaoONee20PMnGNLQpO32f9zbQ0Czfm7iZThuEKg=
-github.com/swaggest/jsonschema-go v0.3.57 h1:n6D/2K9557Yqn/NohXoszmjuN0Lp5n0DyHlVLRZXbOM=
 github.com/swaggest/jsonschema-go v0.3.57/go.mod h1:5WFFGBBte5JAWAV8gDpNRJ/tlQnb1AHDdf/ghgsVUik=
+github.com/swaggest/jsonschema-go v0.3.58 h1:OPixN4HW9H3FTh9BSomH2i0bdJi3V646TfSihzt9QBc=
+github.com/swaggest/jsonschema-go v0.3.58/go.mod h1:5WFFGBBte5JAWAV8gDpNRJ/tlQnb1AHDdf/ghgsVUik=
 github.com/swaggest/openapi-go v0.2.39 h1:GfICsAAFnQuyxfywsGyCbPqDKeMXxots4N/9j6+qSCk=
 github.com/swaggest/openapi-go v0.2.39/go.mod h1:g+AfRIkPCHdhqfW8zOD1Sk3PwLhxpWW8SNWHXrmA08c=
 github.com/swaggest/refl v1.2.0/go.mod h1:CkC6g7h1PW33KprTuYRSw8UUOslRUt4lF3oe7tTIgNU=

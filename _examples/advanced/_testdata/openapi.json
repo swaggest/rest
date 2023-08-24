@@ -28,6 +28,38 @@
         "security":[{"User":[]}]
       }
     },
+    "/dynamic-schema":{
+      "get":{
+        "summary":"Dynamic Request Schema",
+        "description":"This use case demonstrates documentation of types that are only known at runtime.",
+        "operationId":"_examples/advanced.dynamicSchema",
+        "parameters":[
+          {"name":"bar","in":"query","schema":{"type":"string"}},
+          {"name":"type","in":"query","schema":{"type":"string"}},
+          {"name":"foo","in":"header","schema":{"enum":["123","456","789"],"type":"integer"}}
+        ],
+        "responses":{
+          "200":{
+            "description":"OK",
+            "headers":{"foo":{"style":"simple","schema":{"enum":["123","456","789"],"type":"integer"}}},
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedDynamicOutput"}}}
+          },
+          "400":{
+            "description":"Bad Request",
+            "content":{"application/problem+json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+          },
+          "409":{
+            "description":"Conflict",
+            "content":{"application/problem+json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+          },
+          "412":{
+            "description":"Precondition Failed",
+            "content":{"application/problem+json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
+          }
+        },
+        "x-forbid-unknown-query":true
+      }
+    },
     "/error-response":{
       "get":{
         "summary":"Declare Expected Errors",
@@ -460,6 +492,7 @@
     "schemas":{
       "AdvancedAnotherErr":{"type":"object","properties":{"foo":{"type":"integer"}}},
       "AdvancedCustomErr":{"type":"object","properties":{"details":{"type":"object","additionalProperties":{}},"msg":{"type":"string"}}},
+      "AdvancedDynamicOutput":{"type":"object","properties":{"bar":{"type":"string"},"status":{"type":"string"}}},
       "AdvancedGzipPassThroughStruct":{
         "type":"object",
         "properties":{"id":{"type":"integer"},"text":{"type":"array","items":{"type":"string"},"nullable":true}}

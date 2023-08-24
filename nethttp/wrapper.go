@@ -6,7 +6,7 @@ type wrapperChecker struct {
 	found bool
 }
 
-func (*wrapperChecker) ServeHTTP(w http.ResponseWriter, r *http.Request) {}
+func (*wrapperChecker) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {}
 
 // IsWrapperChecker is a hack to mark middleware as a handler wrapper.
 // See chirouter.Wrapper Wrap() documentation for more details on the difference.

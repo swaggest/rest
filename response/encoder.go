@@ -28,10 +28,20 @@ type Encoder struct {
 	skipRendering        bool
 	outputWithWriter     bool
 	unwrapInterface      bool
+
+	dynamicWithHeadersSetup bool
+	dynamicETagged          bool
+	dynamicNoContent        bool
 }
 
 type noContent interface {
+	// NoContent controls whether status 204 should be used in response to current request.
 	NoContent() bool
+}
+
+type outputWithHeadersSetup interface {
+	// SetupResponseHeader gives access to response headers of current request.
+	SetupResponseHeader(h http.Header)
 }
 
 // DefaultSuccessResponseContentType is a package-level variable set to
@@ -56,7 +66,7 @@ func addressable(output interface{}) interface{} {
 
 func (h *Encoder) setupHeadersEncoder(output interface{}, ht *rest.HandlerTrait) {
 	// Enable dynamic headers check in interface mode.
-	if h.unwrapInterface = reflect.ValueOf(output).Elem().Kind() == reflect.Interface; h.unwrapInterface {
+	if h.unwrapInterface {
 		enc := form.NewEncoder()
 		enc.SetMode(form.ModeExplicit)
 		enc.SetTagName(string(rest.ParamInHeader))
@@ -102,7 +112,7 @@ func (h *Encoder) setupHeadersEncoder(output interface{}, ht *rest.HandlerTrait)
 
 func (h *Encoder) setupCookiesEncoder(output interface{}, ht *rest.HandlerTrait) {
 	// Enable dynamic headers check in interface mode.
-	if h.unwrapInterface = reflect.ValueOf(output).Elem().Kind() == reflect.Interface; h.unwrapInterface {
+	if h.unwrapInterface {
 		enc := form.NewEncoder()
 		enc.SetMode(form.ModeExplicit)
 		enc.SetTagName(string(rest.ParamInCookie))
@@ -170,6 +180,20 @@ func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
 	}
 
 	output = addressable(output)
+
+	h.unwrapInterface = reflect.ValueOf(output).Elem().Kind() == reflect.Interface
+
+	if _, ok := output.(outputWithHeadersSetup); ok || h.unwrapInterface {
+		h.dynamicWithHeadersSetup = true
+	}
+
+	if _, ok := output.(rest.ETagged); ok || h.unwrapInterface {
+		h.dynamicETagged = true
+	}
+
+	if _, ok := output.(noContent); ok || h.unwrapInterface {
+		h.dynamicNoContent = true
+	}
 
 	h.setupHeadersEncoder(output, ht)
 	h.setupCookiesEncoder(output, ht)
@@ -331,10 +355,12 @@ func (h *Encoder) WriteSuccessfulResponse(
 		output = reflect.ValueOf(output).Elem().Interface()
 	}
 
-	if etagged, ok := output.(rest.ETagged); ok {
-		etag := etagged.ETag()
-		if etag != "" {
-			w.Header().Set("Etag", etag)
+	if h.dynamicETagged {
+		if etagged, ok := output.(rest.ETagged); ok {
+			etag := etagged.ETag()
+			if etag != "" {
+				w.Header().Set("Etag", etag)
+			}
 		}
 	}
 
@@ -347,7 +373,7 @@ func (h *Encoder) WriteSuccessfulResponse(
 	}
 
 	skipRendering := h.skipRendering
-	if !skipRendering {
+	if !skipRendering && h.dynamicNoContent {
 		if nc, ok := output.(noContent); ok {
 			skipRendering = nc.NoContent()
 			if skipRendering && ht.SuccessStatus == 0 {
@@ -382,6 +408,12 @@ func (h *Encoder) writeError(err error, w http.ResponseWriter, r *http.Request, 
 }
 
 func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output interface{}, ht rest.HandlerTrait) bool {
+	if h.dynamicWithHeadersSetup {
+		if sh, ok := output.(outputWithHeadersSetup); ok {
+			sh.SetupResponseHeader(w.Header())
+		}
+	}
+
 	if h.outputHeadersEncoder == nil {
 		return true
 	}

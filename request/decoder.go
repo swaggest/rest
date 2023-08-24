@@ -29,6 +29,21 @@ type (
 	valueDecoderFunc func(r *http.Request, v interface{}, validator rest.Validator) error
 )
 
+// EmbeddedSetter can capture *http.Resuest in your input structure.
+type EmbeddedSetter struct {
+	r *http.Request
+}
+
+// SetRequest implements Setter.
+func (e *EmbeddedSetter) SetRequest(r *http.Request) {
+	e.r = r
+}
+
+// Request is an accessor.
+func (e *EmbeddedSetter) Request() *http.Request {
+	return e.r
+}
+
 func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamIn, val rest.Validator) error {
 	goValues := make(map[string]interface{}, len(p))
 

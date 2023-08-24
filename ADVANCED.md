@@ -96,3 +96,51 @@ r.Method(http.MethodGet, "/docs/openapi.json", apiSchema)
 r.Mount("/docs", v3cdn.NewHandler(apiSchema.Reflector().Spec.Info.Title,
     "/docs/openapi.json", "/docs"))
 ```
+
+## Request Control
+
+Input type may implement methods to customize request handling.
+
+```go
+// LoadFromHTTPRequest takes full control of request decoding and validating and prevents automated request decoding.
+LoadFromHTTPRequest(r *http.Request) error
+```
+
+```go
+// SetRequest captures current *http.Request, but does not prevent automated request decoding.
+// You can embed request.EmbeddedSetter into your structure to get access to the request.
+SetRequest(r *http.Request)
+```
+
+## Response Control
+
+Output type may implement methods to customize response handling.
+
+```go
+// NoContent controls whether status 204 should be used in response to current request.
+NoContent() bool
+```
+
+```go
+// SetupResponseHeader gives access to response headers of current request.  
+SetupResponseHeader(h http.Header)
+```
+
+```go
+// ETag returns the Etag response header value for the current request.
+ETag() string
+```
+
+```go
+// SetWriter takes full control of http.ResponseWriter and prevents automated response handling.
+SetWriter(w io.Writer)
+```
+
+```go
+// HTTPStatus declares successful HTTP status for all requests.
+HTTPStatus() int
+
+// ExpectedHTTPStatuses declares additional HTTP statuses for all requests.
+// Only used for documentation purposes.
+ExpectedHTTPStatuses() []int
+```
