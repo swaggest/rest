@@ -33,7 +33,7 @@ func newStructuredHandler(setup func(h *structuredHandler)) structuredHandler {
 	return h
 }
 
-func (s structuredHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {}
+func (s structuredHandler) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {}
 
 func TestOpenAPICollector_Walker(t *testing.T) {
 	r := mux.NewRouter()

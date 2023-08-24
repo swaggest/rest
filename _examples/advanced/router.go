@@ -148,6 +148,7 @@ func NewRouter() http.Handler {
 	s.Head("/gzip-pass-through", directGzip())
 
 	s.Get("/error-response", errorResponse())
+	s.Get("/dynamic-schema", dynamicSchema())
 
 	// Security middlewares.
 	//  - sessMW is the actual request-level processor,

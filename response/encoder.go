@@ -34,6 +34,10 @@ type noContent interface {
 	NoContent() bool
 }
 
+type outputWithHeaders interface {
+	SetupResponseHeader(h http.Header)
+}
+
 // DefaultSuccessResponseContentType is a package-level variable set to
 // default success response content type.
 var DefaultSuccessResponseContentType = "application/json"
@@ -382,6 +386,10 @@ func (h *Encoder) writeError(err error, w http.ResponseWriter, r *http.Request, 
 }
 
 func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output interface{}, ht rest.HandlerTrait) bool {
+	if sh, ok := output.(outputWithHeaders); ok {
+		sh.SetupResponseHeader(w.Header())
+	}
+
 	if h.outputHeadersEncoder == nil {
 		return true
 	}
