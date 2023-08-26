@@ -50,12 +50,14 @@ func (o dynamicOutput) MarshalJSON() ([]byte, error) {
 
 func dynamicSchema() usecase.Interactor {
 	dynIn := dynamicInput{}
+	dynIn.DefName = "DynIn123"
 	dynIn.Struct.Fields = []jsonschema.Field{
 		{Name: "Foo", Value: 123, Tag: `header:"foo" enum:"123,456,789"`},
 		{Name: "Bar", Value: "abc", Tag: `query:"bar"`},
 	}
 
 	dynOut := dynamicOutput{}
+	dynOut.DefName = "DynOut123"
 	dynOut.Struct.Fields = []jsonschema.Field{
 		{Name: "Foo", Value: 123, Tag: `header:"foo" enum:"123,456,789"`},
 		{Name: "Bar", Value: "abc", Tag: `json:"bar"`},

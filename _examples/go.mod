@@ -16,7 +16,7 @@ require (
 	github.com/rs/cors v1.9.0
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggest/assertjson v1.9.0
-	github.com/swaggest/jsonschema-go v0.3.58
+	github.com/swaggest/jsonschema-go v0.3.59
 	github.com/swaggest/openapi-go v0.2.39
 	github.com/swaggest/rest v0.0.0-00010101000000-000000000000
 	github.com/swaggest/swgui v1.7.2

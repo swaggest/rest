@@ -42,7 +42,7 @@
           "200":{
             "description":"OK",
             "headers":{"foo":{"style":"simple","schema":{"enum":["123","456","789"],"type":"integer"}}},
-            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/AdvancedDynamicOutput"}}}
+            "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/DynOut123"}}}
           },
           "400":{
             "description":"Bad Request",
@@ -492,7 +492,6 @@
     "schemas":{
       "AdvancedAnotherErr":{"type":"object","properties":{"foo":{"type":"integer"}}},
       "AdvancedCustomErr":{"type":"object","properties":{"details":{"type":"object","additionalProperties":{}},"msg":{"type":"string"}}},
-      "AdvancedDynamicOutput":{"type":"object","properties":{"bar":{"type":"string"},"status":{"type":"string"}}},
       "AdvancedGzipPassThroughStruct":{
         "type":"object",
         "properties":{"id":{"type":"integer"},"text":{"type":"array","items":{"type":"string"},"nullable":true}}
@@ -596,6 +595,7 @@
           "name":{"minLength":3,"type":"string"}
         }
       },
+      "DynOut123":{"type":"object","properties":{"bar":{"type":"string"},"status":{"type":"string"}}},
       "FormDataAdvancedInputPort":{
         "required":["val2"],"type":"object",
         "properties":{"val2":{"minimum":3,"type":"integer","description":"Simple scalar value with sample validation."}},
