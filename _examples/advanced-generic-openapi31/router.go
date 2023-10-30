@@ -26,7 +26,8 @@ import (
 )
 
 func NewRouter() http.Handler {
-	s := web.NewService(openapi31.NewReflector())
+	r := openapi31.NewReflector()
+	s := web.NewService(r)
 
 	s.OpenAPISchema().SetTitle("Advanced Example")
 	s.OpenAPISchema().SetDescription("This app showcases a variety of features.")
@@ -230,6 +231,21 @@ func NewRouter() http.Handler {
 			r.Method(http.MethodGet, "/two", nethttp.NewHandler(dummy()))
 		})
 	})
+
+	// You can also walk the spec and add more information.
+	for p, pi := range r.Spec.Paths.MapOfPathItemValues {
+		pi.Parameters = append(pi.Parameters, openapi31.ParameterOrReference{
+			Parameter: (&openapi31.Parameter{
+				In:   openapi31.ParameterInHeader,
+				Name: "X-Umbrella-Header",
+				Schema: map[string]interface{}{
+					"type": "string",
+				},
+			}).WithDescription("This request header is supported in all operations."),
+		})
+
+		r.Spec.Paths.MapOfPathItemValues[p] = pi
+	}
 
 	// Swagger UI endpoint at /docs.
 	s.Docs("/docs", swgui.New)

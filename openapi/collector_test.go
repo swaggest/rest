@@ -173,9 +173,7 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 			],
 			"requestBody":{
 			  "content":{
-				"multipart/form-data":{
-				  "schema":{"$ref":"#/components/schemas/FormDataOpenapiTestInput"}
-				}
+				"multipart/form-data":{"schema":{"$ref":"#/components/schemas/OpenapiTestInput"}}
 			  }
 			},
 			"responses":{"204":{"description":"No Content"}},"deprecated":true
@@ -202,9 +200,7 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 			],
 			"requestBody":{
 			  "content":{
-				"multipart/form-data":{
-				  "schema":{"$ref":"#/components/schemas/FormDataOpenapiTestInput"}
-				}
+				"multipart/form-data":{"schema":{"$ref":"#/components/schemas/OpenapiTestInput"}}
 			  }
 			},
 			"responses":{"204":{"description":"No Content"}},"deprecated":true
@@ -213,12 +209,12 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 	  },
 	  "components":{
 		"schemas":{
-		  "FormDataMultipartFile":{"type":"string","format":"binary","nullable":true},
-		  "FormDataOpenapiTestInput":{
+		  "MultipartFile":{"type":"string","format":"binary","nullable":true},
+		  "OpenapiTestInput":{
 			"type":"object",
 			"properties":{
 			  "in_form_data":{"type":"string","format":"date-time"},
-			  "upload":{"$ref":"#/components/schemas/FormDataMultipartFile"}
+			  "upload":{"$ref":"#/components/schemas/MultipartFile"}
 			}
 		  }
 		}
