@@ -78,7 +78,3 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/swaggest/jsonschema-go => /Users/vearutop/gohack/github.com/swaggest/jsonschema-go
-
-replace github.com/swaggest/openapi-go => /Users/vearutop/gohack/github.com/swaggest/openapi-go
