@@ -22,7 +22,8 @@ func NewRouter() http.Handler {
 	response.DefaultErrorResponseContentType = "application/problem+json"
 	response.DefaultSuccessResponseContentType = "application/dummy+json"
 
-	s := web.NewService(openapi3.NewReflector())
+	r := openapi3.NewReflector()
+	s := web.NewService(r)
 
 	s.OpenAPISchema().SetTitle("Advanced Example")
 	s.OpenAPISchema().SetDescription("This app showcases a variety of features.")
@@ -178,6 +179,21 @@ func NewRouter() http.Handler {
 			r.Method(http.MethodGet, "/two", nethttp.NewHandler(dummy()))
 		})
 	})
+
+	// You can also walk the spec and add more information.
+	for p, pi := range r.Spec.Paths.MapOfPathItemValues {
+		pi.Parameters = append(pi.Parameters, openapi3.ParameterOrRef{
+			Parameter: (&openapi3.Parameter{
+				In:   openapi3.ParameterInHeader,
+				Name: "X-Umbrella-Header",
+				Schema: &openapi3.SchemaOrRef{
+					Schema: (&openapi3.Schema{}).WithType(openapi3.SchemaTypeString),
+				},
+			}).WithDescription("This request header is supported in all operations."),
+		})
+
+		r.Spec.Paths.MapOfPathItemValues[p] = pi
+	}
 
 	// Swagger UI endpoint at /docs.
 	s.Docs("/docs", swgui.New)
