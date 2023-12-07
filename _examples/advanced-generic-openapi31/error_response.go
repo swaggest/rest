@@ -41,7 +41,8 @@ func errorResponse() usecase.Interactor {
 
 	u.SetTitle("Declare Expected Errors")
 	u.SetDescription("This use case demonstrates documentation of expected errors.")
-	u.SetExpectedErrors(status.InvalidArgument, anotherErr{}, status.FailedPrecondition, status.AlreadyExists)
+	u.SetExpectedErrors(status.InvalidArgument, anotherErr{}, status.FailedPrecondition,
+		status.WithDescription(status.AlreadyExists, "Response with custom description."))
 	u.SetTags("Response")
 
 	return u

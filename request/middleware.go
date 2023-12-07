@@ -9,7 +9,7 @@ import (
 )
 
 type requestDecoderSetter interface {
-	SetRequestDecoder(nethttp.RequestDecoder)
+	SetRequestDecoder(rd nethttp.RequestDecoder)
 }
 
 type requestMapping interface {

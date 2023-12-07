@@ -58,6 +58,7 @@ issues:
       path: ".go"
       text: "\"io/ioutil\" has been deprecated since Go 1.16" # Keeping backwards compatibility with go1.13.
     - linters:
+        - testifylint
         - gomnd
         - goconst
         - goerr113

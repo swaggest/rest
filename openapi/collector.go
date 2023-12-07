@@ -4,6 +4,7 @@ package openapi
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -412,6 +413,11 @@ func (c *Collector) processUseCase(oc openapi.OperationContext, u usecase.Intera
 func (c *Collector) setOCJSONResponse(oc openapi.OperationContext, output interface{}, statusCode int) {
 	oc.AddRespStructure(output, func(cu *openapi.ContentUnit) {
 		cu.HTTPStatus = statusCode
+
+		if described, ok := output.(jsonschema.Described); ok {
+			cu.Description = described.Description()
+		}
+
 		if output != nil {
 			cu.ContentType = c.DefaultErrorResponseContentType
 		}
@@ -431,9 +437,15 @@ func (c *Collector) processOCExpectedErrors(oc openapi.OperationContext, u useca
 
 	for _, e := range hasExpectedErrors.ExpectedErrors() {
 		var (
-			errResp    interface{}
-			statusCode int
+			errResp     interface{}
+			statusCode  int
+			description string
 		)
+
+		var described jsonschema.Described
+		if errors.As(e, &described) {
+			description = described.Description()
+		}
 
 		if h.MakeErrResp != nil {
 			statusCode, errResp = h.MakeErrResp(context.Background(), e)
@@ -451,7 +463,14 @@ func (c *Collector) processOCExpectedErrors(oc openapi.OperationContext, u useca
 
 		errsByCode[statusCode] = append(errsByCode[statusCode], errResp)
 
-		c.setOCJSONResponse(oc, errResp, statusCode)
+		oc.AddRespStructure(errResp, func(cu *openapi.ContentUnit) {
+			cu.HTTPStatus = statusCode
+			cu.Description = description
+
+			if errResp != nil {
+				cu.ContentType = c.DefaultErrorResponseContentType
+			}
+		})
 	}
 
 	c.combineOCErrors(oc, statusCodes, errsByCode)

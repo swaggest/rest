@@ -6,7 +6,7 @@ replace github.com/swaggest/rest => ../
 
 require (
 	github.com/bool64/ctxd v1.2.1
-	github.com/bool64/dev v0.2.31
+	github.com/bool64/dev v0.2.32
 	github.com/bool64/httpmock v0.1.13
 	github.com/bool64/httptestbench v0.1.4
 	github.com/gin-gonic/gin v1.9.1
@@ -17,11 +17,11 @@ require (
 	github.com/rs/cors v1.9.0
 	github.com/stretchr/testify v1.8.4
 	github.com/swaggest/assertjson v1.9.0
-	github.com/swaggest/jsonschema-go v0.3.62
-	github.com/swaggest/openapi-go v0.2.41
+	github.com/swaggest/jsonschema-go v0.3.64
+	github.com/swaggest/openapi-go v0.2.43
 	github.com/swaggest/rest v0.0.0-00010101000000-000000000000
 	github.com/swaggest/swgui v1.7.3
-	github.com/swaggest/usecase v1.2.1
+	github.com/swaggest/usecase v1.3.0
 	github.com/valyala/fasthttp v1.48.0
 )
 
