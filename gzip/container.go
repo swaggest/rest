@@ -13,7 +13,7 @@ import (
 
 // Writer writes gzip data into suitable stream or returns 0, nil.
 type Writer interface {
-	GzipWrite([]byte) (int, error)
+	GzipWrite(d []byte) (int, error)
 }
 
 // JSONContainer contains compressed JSON.

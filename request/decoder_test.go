@@ -418,7 +418,7 @@ func TestDecoder_Decode_dateTime(t *testing.T) {
 		MakeRequestValidator(http.MethodGet, input, nil)
 
 	err = dec.Decode(req, input, validator)
-	assert.NoError(t, err, fmt.Sprintf("%v", err))
+	assert.NoError(t, err)
 }
 
 type inputWithLoader struct {
@@ -464,7 +464,7 @@ func TestDecoder_Decode_manualLoader_ptr(t *testing.T) {
 		MakeRequestValidator(http.MethodGet, input, nil)
 
 	err = dec.Decode(req, input, validator)
-	assert.NoError(t, err, fmt.Sprintf("%v", err))
+	assert.NoError(t, err)
 	assert.True(t, loadTriggered)
 	assert.True(t, input.Time.IsZero())
 }
@@ -490,7 +490,7 @@ func TestDecoder_Decode_manualLoader_val(t *testing.T) {
 		MakeRequestValidator(http.MethodGet, input, nil)
 
 	err = dec.Decode(req, &input, validator)
-	assert.NoError(t, err, fmt.Sprintf("%v", err))
+	assert.NoError(t, err)
 	assert.True(t, loadTriggered)
 	assert.True(t, input.Time.IsZero())
 }
@@ -507,7 +507,7 @@ func TestDecoder_Decode_setter_ptr(t *testing.T) {
 		MakeRequestValidator(http.MethodGet, input, nil)
 
 	err = dec.Decode(req, input, validator)
-	assert.NoError(t, err, fmt.Sprintf("%v", err))
+	assert.NoError(t, err)
 	assert.False(t, input.Time.IsZero())
 	assert.NotNil(t, input.r)
 }
@@ -524,7 +524,7 @@ func TestDecoder_Decode_setter_val(t *testing.T) {
 		MakeRequestValidator(http.MethodGet, input, nil)
 
 	err = dec.Decode(req, &input, validator)
-	assert.NoError(t, err, fmt.Sprintf("%v", err))
+	assert.NoError(t, err)
 	assert.False(t, input.Time.IsZero())
 	assert.NotNil(t, input.r)
 }

@@ -199,7 +199,8 @@ func NewRouter() http.Handler {
 	s.Get("/gzip-pass-through", directGzip())
 	s.Head("/gzip-pass-through", directGzip())
 
-	s.Get("/error-response", errorResponse())
+	s.Get("/error-response", errorResponse(), func(h *nethttp.Handler) {
+	})
 	s.Post("/text-req-body/{path}", textReqBody(), nethttp.RequestBodyContent("text/csv"))
 	s.Post("/text-req-body-ptr/{path}", textReqBodyPtr(), nethttp.RequestBodyContent("text/csv"))
 

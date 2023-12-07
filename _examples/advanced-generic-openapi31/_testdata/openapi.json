@@ -75,7 +75,7 @@
       }
      },
      "409":{
-      "description":"Conflict",
+      "description":"Response with custom description.",
       "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
      },
      "412":{
