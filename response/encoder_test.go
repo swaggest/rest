@@ -236,3 +236,67 @@ func TestEncoder_Writer_httpStatus(t *testing.T) {
 	e.WriteSuccessfulResponse(w, r, output, rest.HandlerTrait{})
 	assert.Equal(t, http.StatusCreated, w.Code)
 }
+
+func TestEmbeddedSetter_SetResponseWriter(t *testing.T) {
+	e := response.Encoder{}
+
+	type EmbeddedHeader struct {
+		Foo int    `header:"X-Foo" json:"-"`
+		Bar string `cookie:"bar" json:"-"`
+	}
+
+	type outputPort struct {
+		response.EmbeddedSetter
+		EmbeddedHeader
+		Name    string   `header:"X-Name" json:"-"`
+		Items   []string `json:"items"`
+		Cookie  int      `cookie:"coo,httponly,path=/foo" json:"-"`
+		Cookie2 bool     `cookie:"coo2,httponly,secure,samesite=lax,path=/foo,max-age=86400" json:"-"`
+	}
+
+	ht := rest.HandlerTrait{
+		SuccessContentType: "application/x-vnd-json",
+	}
+
+	validator := jsonschema.Validator{}
+	require.NoError(t, validator.AddSchema(
+		rest.ParamInHeader,
+		"X-Name",
+		[]byte(`{"type":"string","minLength":3}`),
+		false),
+	)
+
+	ht.RespValidator = &validator
+
+	e.SetupOutput(outputPort{}, &ht)
+
+	r, err := http.NewRequest(http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	w := httptest.NewRecorder()
+	output := e.MakeOutput(w, ht)
+
+	out, ok := output.(*outputPort)
+	assert.True(t, ok)
+
+	out.Foo = 321
+	out.Bar = "baz"
+	out.Name = "Jane"
+	out.Items = []string{"one", "two", "three"}
+	out.Cookie = 123
+	out.Cookie2 = true
+
+	e.WriteSuccessfulResponse(w, r, output, ht)
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "Jane", w.Header().Get("X-Name"))
+	assert.Equal(t, "321", w.Header().Get("X-Foo"))
+	assert.Equal(t, []string{
+		"bar=baz",
+		"coo=123; Path=/foo; HttpOnly",
+		"coo2=true; Path=/foo; Max-Age=86400; HttpOnly; Secure; SameSite=Lax",
+	}, w.Header()["Set-Cookie"])
+	assert.Equal(t, "application/x-vnd-json", w.Header().Get("Content-Type"))
+	assert.Equal(t, "32", w.Header().Get("Content-Length"))
+	assert.Equal(t, `{"items":["one","two","three"]}`+"\n", w.Body.String())
+	assert.Equal(t, w, out.ResponseWriter())
+}
