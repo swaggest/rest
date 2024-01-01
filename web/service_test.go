@@ -56,6 +56,26 @@ func TestDefaultService(t *testing.T) {
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {})
 	})
 
+	service.OnNotFound(usecase.NewIOI(
+		nil,
+		new(struct {
+			Foo string `json:"foo"`
+		}),
+		func(ctx context.Context, input, output interface{}) error {
+			return nil
+		}),
+	)
+
+	service.OnMethodNotAllowed(usecase.NewIOI(
+		nil,
+		new(struct {
+			Foo string `json:"foo"`
+		}),
+		func(ctx context.Context, input, output interface{}) error {
+			return nil
+		}),
+	)
+
 	rw := httptest.NewRecorder()
 	r, err := http.NewRequest(http.MethodGet, "http://localhost/docs/openapi.json", nil)
 	require.NoError(t, err)

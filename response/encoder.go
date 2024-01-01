@@ -17,6 +17,15 @@ import (
 	"github.com/swaggest/usecase/status"
 )
 
+type (
+	// Setter captures original http.ResponseWriter.
+	//
+	// Implement this interface on a pointer to your output structure to get access to http.ResponseWriter.
+	Setter interface {
+		SetResponseWriter(rw http.ResponseWriter)
+	}
+)
+
 // Encoder prepares and writes http response.
 type Encoder struct {
 	JSONWriter func(v interface{})
@@ -30,6 +39,7 @@ type Encoder struct {
 	unwrapInterface      bool
 
 	dynamicWithHeadersSetup bool
+	dynamicSetter           bool
 	dynamicETagged          bool
 	dynamicNoContent        bool
 }
@@ -185,6 +195,10 @@ func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
 
 	if _, ok := output.(outputWithHeadersSetup); ok || h.unwrapInterface {
 		h.dynamicWithHeadersSetup = true
+	}
+
+	if _, ok := output.(Setter); ok || h.unwrapInterface {
+		h.dynamicSetter = true
 	}
 
 	if _, ok := output.(rest.ETagged); ok || h.unwrapInterface {
@@ -504,6 +518,12 @@ func (h *Encoder) MakeOutput(w http.ResponseWriter, ht rest.HandlerTrait) interf
 		}
 	}
 
+	if h.dynamicSetter {
+		if setter, ok := output.(Setter); ok {
+			setter.SetResponseWriter(w)
+		}
+	}
+
 	return output
 }
 
@@ -549,4 +569,19 @@ func (w *writerWithHeaders) Write(data []byte) (int, error) {
 	}
 
 	return w.ResponseWriter.Write(data)
+}
+
+// EmbeddedSetter can capture http.ResponseWriter in your output structure.
+type EmbeddedSetter struct {
+	rw http.ResponseWriter
+}
+
+// SetResponseWriter implements Setter.
+func (e *EmbeddedSetter) SetResponseWriter(rw http.ResponseWriter) {
+	e.rw = rw
+}
+
+// ResponseWriter is an accessor.
+func (e *EmbeddedSetter) ResponseWriter() http.ResponseWriter {
+	return e.rw
 }

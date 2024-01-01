@@ -51,7 +51,8 @@ func (h HandlerWithBar) ServeHTTP(rw http.ResponseWriter, r *http.Request) {
 }
 
 func TestNewWrapper(t *testing.T) {
-	r := chirouter.NewWrapper(chi.NewRouter()).With(func(handler http.Handler) http.Handler {
+	w := chirouter.NewWrapper(chi.NewRouter())
+	r := w.With(func(handler http.Handler) http.Handler {
 		return http.HandlerFunc(handler.ServeHTTP)
 	})
 
@@ -78,6 +79,8 @@ func TestNewWrapper(t *testing.T) {
 	}
 
 	r.Use(mw)
+
+	r.NotFound(r.(*chirouter.Wrapper).HandlerFunc(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})))
 
 	r.Group(func(r chi.Router) {
 		r.Method(http.MethodPost,
@@ -125,7 +128,7 @@ func TestNewWrapper(t *testing.T) {
 	}
 
 	assert.Equal(t, 14, handlersCnt)
-	assert.Equal(t, 21, totalCnt)
+	assert.Equal(t, 22, totalCnt)
 }
 
 func TestWrapper_Use_precedence(t *testing.T) {
