@@ -162,6 +162,16 @@ func (s *Service) Trace(pattern string, uc usecase.Interactor, options ...func(h
 	s.Method(http.MethodTrace, pattern, nethttp.NewHandler(uc, options...))
 }
 
+// OnNotFound registers usecase interactor as a handler for not found conditions.
+func (s *Service) OnNotFound(uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	s.NotFound(s.HandlerFunc(nethttp.NewHandler(uc, options...)))
+}
+
+// OnMethodNotAllowed registers usecase interactor as a handler for method not allowed conditions.
+func (s *Service) OnMethodNotAllowed(uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	s.MethodNotAllowed(s.HandlerFunc(nethttp.NewHandler(uc, options...)))
+}
+
 // Docs adds the route `pattern` that serves API documentation with Swagger UI.
 //
 // Swagger UI should be provided by `swgui` handler constructor, you can use one of these functions

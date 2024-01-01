@@ -199,6 +199,15 @@ func (r *Wrapper) Trace(pattern string, handlerFn http.HandlerFunc) {
 	r.Method(http.MethodTrace, pattern, handlerFn)
 }
 
+// HandlerFunc prepares handler and returns its function.
+//
+// Can be used as input for NotFound, MethodNotAllowed.
+func (r *Wrapper) HandlerFunc(h http.Handler) http.HandlerFunc {
+	h = nethttp.WrapHandler(h, r.wraps...)
+
+	return h.ServeHTTP
+}
+
 func (r *Wrapper) resolvePattern(pattern string) string {
 	return r.basePattern + strings.ReplaceAll(pattern, "/*/", "/")
 }

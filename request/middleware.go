@@ -32,7 +32,6 @@ func DecoderMiddleware(factory DecoderMaker) func(http.Handler) http.Handler {
 		)
 
 		if !nethttp.HandlerAs(handler, &setRequestDecoder) ||
-			!nethttp.HandlerAs(handler, &withRoute) ||
 			!nethttp.HandlerAs(handler, &withUseCase) ||
 			!usecase.As(withUseCase.UseCase(), &useCaseWithInput) {
 			return handler
@@ -45,7 +44,11 @@ func DecoderMiddleware(factory DecoderMaker) func(http.Handler) http.Handler {
 
 		input := useCaseWithInput.InputPort()
 		if input != nil {
-			method := withRoute.RouteMethod()
+			method := http.MethodPost // Default for handlers without method (for example NotFound handler).
+			if nethttp.HandlerAs(handler, &withRoute) {
+				method = withRoute.RouteMethod()
+			}
+
 			dec := factory.MakeDecoder(method, input, customMapping)
 			setRequestDecoder.SetRequestDecoder(dec)
 		}
