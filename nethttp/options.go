@@ -96,7 +96,7 @@ func RequestMapping(v interface{}) func(h *Handler) {
 		} {
 			mm := make(map[string]string)
 
-			refl.WalkTaggedFields(reflect.ValueOf(v), func(v reflect.Value, sf reflect.StructField, tag string) {
+			refl.WalkTaggedFields(reflect.ValueOf(v), func(_ reflect.Value, sf reflect.StructField, tag string) {
 				mm[sf.Name] = tag
 			}, string(in))
 
@@ -124,7 +124,7 @@ func ResponseHeaderMapping(v interface{}) func(h *Handler) {
 
 		mm := make(map[string]string)
 
-		refl.WalkTaggedFields(reflect.ValueOf(v), func(v reflect.Value, sf reflect.StructField, tag string) {
+		refl.WalkTaggedFields(reflect.ValueOf(v), func(_ reflect.Value, sf reflect.StructField, tag string) {
 			mm[sf.Name] = tag
 		}, "header")
 

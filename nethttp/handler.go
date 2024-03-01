@@ -126,7 +126,6 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = h.useCase.Interact(r.Context(), input, output)
-
 	if err != nil {
 		h.handleErrResponse(w, r, err)
 

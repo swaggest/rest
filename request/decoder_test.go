@@ -141,7 +141,7 @@ func BenchmarkDecoderFunc_Decode(b *testing.B) {
 	req.AddCookie(&c)
 
 	df := request.NewDecoderFactory()
-	df.SetDecoderFunc(rest.ParamInPath, func(r *http.Request) (url.Values, error) {
+	df.SetDecoderFunc(rest.ParamInPath, func(_ *http.Request) (url.Values, error) {
 		return url.Values{"in_path": []string{"mno"}}, nil
 	})
 

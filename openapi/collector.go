@@ -321,6 +321,7 @@ func (c *Collector) setupOutput(oc openapi.OperationContext, u usecase.Interacto
 		if h.SuccessStatus != 0 {
 			status = h.SuccessStatus
 		}
+
 		oc.AddRespStructure(output, func(cu *openapi.ContentUnit) {
 			cu.HTTPStatus = status
 			setupCU(cu)

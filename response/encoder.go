@@ -90,7 +90,7 @@ func (h *Encoder) setupHeadersEncoder(output interface{}, ht *rest.HandlerTrait)
 	if len(respHeaderMapping) == 0 && refl.HasTaggedFields(output, string(rest.ParamInHeader)) {
 		respHeaderMapping = make(map[string]string)
 
-		refl.WalkTaggedFields(reflect.ValueOf(output), func(v reflect.Value, sf reflect.StructField, tag string) {
+		refl.WalkTaggedFields(reflect.ValueOf(output), func(_ reflect.Value, sf reflect.StructField, _ string) {
 			// Converting name to canonical form, while keeping omitempty and any other options.
 			t := sf.Tag.Get(string(rest.ParamInHeader))
 			parts := strings.Split(t, ",")
@@ -137,7 +137,7 @@ func (h *Encoder) setupCookiesEncoder(output interface{}, ht *rest.HandlerTrait)
 		respCookieMapping = make(map[string]http.Cookie)
 		h.outputCookieBase = make([]http.Cookie, 0)
 
-		refl.WalkTaggedFields(reflect.ValueOf(output), func(v reflect.Value, sf reflect.StructField, tag string) {
+		refl.WalkTaggedFields(reflect.ValueOf(output), func(_ reflect.Value, sf reflect.StructField, tag string) {
 			c := http.Cookie{
 				Name: tag,
 			}
@@ -147,11 +147,13 @@ func (h *Encoder) setupCookiesEncoder(output interface{}, ht *rest.HandlerTrait)
 				resp := http.Response{}
 				resp.Header = make(http.Header)
 				resp.Header.Add("Set-Cookie", tag+"=x;"+strings.Join(options, ";"))
+
 				cc := resp.Cookies()
 				if len(cc) == 1 {
 					c = *cc[0]
 				}
 			}
+
 			c.Value = ""
 			c.Raw = ""
 

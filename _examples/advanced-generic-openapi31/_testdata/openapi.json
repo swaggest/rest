@@ -915,17 +915,17 @@
      "simple":{"description":"Simple scalar value in body.","type":"string"},
      "uploads1":{
       "description":"Uploads with *multipart.FileHeader.",
-      "items":{"$ref":"#/components/schemas/MultipartFileHeader"},"type":["array","null"]
+      "items":{"$ref":"#/components/schemas/MultipartFileHeader"},"type":"array"
      },
      "uploads2":{
       "description":"Uploads with multipart.File.","items":{"$ref":"#/components/schemas/MultipartFile"},
-      "type":["array","null"]
+      "type":"array"
      }
     },
     "type":"object"
    },
-   "MultipartFile":{"format":"binary","type":["null","string"]},
-   "MultipartFileHeader":{"format":"binary","type":["null","string"]},
+   "MultipartFile":{"contentMediaType":"application/octet-stream","format":"binary","type":"string"},
+   "MultipartFileHeader":{"contentMediaType":"application/octet-stream","format":"binary","type":"string"},
    "RestErrResponse":{
     "properties":{
      "code":{"description":"Application-specific error code.","type":"integer"},

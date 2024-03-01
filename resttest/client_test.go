@@ -36,7 +36,9 @@ func TestNewClient(t *testing.T) {
 		assert.Equal(t, "bar", c.Value)
 
 		ncnt := atomic.AddInt64(&cnt, 1)
+
 		rw.Header().Set("Content-Type", "application/json")
+
 		if ncnt > 1 {
 			rw.WriteHeader(http.StatusConflict)
 			_, err := rw.Write([]byte(`{"error":"conflict"}`))
@@ -88,7 +90,7 @@ func TestNewClient(t *testing.T) {
 }
 
 func TestNewClient_failedExpectation(t *testing.T) {
-	srv := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	srv := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
 		_, err := writer.Write([]byte(`{"bar":"foo"}`))
 		assert.NoError(t, err)
 	}))

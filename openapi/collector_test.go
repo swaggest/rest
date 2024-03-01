@@ -106,7 +106,7 @@ func TestCollector_Collect(t *testing.T) {
 	assertjson.Equal(t, j, rw.Body.Bytes())
 
 	val := validatorMock{
-		AddSchemaFunc: func(in rest.ParamIn, name string, schemaData []byte, required bool) error {
+		AddSchemaFunc: func(_ rest.ParamIn, _ string, _ []byte, _ bool) error {
 			return nil
 		},
 	}
@@ -209,7 +209,7 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 	  },
 	  "components":{
 		"schemas":{
-		  "MultipartFile":{"type":"string","format":"binary","nullable":true},
+		  "MultipartFile":{"type":"string","format":"binary"},
 		  "OpenapiTestInput":{
 			"type":"object",
 			"properties":{
@@ -222,7 +222,7 @@ func TestCollector_Collect_requestMapping(t *testing.T) {
 	}`, collector.SpecSchema())
 
 	val := validatorMock{
-		AddSchemaFunc: func(in rest.ParamIn, name string, schemaData []byte, required bool) error {
+		AddSchemaFunc: func(_ rest.ParamIn, _ string, _ []byte, _ bool) error {
 			return nil
 		},
 	}
@@ -246,7 +246,7 @@ func TestCollector_Collect_CombineErrors(t *testing.T) {
 	u.SetExpectedErrors(status.InvalidArgument, anotherErr{}, status.FailedPrecondition, status.AlreadyExists)
 
 	h := rest.HandlerTrait{}
-	h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
+	h.MakeErrResp = func(_ context.Context, err error) (int, interface{}) {
 		code, er := rest.Err(err)
 
 		var ae anotherErr

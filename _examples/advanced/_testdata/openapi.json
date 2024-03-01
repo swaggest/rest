@@ -728,17 +728,16 @@
           "simple":{"type":"string","description":"Simple scalar value in body."},
           "uploads1":{
             "type":"array","items":{"$ref":"#/components/schemas/MultipartFileHeader"},
-            "description":"Uploads with *multipart.FileHeader.","nullable":true
+            "description":"Uploads with *multipart.FileHeader."
           },
           "uploads2":{
             "type":"array","items":{"$ref":"#/components/schemas/MultipartFile"},
-            "description":"Uploads with multipart.File.","nullable":true
+            "description":"Uploads with multipart.File."
           }
         },
         "additionalProperties":false
       },
-      "MultipartFile":{"type":"string","format":"binary","nullable":true},
-      "MultipartFileHeader":{"type":"string","format":"binary","nullable":true},
+      "MultipartFile":{"type":"string","format":"binary"},"MultipartFileHeader":{"type":"string","format":"binary"},
       "RestErrResponse":{
         "type":"object",
         "properties":{

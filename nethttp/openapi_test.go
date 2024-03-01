@@ -26,7 +26,7 @@ func TestOpenAPIMiddleware(t *testing.T) {
 		Value  string `json:"val"`
 		Header int
 	})
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+	u.Interactor = usecase.Interact(func(_ context.Context, input, _ interface{}) error {
 		in, ok := input.(*Input)
 		assert.True(t, ok)
 		assert.Equal(t, 123, in.ID)

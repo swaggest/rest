@@ -23,16 +23,19 @@ func TestDecoderFactory_SetDecoderFunc(t *testing.T) {
 		}
 
 		var m map[string]json.RawMessage
+
 		err := json.Unmarshal([]byte(ah[7:]), &m)
 		if err != nil {
 			return nil, err
 		}
 
 		res := make(url.Values)
+
 		for k, v := range m {
 			if len(v) > 2 && v[0] == '"' && v[len(v)-1] == '"' {
 				v = v[1 : len(v)-1]
 			}
+
 			res[k] = []string{string(v)}
 		}
 
@@ -79,10 +82,12 @@ func BenchmarkDecoderFactory_SetDecoderFunc(b *testing.B) {
 		}
 
 		res := make(url.Values)
+
 		for k, v := range m {
 			if len(v) > 2 && v[0] == '"' && v[len(v)-1] == '"' {
 				v = v[1 : len(v)-1]
 			}
+
 			res[k] = []string{string(v)}
 		}
 
@@ -254,7 +259,7 @@ func TestDecoderFactory_MakeDecoder_header_case_sensitivity(t *testing.T) {
 
 	req.Header.Set("x-One-Two-threE", "hello!")
 
-	require.NoError(t, d.Decode(req, &v, rest.ValidatorFunc(func(in rest.ParamIn, namedData map[string]interface{}) error {
+	require.NoError(t, d.Decode(req, &v, rest.ValidatorFunc(func(_ rest.ParamIn, namedData map[string]interface{}) error {
 		fmt.Printf("%+v", namedData)
 
 		return nil

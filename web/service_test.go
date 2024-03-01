@@ -22,7 +22,7 @@ type albumID struct {
 }
 
 func albumByID() usecase.Interactor {
-	u := usecase.NewIOI(new(albumID), new(album), func(ctx context.Context, input, output interface{}) error {
+	u := usecase.NewIOI(new(albumID), new(album), func(_ context.Context, _, _ interface{}) error {
 		return nil
 	})
 	u.SetTags("Album")
@@ -35,8 +35,8 @@ func TestDefaultService(t *testing.T) {
 
 	service := web.NewService(
 		openapi3.NewReflector(),
-		func(s *web.Service) { l = append(l, "one") },
-		func(s *web.Service) { l = append(l, "two") },
+		func(_ *web.Service) { l = append(l, "one") },
+		func(_ *web.Service) { l = append(l, "two") },
 	)
 
 	service.OpenAPISchema().SetTitle("Albums API")
@@ -51,9 +51,9 @@ func TestDefaultService(t *testing.T) {
 	service.Put("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
 	service.Trace("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
 	service.Options("/albums", postAlbums(), nethttp.SuccessStatus(http.StatusCreated))
-	service.Docs("/docs", func(title, schemaURL, basePath string) http.Handler {
+	service.Docs("/docs", func(_, _, _ string) http.Handler {
 		// Mount github.com/swaggest/swgui/v4emb.New here.
-		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {})
+		return http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {})
 	})
 
 	service.OnNotFound(usecase.NewIOI(
@@ -61,7 +61,7 @@ func TestDefaultService(t *testing.T) {
 		new(struct {
 			Foo string `json:"foo"`
 		}),
-		func(ctx context.Context, input, output interface{}) error {
+		func(_ context.Context, _, _ interface{}) error {
 			return nil
 		}),
 	)
@@ -71,7 +71,7 @@ func TestDefaultService(t *testing.T) {
 		new(struct {
 			Foo string `json:"foo"`
 		}),
-		func(ctx context.Context, input, output interface{}) error {
+		func(_ context.Context, _, _ interface{}) error {
 			return nil
 		}),
 	)

@@ -80,12 +80,12 @@ func TestNewWrapper(t *testing.T) {
 
 	r.Use(mw)
 
-	r.NotFound(r.(*chirouter.Wrapper).HandlerFunc(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})))
+	r.NotFound(r.(*chirouter.Wrapper).HandlerFunc(http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {})))
 
 	r.Group(func(r chi.Router) {
 		r.Method(http.MethodPost,
 			"/baz/{id}/",
-			HandlerWithFoo{Handler: http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			HandlerWithFoo{Handler: http.HandlerFunc(func(_ http.ResponseWriter, request *http.Request) {
 				val, err := chirouter.PathToURLValues(request)
 				assert.NoError(t, err)
 				assert.Equal(t, url.Values{"id": []string{"123"}}, val)
@@ -94,7 +94,7 @@ func TestNewWrapper(t *testing.T) {
 	})
 
 	r.Mount("/mount",
-		HandlerWithFoo{Handler: http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {})},
+		HandlerWithFoo{Handler: http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {})},
 	)
 
 	r.Route("/deeper", func(r chi.Router) {
@@ -102,19 +102,19 @@ func TestNewWrapper(t *testing.T) {
 			return HandlerWithFoo{Handler: handler}
 		})
 
-		r.Get("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Head("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Post("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Put("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Trace("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Connect("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Options("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Patch("/foo", func(writer http.ResponseWriter, request *http.Request) {})
-		r.Delete("/foo", func(writer http.ResponseWriter, request *http.Request) {})
+		r.Get("/foo", func(_ http.ResponseWriter, _ *http.Request) {})
+		r.Head("/foo", func(_ http.ResponseWriter, _ *http.Request) {})
+		r.Post("/foo", func(_ http.ResponseWriter, _ *http.Request) {})
+		r.Put("/foo", func(_ http.ResponseWriter, _ *http.Request) {})
+		r.Trace("/foo", func(_ http.ResponseWriter, _ *http.Request) {})
+		r.Connect("/foo", func(_ http.ResponseWriter, _ *http.Request) {})
+		r.Options("/foo", func(_ http.ResponseWriter, _ *http.Request) {})
+		r.Patch("/foo", func(_ http.ResponseWriter, _ *http.Request) {})
+		r.Delete("/foo", func(_ http.ResponseWriter, _ *http.Request) {})
 
-		r.MethodFunc(http.MethodGet, "/cuux", func(writer http.ResponseWriter, request *http.Request) {})
+		r.MethodFunc(http.MethodGet, "/cuux", func(_ http.ResponseWriter, _ *http.Request) {})
 
-		r.Handle("/bar", http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {}))
+		r.Handle("/bar", http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
 	})
 
 	for _, u := range []string{"/baz/123/", "/deeper/foo", "/mount/abc"} {
@@ -140,7 +140,9 @@ func TestWrapper_Use_precedence(t *testing.T) {
 		func(handler http.Handler) http.Handler {
 			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 				log = append(log, "cmw1 before")
+
 				handler.ServeHTTP(writer, request)
+
 				log = append(log, "cmw1 after")
 			})
 		},
@@ -148,7 +150,9 @@ func TestWrapper_Use_precedence(t *testing.T) {
 		func(handler http.Handler) http.Handler {
 			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 				log = append(log, "cmw2 before")
+
 				handler.ServeHTTP(writer, request)
+
 				log = append(log, "cmw2 after")
 			})
 		},
@@ -160,7 +164,9 @@ func TestWrapper_Use_precedence(t *testing.T) {
 		func(handler http.Handler) http.Handler {
 			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 				log = append(log, "wmw1 before")
+
 				handler.ServeHTTP(writer, request)
+
 				log = append(log, "wmw1 after")
 			})
 		},
@@ -168,7 +174,9 @@ func TestWrapper_Use_precedence(t *testing.T) {
 		func(handler http.Handler) http.Handler {
 			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 				log = append(log, "wmw2 before")
+
 				handler.ServeHTTP(writer, request)
+
 				log = append(log, "wmw2 after")
 			})
 		},
@@ -177,7 +185,7 @@ func TestWrapper_Use_precedence(t *testing.T) {
 	req, err := http.NewRequest(http.MethodGet, "/", nil)
 	require.NoError(t, err)
 
-	h := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	h := http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		log = append(log, "h")
 	})
 
@@ -238,7 +246,7 @@ func TestWrapper_Use_StripSlashes(t *testing.T) {
 
 	rw := httptest.NewRecorder()
 
-	h := http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+	h := http.HandlerFunc(func(writer http.ResponseWriter, _ *http.Request) {
 		if _, err := writer.Write([]byte("OK")); err != nil {
 			log = append(log, err.Error())
 		}
@@ -276,7 +284,7 @@ func TestWrapper_Mount(t *testing.T) {
 		nethttp.HTTPBasicSecurityMiddleware(service.OpenAPICollector, "Admin", "Admin access"),
 	)
 
-	apiV1.Post("/sum", usecase.NewIOI(new([]int), new(int), func(ctx context.Context, input, output interface{}) error {
+	apiV1.Post("/sum", usecase.NewIOI(new([]int), new(int), func(_ context.Context, _, _ interface{}) error {
 		return errors.New("oops")
 	}))
 
@@ -387,7 +395,7 @@ func TestWrapper_With(t *testing.T) {
 
 	cw.Use(wrapper, notWrapper)
 	cw.With(wrapper, notWrapper).Method(http.MethodGet, "/",
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+		http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {}))
 
 	assert.Equal(t, 2, wrapperCalled)
 	assert.Equal(t, 2, wrapperFound)

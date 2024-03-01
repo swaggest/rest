@@ -182,7 +182,7 @@ func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping 
 	if hdm, exists := cm[rest.ParamInHeader]; !exists && refl.HasTaggedFields(input, string(rest.ParamInHeader)) {
 		hdm = make(map[string]string)
 
-		refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
+		refl.WalkTaggedFields(reflect.ValueOf(input), func(_ reflect.Value, sf reflect.StructField, tag string) {
 			hdm[sf.Name] = http.CanonicalHeaderKey(tag)
 		}, string(rest.ParamInHeader))
 
@@ -195,7 +195,7 @@ func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping 
 
 	fields := make(map[string]bool)
 
-	refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
+	refl.WalkTaggedFields(reflect.ValueOf(input), func(_ reflect.Value, sf reflect.StructField, _ string) {
 		fields[sf.Name] = true
 	}, "")
 
@@ -221,7 +221,7 @@ func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping 
 // jsonParams configures custom decoding for parameters with JSON struct values.
 func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn, input interface{}) {
 	// Check fields for struct values with json tags. E.g. query parameter with json value.
-	refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, tag string) {
+	refl.WalkTaggedFields(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, _ string) {
 		// Skip unexported fields.
 		if sf.PkgPath != "" {
 			return
@@ -234,7 +234,9 @@ func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn,
 			// from a string value into a struct.
 			formDecoder.RegisterFunc(func(s string) (interface{}, error) {
 				var err error
+
 				f := reflect.New(sf.Type)
+
 				if df.JSONReader != nil {
 					err = df.JSONReader(bytes.NewBufferString(s), f.Interface())
 				} else {
@@ -254,7 +256,7 @@ func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn,
 func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 	defaults := url.Values{}
 
-	refl.WalkFieldsRecursively(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, path []reflect.StructField) {
+	refl.WalkFieldsRecursively(reflect.ValueOf(input), func(_ reflect.Value, sf reflect.StructField, path []reflect.StructField) {
 		var key string
 
 		for _, p := range path {
@@ -286,7 +288,7 @@ func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 
 	dec := df.defaultValDecoder
 
-	m.decoders = append(m.decoders, func(r *http.Request, v interface{}, validator rest.Validator) error {
+	m.decoders = append(m.decoders, func(_ *http.Request, v interface{}, _ rest.Validator) error {
 		return dec.Decode(v, defaults)
 	})
 	m.in = append(m.in, defaultTag)

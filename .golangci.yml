@@ -73,5 +73,6 @@ issues:
     - linters:
         - errcheck # Error checking omitted for brevity.
         - gosec
+        - revive
       path: "example_"
 
