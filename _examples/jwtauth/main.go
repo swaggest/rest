@@ -111,7 +111,7 @@ func router() http.Handler {
 		r.Group(func(r chi.Router) {
 			r.Use(
 				jwtauth.Verifier(tokenAuth),
-				jwtauth.Authenticator,
+				jwtauth.Authenticator(tokenAuth),
 			)
 
 			r.Method(http.MethodGet, "/", nethttp.NewHandler(Get()))

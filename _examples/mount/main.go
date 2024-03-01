@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/swaggest/openapi-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/web"
@@ -36,30 +37,50 @@ func sum() usecase.Interactor {
 	})
 }
 
-func main() {
-	service := web.NewService(openapi3.NewReflector())
-	service.OpenAPISchema().SetTitle("Security and Mount Example")
+func service() *web.Service {
+	s := web.NewService(openapi3.NewReflector())
+	s.OpenAPISchema().SetTitle("Security and Mount Example")
 
-	apiV1 := web.NewService(service.OpenAPIReflector())
+	apiV1 := web.NewService(openapi3.NewReflector())
+	apiV2 := web.NewService(openapi3.NewReflector())
 
 	apiV1.Wrap(
 		middleware.BasicAuth("Admin Access", map[string]string{"admin": "admin"}),
-		nethttp.HTTPBasicSecurityMiddleware(service.OpenAPICollector, "Admin", "Admin access"),
+		nethttp.HTTPBasicSecurityMiddleware(s.OpenAPICollector, "Admin", "Admin access"),
+		nethttp.OpenAPIAnnotationsMiddleware(s.OpenAPICollector, func(oc openapi.OperationContext) error {
+			oc.SetTags(append(oc.Tags(), "V1")...)
+			return nil
+		}),
 	)
-
 	apiV1.Post("/sum", sum())
 	apiV1.Post("/mul", mul())
 
-	service.Mount("/api/v1", apiV1)
-	service.Docs("/api/v1/docs", swgui.New)
+	apiV2.Wrap(
+		// No auth for V2.
+
+		nethttp.OpenAPIAnnotationsMiddleware(s.OpenAPICollector, func(oc openapi.OperationContext) error {
+			oc.SetTags(append(oc.Tags(), "V2")...)
+			return nil
+		}),
+	)
+	apiV2.Post("/summarization", sum())
+	apiV2.Post("/multiplication", mul())
+
+	s.Mount("/api/v1", apiV1)
+	s.Mount("/api/v2", apiV2)
+	s.Docs("/api/docs", swgui.New)
 
 	// Blanket handler, for example to serve static content.
-	service.Mount("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	s.Mount("/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		_, _ = w.Write([]byte("blanket handler got a request: " + r.URL.String()))
 	}))
 
-	fmt.Println("Swagger UI at http://localhost:8010/api/v1/docs.")
-	if err := http.ListenAndServe("localhost:8010", service); err != nil {
+	return s
+}
+
+func main() {
+	fmt.Println("Swagger UI at http://localhost:8010/api/docs.")
+	if err := http.ListenAndServe("localhost:8010", service()); err != nil {
 		log.Fatal(err)
 	}
 }

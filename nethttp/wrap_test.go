@@ -12,7 +12,7 @@ func TestWrapHandler(t *testing.T) {
 	var flow []string
 
 	h := nethttp.WrapHandler(
-		http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+		http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 			flow = append(flow, "handler")
 		}),
 		func(handler http.Handler) http.Handler {
@@ -20,7 +20,9 @@ func TestWrapHandler(t *testing.T) {
 
 			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 				flow = append(flow, "mw1 before")
+
 				handler.ServeHTTP(writer, request)
+
 				flow = append(flow, "mw1 after")
 			})
 		},
@@ -29,7 +31,9 @@ func TestWrapHandler(t *testing.T) {
 
 			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 				flow = append(flow, "mw2 before")
+
 				handler.ServeHTTP(writer, request)
+
 				flow = append(flow, "mw2 after")
 			})
 		},
@@ -38,7 +42,9 @@ func TestWrapHandler(t *testing.T) {
 
 			return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 				flow = append(flow, "mw3 before")
+
 				handler.ServeHTTP(writer, request)
+
 				flow = append(flow, "mw3 after")
 			})
 		},

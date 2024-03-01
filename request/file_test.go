@@ -37,7 +37,7 @@ type fileReqTest struct {
 }
 
 func TestDecoder_Decode_fileUploadOptional(t *testing.T) {
-	u := usecase.NewIOI(new(ReqEmb), nil, func(ctx context.Context, input, output interface{}) error {
+	u := usecase.NewIOI(new(ReqEmb), nil, func(_ context.Context, _, _ interface{}) error {
 		return nil
 	})
 
@@ -88,7 +88,7 @@ func TestDecoder_Decode_fileUploadTag(t *testing.T) {
 	}{}
 
 	u.Input = new(fileReqTest)
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+	u.Interactor = usecase.Interact(func(_ context.Context, input, _ interface{}) error {
 		in, ok := input.(*fileReqTest)
 		assert.True(t, ok)
 		assert.NotNil(t, in.Upload)

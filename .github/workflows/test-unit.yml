@@ -15,13 +15,13 @@ concurrency:
 env:
   GO111MODULE: "on"
   RUN_BASE_COVERAGE: "on"  # Runs test for PR base in case base test coverage is missing.
-  COV_GO_VERSION: 1.21.x   # Version of Go to collect coverage
+  COV_GO_VERSION: 1.22.x   # Version of Go to collect coverage
   TARGET_DELTA_COV: 90     # Target coverage of changed lines, in percents
 jobs:
   test:
     strategy:
       matrix:
-        go-version: [ 1.13.x, 1.20.x, 1.21.x ]
+        go-version: [ 1.13.x, 1.21.x, 1.22.x ]
     runs-on: ubuntu-latest
     steps:
       - name: Install Go stable
@@ -88,9 +88,9 @@ jobs:
         id: annotate
         if: matrix.go-version == env.COV_GO_VERSION && github.event.pull_request.base.sha != ''
         run: |
-          curl -sLO https://github.com/vearutop/gocovdiff/releases/download/v1.4.0/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz && rm linux_amd64.tar.gz
+          curl -sLO https://github.com/vearutop/gocovdiff/releases/download/v1.4.2/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz && rm linux_amd64.tar.gz
           gocovdiff_hash=$(git hash-object ./gocovdiff)
-          [ "$gocovdiff_hash" == "f191b45548bb65ec2c7d88909679a57116ff1ba1" ] || (echo "::error::unexpected hash for gocovdiff, possible tampering: $gocovdiff_hash" && exit 1)
+          [ "$gocovdiff_hash" == "c37862c73a677e5a9c069470287823ab5bbf0244" ] || (echo "::error::unexpected hash for gocovdiff, possible tampering: $gocovdiff_hash" && exit 1)
           git fetch origin master ${{ github.event.pull_request.base.sha }}
           REP=$(./gocovdiff -mod github.com/$GITHUB_REPOSITORY -cov unit.coverprofile -gha-annotations gha-unit.txt -delta-cov-file delta-cov-unit.txt -target-delta-cov ${TARGET_DELTA_COV})
           echo "${REP}"

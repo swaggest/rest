@@ -35,7 +35,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	u.Input = new(Input)
 	u.Output = new(Output)
 
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+	u.Interactor = usecase.Interact(func(_ context.Context, input, output interface{}) error {
 		in, ok := input.(*Input)
 		require.True(t, ok)
 		require.NotNil(t, in)
@@ -56,7 +56,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	validatorCalled := false
 	h := nethttp.NewHandler(u,
 		func(h *nethttp.Handler) {
-			h.ReqValidator = rest.ValidatorFunc(func(in rest.ParamIn, namedData map[string]interface{}) error {
+			h.ReqValidator = rest.ValidatorFunc(func(_ rest.ParamIn, _ map[string]interface{}) error {
 				validatorCalled = true
 
 				return nil
@@ -71,7 +71,9 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	h.SetRequestDecoder(request.DecoderFunc(
 		func(r *http.Request, input interface{}, validator rest.Validator) error {
 			assert.Equal(t, req, r)
+
 			in, ok := input.(*Input)
+
 			require.True(t, ok)
 			require.NotNil(t, in)
 
@@ -116,7 +118,7 @@ func TestHandler_ServeHTTP_decodeErr(t *testing.T) {
 	u.Input = new(Input)
 	u.Output = new(Output)
 
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+	u.Interactor = usecase.Interact(func(_ context.Context, _, _ interface{}) error {
 		assert.Fail(t, "should not be called")
 
 		return nil
@@ -127,7 +129,7 @@ func TestHandler_ServeHTTP_decodeErr(t *testing.T) {
 
 	uh := nethttp.NewHandler(u)
 	uh.SetRequestDecoder(request.DecoderFunc(
-		func(r *http.Request, input interface{}, validator rest.Validator) error {
+		func(_ *http.Request, _ interface{}, _ rest.Validator) error {
 			return errors.New("failed to decode request")
 		},
 	))
@@ -156,7 +158,7 @@ func TestHandler_ServeHTTP_emptyPorts(t *testing.T) {
 		usecase.Interactor
 	}{}
 
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+	u.Interactor = usecase.Interact(func(_ context.Context, input, output interface{}) error {
 		assert.Nil(t, input)
 		assert.Nil(t, output)
 
@@ -182,7 +184,7 @@ func TestHandler_ServeHTTP_customErrResp(t *testing.T) {
 		usecase.OutputWithNoContent
 	}{}
 
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+	u.Interactor = usecase.Interact(func(_ context.Context, input, output interface{}) error {
 		assert.Nil(t, input)
 		assert.Nil(t, output)
 
@@ -190,7 +192,7 @@ func TestHandler_ServeHTTP_customErrResp(t *testing.T) {
 	})
 
 	h := nethttp.NewHandler(u)
-	h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
+	h.MakeErrResp = func(_ context.Context, err error) (int, interface{}) {
 		return http.StatusExpectationFailed, struct {
 			Custom string `json:"custom"`
 		}{
@@ -213,7 +215,7 @@ func TestHandlerWithRouteMiddleware(t *testing.T) {
 	called := false
 
 	var h http.Handler
-	h = http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
+	h = http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
 		called = true
 	})
 
@@ -242,7 +244,7 @@ func TestHandler_ServeHTTP_getWithBody(t *testing.T) {
 
 	u.Input = new(reqWithBody)
 
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+	u.Interactor = usecase.Interact(func(_ context.Context, input, output interface{}) error {
 		in, ok := input.(*reqWithBody)
 		assert.True(t, ok)
 		assert.Equal(t, 123, in.ID)
@@ -273,7 +275,7 @@ func TestHandler_ServeHTTP_customMapping(t *testing.T) {
 	}{}
 
 	u.Input = new(Input)
-	u.Interactor = usecase.Interact(func(ctx context.Context, input, output interface{}) error {
+	u.Interactor = usecase.Interact(func(_ context.Context, input, _ interface{}) error {
 		in, ok := input.(*Input)
 		assert.True(t, ok)
 		assert.Equal(t, 123, in.ID)
@@ -309,11 +311,11 @@ func TestHandler_ServeHTTP_customMapping(t *testing.T) {
 }
 
 func TestOptionsMiddleware(t *testing.T) {
-	u := usecase.NewIOI(nil, nil, func(ctx context.Context, input, output interface{}) error {
+	u := usecase.NewIOI(nil, nil, func(_ context.Context, _, _ interface{}) error {
 		return errors.New("failed")
 	})
 	h := nethttp.NewHandler(u, func(h *nethttp.Handler) {
-		h.MakeErrResp = func(ctx context.Context, err error) (int, interface{}) {
+		h.MakeErrResp = func(_ context.Context, err error) (int, interface{}) {
 			return http.StatusExpectationFailed, struct {
 				Foo string `json:"foo"`
 			}{Foo: err.Error()}
@@ -331,8 +333,9 @@ func TestOptionsMiddleware(t *testing.T) {
 		handleErrResponse := h.HandleErrResponse
 		h.HandleErrResponse = func(w http.ResponseWriter, r *http.Request, err error) {
 			assert.Equal(t, req, r)
-			loggedErr = err
 			handleErrResponse(w, r, err)
+
+			loggedErr = err
 		}
 	})(h)
 

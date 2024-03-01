@@ -35,7 +35,7 @@ func ExamplePathToURLValues() {
 	router := chi.NewRouter()
 
 	// Now in router handler you can decode *http.Request into a Go structure.
-	router.Handle("/foo/{path1}/bar/{path2}", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	router.Handle("/foo/{path1}/bar/{path2}", http.HandlerFunc(func(_ http.ResponseWriter, r *http.Request) {
 		var in myRequest
 
 		_ = dec.Decode(r, &in, nil)

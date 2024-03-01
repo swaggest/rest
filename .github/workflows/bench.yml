@@ -21,7 +21,7 @@ env:
   GO111MODULE: "on"
   CACHE_BENCHMARK: "off"    # Enables benchmark result reuse between runs, may skew latency results.
   RUN_BASE_BENCHMARK: "on"  # Runs benchmark for PR base in case benchmark result is missing.
-  GO_VERSION: 1.21.x
+  GO_VERSION: 1.22.x
 jobs:
   bench:
     runs-on: ubuntu-latest
