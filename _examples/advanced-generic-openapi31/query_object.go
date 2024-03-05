@@ -20,18 +20,21 @@ func queryObject() usecase.Interactor {
 
 	type inputQueryObject struct {
 		Query            map[int]float64  `query:"in_query" description:"Object value in query."`
-		JSONFilter       jsonFilter       `query:"json_filter" description:"JSON object value in query."`
+		JSONMap          map[int]float64  `query:"json_map" collectionFormat:"json" description:"JSON object (map) value in query."`
+		JSONFilter       jsonFilter       `query:"json_filter" description:"JSON object (struct) value in query."`
 		DeepObjectFilter deepObjectFilter `query:"deep_object_filter" description:"Deep object value in query params."`
 	}
 
 	type outputQueryObject struct {
 		Query            map[int]float64  `json:"inQuery"`
+		JSONMap          map[int]float64  `json:"jsonMap"`
 		JSONFilter       jsonFilter       `json:"jsonFilter"`
 		DeepObjectFilter deepObjectFilter `json:"deepObjectFilter"`
 	}
 
 	u := usecase.NewInteractor(func(ctx context.Context, in inputQueryObject, out *outputQueryObject) (err error) {
 		out.Query = in.Query
+		out.JSONMap = in.JSONMap
 		out.JSONFilter = in.JSONFilter
 		out.DeepObjectFilter = in.DeepObjectFilter
 

@@ -592,7 +592,11 @@
       "style":"deepObject","explode":true
      },
      {
-      "name":"json_filter","in":"query","description":"JSON object value in query.",
+      "name":"json_map","in":"query","description":"JSON object (map) value in query.",
+      "content":{"application/json":{"schema":{"additionalProperties":{"type":"number"},"type":["null","object"]}}}
+     },
+     {
+      "name":"json_filter","in":"query","description":"JSON object (struct) value in query.",
       "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonFilter"}}}
      },
      {
@@ -864,7 +868,8 @@
     "properties":{
      "deepObjectFilter":{"$ref":"#/components/schemas/AdvancedDeepObjectFilter"},
      "inQuery":{"additionalProperties":{"type":"number"},"type":["object","null"]},
-     "jsonFilter":{"$ref":"#/components/schemas/AdvancedJsonFilter"}
+     "jsonFilter":{"$ref":"#/components/schemas/AdvancedJsonFilter"},
+     "jsonMap":{"additionalProperties":{"type":"number"},"type":["object","null"]}
     },
     "type":"object"
    },

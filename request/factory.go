@@ -229,7 +229,8 @@ func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn,
 
 		fieldVal := v.Interface()
 
-		if refl.HasTaggedFields(fieldVal, jsonTag) && !refl.HasTaggedFields(fieldVal, string(in)) {
+		if sf.Tag.Get("collectionFormat") == "json" ||
+			(refl.HasTaggedFields(fieldVal, jsonTag) && !refl.HasTaggedFields(fieldVal, string(in))) {
 			// If value is a struct with `json` tags, custom decoder unmarshals json
 			// from a string value into a struct.
 			formDecoder.RegisterFunc(func(s string) (interface{}, error) {
