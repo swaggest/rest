@@ -53,10 +53,10 @@ func Test_queryObject(t *testing.T) {
 		},
 		{
 			name: "ok",
-			url:  `/query-object?in_query[1]=0&in_query[2]=0&in_query[3]=0&json_filter={"foo":"strin"}&deep_object_filter[bar]=asd`,
+			url:  `/query-object?in_query[1]=0&in_query[2]=0&in_query[3]=0&json_map={"123":123.45}&json_filter={"foo":"strin"}&deep_object_filter[bar]=asd`,
 			code: http.StatusOK,
 			resp: `{
-			  "inQuery":{"1":0,"2":0,"3":0},"jsonFilter":{"foo":"strin"},
+			  "inQuery":{"1":0,"2":0,"3":0},"jsonMap":{"123":123.45},"jsonFilter":{"foo":"strin"},
 			  "deepObjectFilter":{"bar":"asd"}
 			}`,
 		},
