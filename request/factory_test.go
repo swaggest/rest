@@ -1,6 +1,7 @@
 package request_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/request"
 )
@@ -268,4 +270,69 @@ func TestDecoderFactory_MakeDecoder_header_case_sensitivity(t *testing.T) {
 	assert.Equal(t, "hello!", v.B)
 	assert.Equal(t, "hello!", v.C)
 	assert.Equal(t, "hello!", v.D)
+}
+
+type defaultFromSchema string
+
+func (d *defaultFromSchema) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDefault(enum1)
+	schema.WithTitle("Value with default from schema")
+
+	return nil
+}
+
+type defaultFromSchemaVal string
+
+func (d defaultFromSchemaVal) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDefault(enum1)
+	schema.WithTitle("Value with default from schema")
+
+	return nil
+}
+
+const (
+	enum1 = "all"
+	enum2 = "none"
+)
+
+func (d *defaultFromSchema) Enum() []interface{} {
+	return []interface{}{enum1, enum2}
+}
+
+func (d defaultFromSchemaVal) Enum() []interface{} {
+	return []interface{}{enum1, enum2}
+}
+
+func TestNewDecoderFactory_default(t *testing.T) {
+	type NewThing struct {
+		DefaultedQuery    *defaultFromSchema    `query:"dq"`
+		DefaultedPtr      *defaultFromSchema    `json:"dp,omitempty"`
+		Defaulted         defaultFromSchema     `json:"d"`
+		DefaultedTag      defaultFromSchema     `query:"dt" default:"none"`
+		DefaultedQueryVal *defaultFromSchemaVal `query:"dqv"`
+		DefaultedPtrVal   *defaultFromSchemaVal `json:"dpv,omitempty"`
+		DefaultedVal      defaultFromSchemaVal  `json:"dv"`
+		DefaultedTagVal   defaultFromSchemaVal  `query:"dtv" default:"none"`
+	}
+
+	df := request.NewDecoderFactory()
+	df.ApplyDefaults = true
+	df.JSONSchemaReflector = &jsonschema.Reflector{}
+
+	var input NewThing
+	dec := df.MakeDecoder(http.MethodPost, input, nil)
+
+	req, err := http.NewRequest(http.MethodPost, "/foo", bytes.NewReader([]byte(`{}`)))
+	require.NoError(t, err)
+
+	require.NoError(t, dec.Decode(req, &input, nil))
+	assert.Equal(t, enum1, string(*input.DefaultedPtr))
+	assert.Equal(t, enum1, string(input.Defaulted))
+	assert.Equal(t, enum1, string(*input.DefaultedQuery))
+	assert.Equal(t, enum2, string(input.DefaultedTag))
+
+	assert.Equal(t, enum1, string(*input.DefaultedPtrVal))
+	assert.Equal(t, enum1, string(input.DefaultedVal))
+	assert.Equal(t, enum1, string(*input.DefaultedQueryVal))
+	assert.Equal(t, enum2, string(input.DefaultedTagVal))
 }
