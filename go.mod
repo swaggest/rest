@@ -13,8 +13,8 @@ require (
 	github.com/stretchr/testify v1.8.2
 	github.com/swaggest/assertjson v1.9.0
 	github.com/swaggest/form/v5 v5.1.1
-	github.com/swaggest/jsonschema-go v0.3.66
-	github.com/swaggest/openapi-go v0.2.47
+	github.com/swaggest/jsonschema-go v0.3.69
+	github.com/swaggest/openapi-go v0.2.49
 	github.com/swaggest/refl v1.3.0
 	github.com/swaggest/usecase v1.3.1
 )

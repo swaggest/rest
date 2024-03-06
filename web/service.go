@@ -44,6 +44,7 @@ func NewService(refl oapi.Reflector, options ...func(s *Service)) *Service {
 	if s.DecoderFactory == nil {
 		decoderFactory := request.NewDecoderFactory()
 		decoderFactory.ApplyDefaults = true
+		decoderFactory.JSONSchemaReflector = s.OpenAPICollector.Refl().JSONSchemaReflector()
 		decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
 		s.DecoderFactory = decoderFactory

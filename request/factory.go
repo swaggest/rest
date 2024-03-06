@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/swaggest/form/v5"
+	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/openapi-go"
 	"github.com/swaggest/refl"
 	"github.com/swaggest/rest"
@@ -37,6 +38,9 @@ type DecoderFactory struct {
 	// JSONReader allows custom JSON decoder for request body.
 	// If not set encoding/json.Decoder is used.
 	JSONReader func(rd io.Reader, v interface{}) error
+
+	// JSONSchemaReflector is optional, it is called to infer "default" values.
+	JSONSchemaReflector *jsonschema.Reflector
 
 	formDecoders      map[rest.ParamIn]*form.Decoder
 	decoderFunctions  map[rest.ParamIn]decoderFunc
@@ -257,7 +261,7 @@ func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn,
 func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 	defaults := url.Values{}
 
-	refl.WalkFieldsRecursively(reflect.ValueOf(input), func(_ reflect.Value, sf reflect.StructField, path []reflect.StructField) {
+	refl.WalkFieldsRecursively(reflect.ValueOf(input), func(v reflect.Value, sf reflect.StructField, path []reflect.StructField) {
 		var key string
 
 		for _, p := range path {
@@ -278,8 +282,24 @@ func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 			key += "[" + sf.Name + "]"
 		}
 
-		if d, ok := sf.Tag.Lookup(defaultTag); ok {
+		if d, ok := sf.Tag.Lookup(defaultTag); ok { //nolint:nestif
 			defaults[key] = []string{d}
+		} else if df.JSONSchemaReflector != nil {
+			vi := v.Interface()
+
+			s, err := df.JSONSchemaReflector.Reflect(vi)
+			if err != nil {
+				panic(err.Error())
+			}
+
+			if s.Default != nil {
+				d, err := json.Marshal(s.Default)
+				if err != nil {
+					panic(err.Error())
+				}
+
+				defaults[key] = []string{strings.Trim(string(d), `"`)}
+			}
 		}
 	})
 
