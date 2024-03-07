@@ -284,7 +284,7 @@ func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 
 		if d, ok := sf.Tag.Lookup(defaultTag); ok { //nolint:nestif
 			defaults[key] = []string{d}
-		} else if df.JSONSchemaReflector != nil {
+		} else if df.JSONSchemaReflector != nil && v.CanInterface() {
 			vi := v.Interface()
 
 			s, err := df.JSONSchemaReflector.Reflect(vi)
