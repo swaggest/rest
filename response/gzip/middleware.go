@@ -4,12 +4,14 @@ import (
 	"bufio"
 	"compress/flate"
 	"compress/gzip"
+	"errors"
 	"fmt"
 	"io"
 	"net"
 	"net/http"
 	"strings"
 	"sync"
+	"syscall"
 
 	gz "github.com/swaggest/rest/gzip"
 )
@@ -30,7 +32,7 @@ func Middleware(next http.Handler) http.Handler {
 		if closer, ok := w.(io.Closer); ok {
 			defer func() {
 				err := closer.Close()
-				if err != nil {
+				if err != nil && !errors.Is(err, syscall.EPIPE) {
 					panic(fmt.Sprintf("BUG: cannot close gzip writer: %s", err))
 				}
 			}()
