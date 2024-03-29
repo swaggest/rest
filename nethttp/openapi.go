@@ -26,7 +26,9 @@ func OpenAPIMiddleware(s *openapi.Collector) func(http.Handler) http.Handler {
 		}
 
 		var methods []string
+
 		method := withRoute.RouteMethod()
+
 		if method == "" {
 			methods = []string{"get", "put", "post", "delete", "options", "head", "patch", "trace"}
 		} else {
