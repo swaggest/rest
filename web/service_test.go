@@ -76,6 +76,8 @@ func TestDefaultService(t *testing.T) {
 		}),
 	)
 
+	service.Handle("/a/{id}", nethttp.NewHandler(albumByID()))
+
 	rw := httptest.NewRecorder()
 	r, err := http.NewRequest(http.MethodGet, "http://localhost/docs/openapi.json", nil)
 	require.NoError(t, err)

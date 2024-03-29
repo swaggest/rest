@@ -6,6 +6,145 @@
     "version":"v1.0.0"
   },
   "paths":{
+    "/a/{id}":{
+      "delete":{
+        "tags":["Album"],"summary":"Album By ID",
+        "operationId":"rest/web_test.albumByID7",
+        "parameters":[
+          {"name":"locale","in":"query","schema":{"type":"string"}},
+          {
+            "name":"id","in":"path","required":true,"schema":{"type":"integer"}
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"OK",
+            "content":{
+              "application/json":{"schema":{"$ref":"#/components/schemas/WebTestAlbum"}}
+            }
+          }
+        }
+      },
+      "get":{
+        "tags":["Album"],"summary":"Album By ID",
+        "operationId":"rest/web_test.albumByID4",
+        "parameters":[
+          {"name":"locale","in":"query","schema":{"type":"string"}},
+          {
+            "name":"id","in":"path","required":true,"schema":{"type":"integer"}
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"OK",
+            "content":{
+              "application/json":{"schema":{"$ref":"#/components/schemas/WebTestAlbum"}}
+            }
+          }
+        }
+      },
+      "head":{
+        "tags":["Album"],"summary":"Album By ID",
+        "operationId":"rest/web_test.albumByID9",
+        "parameters":[
+          {"name":"locale","in":"query","schema":{"type":"string"}},
+          {
+            "name":"id","in":"path","required":true,"schema":{"type":"integer"}
+          }
+        ],
+        "responses":{"200":{"description":"OK"}}
+      },
+      "options":{
+        "tags":["Album"],"summary":"Album By ID",
+        "operationId":"rest/web_test.albumByID8",
+        "parameters":[
+          {"name":"locale","in":"query","schema":{"type":"string"}},
+          {
+            "name":"id","in":"path","required":true,"schema":{"type":"integer"}
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"OK",
+            "content":{
+              "application/json":{"schema":{"$ref":"#/components/schemas/WebTestAlbum"}}
+            }
+          }
+        }
+      },
+      "patch":{
+        "tags":["Album"],"summary":"Album By ID",
+        "operationId":"rest/web_test.albumByID10",
+        "parameters":[
+          {"name":"locale","in":"query","schema":{"type":"string"}},
+          {
+            "name":"id","in":"path","required":true,"schema":{"type":"integer"}
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"OK",
+            "content":{
+              "application/json":{"schema":{"$ref":"#/components/schemas/WebTestAlbum"}}
+            }
+          }
+        }
+      },
+      "post":{
+        "tags":["Album"],"summary":"Album By ID",
+        "operationId":"rest/web_test.albumByID6",
+        "parameters":[
+          {"name":"locale","in":"query","schema":{"type":"string"}},
+          {
+            "name":"id","in":"path","required":true,"schema":{"type":"integer"}
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"OK",
+            "content":{
+              "application/json":{"schema":{"$ref":"#/components/schemas/WebTestAlbum"}}
+            }
+          }
+        }
+      },
+      "put":{
+        "tags":["Album"],"summary":"Album By ID",
+        "operationId":"rest/web_test.albumByID5",
+        "parameters":[
+          {"name":"locale","in":"query","schema":{"type":"string"}},
+          {
+            "name":"id","in":"path","required":true,"schema":{"type":"integer"}
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"OK",
+            "content":{
+              "application/json":{"schema":{"$ref":"#/components/schemas/WebTestAlbum"}}
+            }
+          }
+        }
+      },
+      "trace":{
+        "tags":["Album"],"summary":"Album By ID",
+        "operationId":"rest/web_test.albumByID11",
+        "parameters":[
+          {"name":"locale","in":"query","schema":{"type":"string"}},
+          {
+            "name":"id","in":"path","required":true,"schema":{"type":"integer"}
+          }
+        ],
+        "responses":{
+          "200":{
+            "description":"OK",
+            "content":{
+              "application/json":{"schema":{"$ref":"#/components/schemas/WebTestAlbum"}}
+            }
+          }
+        }
+      }
+    },
     "/albums":{
       "options":{
         "tags":["Album"],"summary":"Post Albums",

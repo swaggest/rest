@@ -25,14 +25,24 @@ func OpenAPIMiddleware(s *openapi.Collector) func(http.Handler) http.Handler {
 			return h
 		}
 
-		err := s.CollectUseCase(
-			withRoute.RouteMethod(),
-			withRoute.RoutePattern(),
-			handler.UseCase(),
-			handler.HandlerTrait,
-		)
-		if err != nil {
-			panic(err)
+		var methods []string
+		method := withRoute.RouteMethod()
+		if method == "" {
+			methods = []string{"get", "put", "post", "delete", "options", "head", "patch", "trace"}
+		} else {
+			methods = []string{method}
+		}
+
+		for _, m := range methods {
+			err := s.CollectUseCase(
+				m,
+				withRoute.RoutePattern(),
+				handler.UseCase(),
+				handler.HandlerTrait,
+			)
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		return h
