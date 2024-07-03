@@ -36,34 +36,28 @@ func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error, tolerateFo
 			return nil
 		}
 
-		var (
-			rd io.Reader = r.Body
-			b  *bytes.Buffer
-		)
+		var b *bytes.Buffer
+
+		b = bufPool.Get().(*bytes.Buffer) //nolint:errcheck // bufPool is configured to provide *bytes.Buffer.
+		defer bufPool.Put(b)
+		b.Reset()
+
+		// Read body into buffer.
+		if _, err := b.ReadFrom(r.Body); err != nil {
+			return err
+		}
 
 		validate := validator != nil && validator.HasConstraints(rest.ParamInBody)
 
 		if validate {
-			b = bufPool.Get().(*bytes.Buffer) //nolint:errcheck // bufPool is configured to provide *bytes.Buffer.
-			defer bufPool.Put(b)
-
-			b.Reset()
-			rd = io.TeeReader(r.Body, b)
-		}
-
-		err := readJSON(rd, &input)
-		if err != nil {
-			return fmt.Errorf("failed to decode json: %w", err)
-		}
-
-		if validator != nil && validate {
-			err = validator.ValidateJSONBody(b.Bytes())
+			// Perform validation before unmarshalling into input object.
+			err := validator.ValidateJSONBody(b.Bytes())
 			if err != nil {
 				return err
 			}
 		}
 
-		return nil
+		return readJSON(b, input)
 	}
 }
 
