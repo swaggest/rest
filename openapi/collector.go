@@ -514,7 +514,7 @@ func (c *Collector) ProvideRequestJSONSchemas(
 
 	r := c.Refl()
 
-	err := r.WalkRequestJSONSchemas(method, cu, c.jsonSchemaCallback(validator, r), func(oc openapi.OperationContext) {
+	err := r.WalkRequestJSONSchemas(method, cu, c.jsonSchemaCallback(validator), func(oc openapi.OperationContext) {
 		fv, ok := validator.(unknownFieldsValidator)
 		if !ok {
 			return
@@ -549,19 +549,19 @@ func (c *Collector) ProvideResponseJSONSchemas(
 	}
 
 	r := c.Refl()
-	err := r.WalkResponseJSONSchemas(cu, c.jsonSchemaCallback(validator, r), nil)
+	err := r.WalkResponseJSONSchemas(cu, c.jsonSchemaCallback(validator), nil)
 
 	return err
 }
 
-func (c *Collector) jsonSchemaCallback(validator rest.JSONSchemaValidator, r openapi.Reflector) openapi.JSONSchemaCallback {
+func (c *Collector) jsonSchemaCallback(validator rest.JSONSchemaValidator) openapi.JSONSchemaCallback {
 	return func(in openapi.In, paramName string, schema *jsonschema.SchemaOrBool, required bool) error {
 		loc := string(in) + "." + paramName
 		if loc == "body.body" {
 			loc = "body"
 		}
 
-		if schema == nil || schema.IsTrivial(r.ResolveJSONSchemaRef) {
+		if schema == nil {
 			if err := validator.AddSchema(rest.ParamIn(in), paramName, nil, required); err != nil {
 				return fmt.Errorf("add validation schema %s: %w", loc, err)
 			}

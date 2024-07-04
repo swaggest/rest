@@ -36,9 +36,7 @@ func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error, tolerateFo
 			return nil
 		}
 
-		var b *bytes.Buffer
-
-		b = bufPool.Get().(*bytes.Buffer) //nolint:errcheck // bufPool is configured to provide *bytes.Buffer.
+		b := bufPool.Get().(*bytes.Buffer) //nolint:errcheck // bufPool is configured to provide *bytes.Buffer.
 		defer bufPool.Put(b)
 		b.Reset()
 
