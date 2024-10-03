@@ -81,7 +81,7 @@ func Test_decodeJSONBody_unmarshalFailed(t *testing.T) {
 	var i []int
 
 	err = decodeJSONBody(readJSON, false)(req, &i, nil)
-	assert.EqualError(t, err, "failed to decode json: json: cannot unmarshal number into Go value of type []int")
+	assert.EqualError(t, err, "json: cannot unmarshal number into Go value of type []int")
 }
 
 func Test_decodeJSONBody_validateFailed(t *testing.T) {
