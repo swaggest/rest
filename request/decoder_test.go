@@ -378,6 +378,7 @@ func BenchmarkDecoder_Decode_jsonParam(b *testing.B) {
 			b.Fail()
 		}
 	}
+
 	assert.Equal(b, 123, v.Filter.A)
 	assert.Equal(b, "abc", v.Filter.B)
 }
