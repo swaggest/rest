@@ -56,12 +56,12 @@ func Test_directGzip_perf(t *testing.T) {
 		assert.Less(t, res.Extra["B:rcvd/op"], 700.0)
 		assert.Less(t, res.Extra["B:sent/op"], 104.0)
 		assert.Less(t, res.AllocsPerOp(), int64(60))
-		assert.Less(t, res.AllocedBytesPerOp(), int64(8500))
+		assert.Less(t, res.AllocedBytesPerOp(), int64(8600))
 	} else {
 		assert.Less(t, res.Extra["B:rcvd/op"], 700.0)
 		assert.Less(t, res.Extra["B:sent/op"], 104.0)
 		assert.Less(t, res.AllocsPerOp(), int64(45))
-		assert.Less(t, res.AllocedBytesPerOp(), int64(4100))
+		assert.Less(t, res.AllocedBytesPerOp(), int64(4200))
 	}
 }
 

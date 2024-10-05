@@ -9,7 +9,7 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  GO_VERSION: 1.22.x
+  GO_VERSION: 1.23.x
 jobs:
   gorelease:
     runs-on: ubuntu-latest

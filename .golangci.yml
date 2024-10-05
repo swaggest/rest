@@ -20,35 +20,29 @@ linters-settings:
 linters:
   enable-all: true
   disable:
-    - goerr113
-    - cyclop
     - lll
-    - maligned
+    - nilnil
+    - err113
+    - cyclop
     - gochecknoglobals
     - gomnd
     - wrapcheck
     - paralleltest
     - forbidigo
-    - exhaustivestruct
-    - interfacer # deprecated
     - forcetypeassert
-    - scopelint # deprecated
-    - ifshort # too many false positives
-    - golint # deprecated
     - varnamelen
     - tagliatelle
     - errname
     - ireturn
     - exhaustruct
     - nonamedreturns
-    - nosnakecase
-    - structcheck
-    - varcheck
-    - deadcode
     - testableexamples
     - dupword
     - depguard
     - tagalign
+    - execinquery
+    - mnd
+    - testifylint
 
 issues:
   exclude-use-default: false
@@ -56,10 +50,12 @@ issues:
     - linters:
         - staticcheck
       path: ".go"
-      text: "\"io/ioutil\" has been deprecated since Go 1.16" # Keeping backwards compatibility with go1.13.
+      text: "\"io/ioutil\" has been deprecated since Go 1.19" # Keeping backwards compatibility with go1.13.
     - linters:
+        - canonicalheader
         - testifylint
         - gomnd
+        - mnd
         - goconst
         - goerr113
         - noctx
@@ -73,6 +69,8 @@ issues:
     - linters:
         - errcheck # Error checking omitted for brevity.
         - gosec
-        - revive
       path: "example_"
+    - linters:
+        - revive
+      text: "unused-parameter: parameter"
 
