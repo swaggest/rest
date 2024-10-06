@@ -403,7 +403,7 @@ func (h *Encoder) WriteSuccessfulResponse(
 	}
 
 	if skipRendering {
-		if ht.SuccessStatus != http.StatusOK {
+		if !h.outputWithWriter && !h.dynamicSetter && ht.SuccessStatus != http.StatusOK {
 			w.WriteHeader(ht.SuccessStatus)
 		}
 
