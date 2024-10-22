@@ -152,7 +152,7 @@ func (rw *gzipResponseWriter) GzipWrite(data []byte) (int, error) {
 	return rw.Write(data)
 }
 
-func (rw *gzipResponseWriter) writeHeader(statusCode int) {
+func (rw *gzipResponseWriter) writeHeader(statusCode int) { //nolint:funlen
 	if rw.headersWritten {
 		return
 	}
@@ -166,8 +166,60 @@ func (rw *gzipResponseWriter) writeHeader(statusCode int) {
 	h := rw.Header()
 	ct := h.Get(contentTypeHeader)
 
-	if ct == "image/jpeg" || ct == "image/png" || ct == "image/webp" || ct == "image/gif" {
-		rw.disableCompression = true
+	// See https://developers.cloudflare.com/speed/optimization/content/brotli/content-compression/.
+	switch ct {
+	case "",
+		"text/html",
+		"text/richtext",
+		"text/plain",
+		"text/css",
+		"text/x-script",
+		"text/x-component",
+		"text/x-java-source",
+		"text/x-markdown",
+		"application/javascript",
+		"application/x-javascript",
+		"text/javascript",
+		"text/js",
+		"image/x-icon",
+		"image/vnd.microsoft.icon",
+		"application/x-perl",
+		"application/x-httpd-cgi",
+		"text/xml",
+		"application/xml",
+		"application/rss+xml",
+		"application/vnd.api+json",
+		"application/x-protobuf",
+		"application/json",
+		"multipart/bag",
+		"multipart/mixed",
+		"application/xhtml+xml",
+		"font/ttf",
+		"font/otf",
+		"font/x-woff",
+		"image/svg+xml",
+		"application/vnd.ms-fontobject",
+		"application/ttf",
+		"application/x-ttf",
+		"application/otf",
+		"application/x-otf",
+		"application/truetype",
+		"application/opentype",
+		"application/x-opentype",
+		"application/font-woff",
+		"application/eot",
+		"application/font",
+		"application/font-sfnt",
+		"application/wasm",
+		"application/javascript-binast",
+		"application/manifest+json",
+		"application/ld+json",
+		"application/graphql+json",
+		"application/geo+json":
+	default:
+		if !strings.HasSuffix(ct, "+json") {
+			rw.disableCompression = true
+		}
 	}
 
 	if h.Get(contentEncodingHeader) != "" || rw.disableCompression {
