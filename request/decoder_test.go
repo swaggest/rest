@@ -1,6 +1,7 @@
 package request_test
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"net/http"
@@ -565,4 +566,40 @@ func TestDecoderFactory_MakeDecoder_default_unexported(t *testing.T) {
 
 	dec := f.MakeDecoder(http.MethodGet, showImageInput{}, nil)
 	assert.NotNil(t, dec)
+}
+
+type formOrJSONInput struct {
+	Field1 string `json:"field1" formData:"field1" required:"true"`
+	Field2 int    `json:"field2" formData:"field2" required:"true"`
+}
+
+func (formOrJSONInput) ForceJSONRequestBody() {}
+
+func TestDecoderFactory_MakeDecoder_formOrJSON(t *testing.T) {
+	var in formOrJSONInput
+
+	dec := request.NewDecoderFactory().MakeDecoder(http.MethodPost, in, nil)
+
+	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
+		MakeRequestValidator(http.MethodPost, in, nil)
+
+	req, err := http.NewRequestWithContext(context.Background(), http.MethodPost,
+		"/", bytes.NewReader([]byte(`{"field1":"abc","field2":123}`)))
+	assert.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	require.NoError(t, dec.Decode(req, &in, validator))
+	assert.Equal(t, "abc", in.Field1)
+	assert.Equal(t, 123, in.Field2)
+
+	in = formOrJSONInput{}
+	req, err = http.NewRequestWithContext(context.Background(), http.MethodPost,
+		"/", bytes.NewReader([]byte(`field1=abc&field2=123`)))
+	assert.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	require.NoError(t, dec.Decode(req, &in, validator))
+	assert.Equal(t, "abc", in.Field1)
+	assert.Equal(t, 123, in.Field2)
 }
