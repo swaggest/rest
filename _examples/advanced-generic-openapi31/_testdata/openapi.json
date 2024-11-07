@@ -161,6 +161,33 @@
     "x-forbid-unknown-query":true
    }
   },
+  "/form-or-json/{path}":{
+   "parameters":[
+    {
+     "name":"X-Umbrella-Header","in":"header","description":"This request header is supported in all operations.",
+     "schema":{"type":"string"}
+    }
+   ],
+   "post":{
+    "tags":["Request"],"summary":"Form Or JSON",
+    "description":"This endpoint can accept both form and json requests with the same input structure.",
+    "operationId":"_examples/advanced-generic-openapi31.formOrJSON",
+    "parameters":[{"name":"path","in":"path","required":true,"schema":{"type":"string"}}],
+    "requestBody":{
+     "content":{
+      "application/json":{"schema":{"$ref":"#/components/schemas/AdvancedFormOrJSONInput"}},
+      "application/x-www-form-urlencoded":{"schema":{"$ref":"#/components/schemas/FormDataAdvancedFormOrJSONInput"}}
+     }
+    },
+    "responses":{
+     "200":{
+      "description":"OK",
+      "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedFormOrJSONOutput"}}}
+     }
+    },
+    "x-forbid-unknown-path":true
+   }
+  },
   "/gzip-pass-through":{
    "parameters":[
     {
@@ -771,6 +798,11 @@
     "properties":{"bar":{"minLength":3,"type":"string"},"baz":{"minLength":3,"type":["null","string"]}},
     "type":"object"
    },
+   "AdvancedFormOrJSONInput":{
+    "additionalProperties":false,"properties":{"field1":{"type":"string"},"field2":{"type":"integer"}},
+    "required":["field1","field2"],"type":"object"
+   },
+   "AdvancedFormOrJSONOutput":{"properties":{"f1":{"type":"string"},"f2":{"type":"integer"},"f3":{"type":"string"}},"type":"object"},
    "AdvancedGzipPassThroughStruct":{
     "properties":{"id":{"type":"integer"},"text":{"items":{"type":"string"},"type":["array","null"]}},
     "type":"object"
@@ -905,6 +937,10 @@
     "type":"object"
    },
    "FormDataAdvancedForm":{"additionalProperties":false,"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
+   "FormDataAdvancedFormOrJSONInput":{
+    "additionalProperties":false,"properties":{"field1":{"type":"string"},"field2":{"type":"integer"}},
+    "required":["field1","field2"],"type":"object"
+   },
    "FormDataAdvancedUpload":{
     "additionalProperties":false,
     "properties":{

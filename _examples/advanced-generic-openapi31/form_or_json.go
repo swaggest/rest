@@ -30,6 +30,7 @@ func formOrJSON() usecase.Interactor {
 	})
 
 	u.SetTags("Request")
+	u.SetDescription("This endpoint can accept both form and json requests with the same input structure.")
 
 	return u
 }
