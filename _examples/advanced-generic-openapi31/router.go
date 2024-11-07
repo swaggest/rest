@@ -204,6 +204,8 @@ func NewRouter() http.Handler {
 	s.Post("/text-req-body/{path}", textReqBody(), nethttp.RequestBodyContent("text/csv"))
 	s.Post("/text-req-body-ptr/{path}", textReqBodyPtr(), nethttp.RequestBodyContent("text/csv"))
 
+	s.Post("/form-or-json/{path}", formOrJSON())
+
 	// Security middlewares.
 	//  - sessMW is the actual request-level processor,
 	//  - sessDoc is a handler-level wrapper to expose docs.
