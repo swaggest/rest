@@ -138,6 +138,14 @@ func (s *Service) Head(pattern string, uc usecase.Interactor, options ...func(h 
 	s.Method(http.MethodHead, pattern, nethttp.NewHandler(uc, options...))
 }
 
+// HeadGet adds the route `pattern` that matches a HEAD/GET http method to invoke use case interactor.
+//
+// Response body is automatically ignored.
+func (s *Service) HeadGet(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	s.Method(http.MethodHead, pattern, nethttp.NewHandler(uc, options...))
+	s.Method(http.MethodGet, pattern, nethttp.NewHandler(uc, options...))
+}
+
 // Options adds the route `pattern` that matches a OPTIONS http method to invoke use case interactor.
 func (s *Service) Options(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
 	s.Method(http.MethodOptions, pattern, nethttp.NewHandler(uc, options...))
