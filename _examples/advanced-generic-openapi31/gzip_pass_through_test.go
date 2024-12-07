@@ -3,6 +3,7 @@
 package main
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -29,6 +30,29 @@ func Test_directGzip(t *testing.T) {
 	assert.Equal(t, "gzip", rw.Header().Get("Content-Encoding"))
 	assert.Equal(t, "abc", rw.Header().Get("X-Header"))
 	assert.Less(t, len(rw.Body.Bytes()), 500)
+}
+
+func Test_directGzip_HEAD(t *testing.T) {
+	srv := httptest.NewServer(NewRouter())
+	defer srv.Close()
+
+	req, err := http.NewRequest(http.MethodHead, srv.URL+"/gzip-pass-through", nil)
+	require.NoError(t, err)
+
+	req.Header.Set("Accept-Encoding", "gzip")
+
+	resp, err := http.DefaultTransport.RoundTrip(req)
+	require.NoError(t, err)
+
+	body, err := io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	assert.NoError(t, resp.Body.Close())
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, "330epditz19z", resp.Header.Get("Etag"))
+	assert.Equal(t, "gzip", resp.Header.Get("Content-Encoding"))
+	assert.Equal(t, "abc", resp.Header.Get("X-Header"))
+	assert.Empty(t, body)
 }
 
 func Test_noDirectGzip(t *testing.T) {

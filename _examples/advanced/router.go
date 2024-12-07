@@ -57,6 +57,7 @@ func NewRouter() http.Handler {
 	jsr.AddTypeMapping(uuid.UUID{}, uuidDef)
 
 	s.OpenAPICollector.CombineErrors = "anyOf"
+	s.AddHeadToGet = true
 
 	s.Wrap(
 		// Response validator setup.
@@ -125,7 +126,6 @@ func NewRouter() http.Handler {
 		}))
 
 	s.Get("/output-headers", outputHeaders())
-	s.Head("/output-headers", outputHeaders())
 	s.Get("/output-csv-writer", outputCSVWriter(),
 		nethttp.SuccessfulResponseContentType("text/csv; charset=utf-8"))
 
@@ -146,7 +146,6 @@ func NewRouter() http.Handler {
 	// Type mapping is necessary to pass interface as structure into documentation.
 	jsr.AddTypeMapping(new(gzipPassThroughOutput), new(gzipPassThroughStruct))
 	s.Get("/gzip-pass-through", directGzip())
-	s.Head("/gzip-pass-through", directGzip())
 
 	s.Get("/error-response", errorResponse())
 	s.Get("/dynamic-schema", dynamicSchema())

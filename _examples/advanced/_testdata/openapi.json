@@ -76,6 +76,25 @@
           }
         },
         "x-forbid-unknown-query":true
+      },
+      "head":{
+        "summary":"Dynamic Request Schema",
+        "description":"This use case demonstrates documentation of types that are only known at runtime.",
+        "operationId":"_examples/advanced.dynamicSchema2",
+        "parameters":[
+          {"name":"bar","in":"query","schema":{"type":"string"}},
+          {"name":"type","in":"query","schema":{"type":"string"}},
+          {"name":"foo","in":"header","schema":{"enum":["123","456","789"],"type":"integer"}}
+        ],
+        "responses":{
+          "200":{
+            "description":"OK",
+            "headers":{"foo":{"style":"simple","schema":{"enum":["123","456","789"],"type":"integer"}}}
+          },
+          "400":{"description":"Bad Request"},"409":{"description":"Conflict"},
+          "412":{"description":"Precondition Failed"}
+        },
+        "x-forbid-unknown-query":true
       }
     },
     "/error-response":{
@@ -121,6 +140,22 @@
             "description":"Precondition Failed",
             "content":{"application/problem+json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
           }
+        },
+        "x-forbid-unknown-query":true
+      },
+      "head":{
+        "summary":"Declare Expected Errors",
+        "description":"This use case demonstrates documentation of expected errors.",
+        "operationId":"_examples/advanced.errorResponse2",
+        "parameters":[
+          {
+            "name":"type","in":"query","required":true,
+            "schema":{"enum":["ok","invalid_argument","conflict"],"type":"string"}
+          }
+        ],
+        "responses":{
+          "200":{"description":"OK"},"400":{"description":"Bad Request"},"409":{"description":"Conflict"},
+          "412":{"description":"Precondition Failed"}
         },
         "x-forbid-unknown-query":true
       }
@@ -357,6 +392,35 @@
           }
         },
         "x-forbid-unknown-cookie":true,"x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+      },
+      "head":{
+        "summary":"Request With JSON Query Parameter",
+        "description":"Request with JSON body and query/header/path params, response with JSON body and data from request.",
+        "operationId":"_examples/advanced.jsonParam2",
+        "parameters":[
+          {
+            "name":"in_query","in":"query","description":"Simple scalar value in query.",
+            "schema":{"type":"integer","description":"Simple scalar value in query."}
+          },
+          {
+            "name":"identity","in":"query","description":"JSON value in query",
+            "content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJSONPayload"}}}
+          },
+          {
+            "name":"in-path","in":"path","description":"Simple scalar value in path","required":true,
+            "schema":{"type":"string","description":"Simple scalar value in path"}
+          },
+          {
+            "name":"in_cookie","in":"cookie","description":"UUID in cookie.",
+            "schema":{"$ref":"#/components/schemas/UuidUUID"}
+          },
+          {
+            "name":"X-Header","in":"header","description":"Simple scalar value in header.",
+            "schema":{"type":"string","description":"Simple scalar value in header."}
+          }
+        ],
+        "responses":{"200":{"description":"OK"}},"x-forbid-unknown-cookie":true,"x-forbid-unknown-path":true,
+        "x-forbid-unknown-query":true
       }
     },
     "/json-slice-body":{
@@ -441,6 +505,21 @@
             "content":{"application/problem+json":{"schema":{"$ref":"#/components/schemas/AdvancedCustomErr"}}}
           }
         }
+      },
+      "head":{
+        "summary":"Output With Stream Writer","description":"Output with stream writer.",
+        "responses":{
+          "200":{
+            "description":"OK",
+            "headers":{
+              "X-Header":{
+                "style":"simple","description":"Sample response header.",
+                "schema":{"type":"string","description":"Sample response header."}
+              }
+            }
+          },
+          "500":{"description":"Internal Server Error"}
+        }
       }
     },
     "/output-headers":{
@@ -502,6 +581,16 @@
           }
         },
         "x-forbid-unknown-query":true
+      },
+      "head":{
+        "summary":"Request With Object As Query Parameter","operationId":"_examples/advanced.queryObject2",
+        "parameters":[
+          {
+            "name":"in_query","in":"query","description":"Object value in query.","style":"deepObject","explode":true,
+            "schema":{"type":"object","additionalProperties":{"type":"number"},"description":"Object value in query."}
+          }
+        ],
+        "responses":{"200":{"description":"OK"}},"x-forbid-unknown-query":true
       }
     },
     "/req-resp-mapping":{

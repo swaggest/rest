@@ -1,11 +1,14 @@
 package main
 
 import (
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/bool64/httptestbench"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"github.com/valyala/fasthttp"
 )
 
@@ -22,4 +25,28 @@ func Benchmark_outputHeaders(b *testing.B) {
 	}, func(i int, resp *fasthttp.Response) bool {
 		return resp.StatusCode() == http.StatusOK
 	})
+}
+
+func Test_outputHeaders_HEAD(t *testing.T) {
+	r := NewRouter()
+
+	srv := httptest.NewServer(r)
+	defer srv.Close()
+
+	req, err := http.NewRequest(http.MethodHead, srv.URL+"/output-headers", nil)
+	require.NoError(t, err)
+
+	req.Header.Set("x-FoO", "40")
+
+	resp, err := http.DefaultTransport.RoundTrip(req)
+	require.NoError(t, err)
+
+	assert.Equal(t, resp.StatusCode, http.StatusOK)
+
+	body, err := io.ReadAll(resp.Body)
+	assert.NoError(t, err)
+	assert.NoError(t, resp.Body.Close())
+
+	assert.Equal(t, "abc", resp.Header.Get("X-Header"))
+	assert.Empty(t, body)
 }
