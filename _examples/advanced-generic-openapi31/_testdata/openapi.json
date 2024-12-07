@@ -254,6 +254,18 @@
      }
     },
     "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
+   },
+   "head":{
+    "tags":["Response"],"summary":"Request With HTML Response",
+    "description":"Request with templated HTML response.",
+    "operationId":"_examples/advanced-generic-openapi31.htmlResponse2",
+    "parameters":[
+     {"name":"filter","in":"query","schema":{"type":"string"}},
+     {"name":"id","in":"path","required":true,"schema":{"type":"integer"}},
+     {"name":"X-Header","in":"header","schema":{"type":"boolean"}}
+    ],
+    "responses":{"200":{"description":"OK","headers":{"X-Anti-Header":{"style":"simple","schema":{"type":"boolean"}}}}},
+    "x-forbid-unknown-path":true,"x-forbid-unknown-query":true
    }
   },
   "/json-body-manual/{in-path}":{

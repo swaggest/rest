@@ -108,6 +108,9 @@ type Service struct {
 	// This field is populated so that response.ValidatorMiddleware(s.ResponseValidatorFactory) can be
 	// added to service via Wrap.
 	ResponseValidatorFactory rest.ResponseValidatorFactory
+
+	// AddHeadToGet is an option to enable HEAD method for each usecase added with Service.Get.
+	AddHeadToGet bool
 }
 
 // OpenAPISchema returns OpenAPI schema.
@@ -128,7 +131,15 @@ func (s *Service) Delete(pattern string, uc usecase.Interactor, options ...func(
 }
 
 // Get adds the route `pattern` that matches a GET http method to invoke use case interactor.
+//
+// If Service.AddHeadToGet is enabled, it also adds a HEAD method.
 func (s *Service) Get(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	if s.AddHeadToGet {
+		s.HeadGet(pattern, uc, options...)
+
+		return
+	}
+
 	h := nethttp.NewHandler(uc, options...)
 	s.Method(http.MethodGet, pattern, h)
 }
@@ -136,6 +147,15 @@ func (s *Service) Get(pattern string, uc usecase.Interactor, options ...func(h *
 // Head adds the route `pattern` that matches a HEAD http method to invoke use case interactor.
 func (s *Service) Head(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
 	s.Method(http.MethodHead, pattern, nethttp.NewHandler(uc, options...))
+}
+
+// HeadGet adds the route `pattern` that matches a HEAD/GET http method to invoke use case interactor.
+//
+// Response body is automatically ignored.
+func (s *Service) HeadGet(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	h := nethttp.NewHandler(uc, options...)
+	s.Method(http.MethodGet, pattern, h)
+	s.Method(http.MethodHead, pattern, h)
 }
 
 // Options adds the route `pattern` that matches a OPTIONS http method to invoke use case interactor.

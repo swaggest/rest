@@ -81,7 +81,8 @@ func directGzip() usecase.Interactor {
 
 		// Imitating an internal read operation on data in container.
 		if in.CountItems {
-			_ = len((*out).gzipPassThroughStruct().Text)
+			cnt := len((*out).gzipPassThroughStruct().Text)
+			println("items: ", cnt)
 		}
 
 		return nil
