@@ -25,7 +25,7 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-func NewRouter() http.Handler {
+func NewRouter() *web.Service {
 	r := openapi31.NewReflector()
 	s := web.NewService(r)
 
