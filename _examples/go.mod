@@ -6,11 +6,11 @@ replace github.com/swaggest/rest => ../
 
 require (
 	github.com/bool64/ctxd v1.2.1
-	github.com/bool64/dev v0.2.36
-	github.com/bool64/httpmock v0.1.13
+	github.com/bool64/dev v0.2.37
+	github.com/bool64/httpmock v0.1.15
 	github.com/bool64/httptestbench v0.1.4
 	github.com/gin-gonic/gin v1.10.0
-	github.com/go-chi/chi/v5 v5.1.0
+	github.com/go-chi/chi/v5 v5.2.0
 	github.com/go-chi/jwtauth/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
