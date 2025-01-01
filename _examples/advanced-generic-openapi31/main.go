@@ -4,6 +4,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
@@ -36,7 +37,13 @@ func main() {
 		close(idleConnsClosed)
 	}()
 
-	srv.Handler = NewRouter()
+	r := NewRouter()
+
+	// You can access OpenAPI schema of an instrumented *web.Service if you need.
+	j, _ := json.Marshal(r.OpenAPISchema())
+	println("OpenAPI schema head:", string(j)[0:300], "...")
+
+	srv.Handler = r
 	srv.Addr = "localhost:8012"
 
 	log.Println("http://localhost:8012/docs")
