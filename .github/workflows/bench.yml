@@ -12,43 +12,27 @@ on:
         description: 'New Ref'
         required: true
 
-# Cancel the workflow in progress in newer build is about to start.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
-  cancel-in-progress: true
-
 env:
   GO111MODULE: "on"
   CACHE_BENCHMARK: "off"    # Enables benchmark result reuse between runs, may skew latency results.
   RUN_BASE_BENCHMARK: "on"  # Runs benchmark for PR base in case benchmark result is missing.
-  GO_VERSION: 1.23.x
 jobs:
   bench:
+    strategy:
+      matrix:
+        go-version: [ stable ]
     runs-on: ubuntu-latest
     steps:
-      - name: Install Go stable
-        if: env.GO_VERSION != 'tip'
-        uses: actions/setup-go@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
-
-      - name: Install Go tip
-        if: env.GO_VERSION == 'tip'
-        run: |
-          curl -sL https://storage.googleapis.com/go-build-snap/go/linux-amd64/$(git ls-remote https://github.com/golang/go.git HEAD | awk '{print $1;}').tar.gz -o gotip.tar.gz
-          ls -lah gotip.tar.gz
-          mkdir -p ~/sdk/gotip
-          tar -C ~/sdk/gotip -xzf gotip.tar.gz
-          ~/sdk/gotip/bin/go version
-          echo "PATH=$HOME/go/bin:$HOME/sdk/gotip/bin/:$PATH" >> $GITHUB_ENV
-
+          go-version: ${{ matrix.go-version }}
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: ${{ (github.event.inputs.new != '') && github.event.inputs.new || github.event.ref }}
-
       - name: Go cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           # In order:
           # * Module download cache
@@ -59,58 +43,49 @@ jobs:
           key: ${{ runner.os }}-go-cache-${{ hashFiles('**/go.sum') }}
           restore-keys: |
             ${{ runner.os }}-go-cache
-
       - name: Restore benchstat
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/go/bin/benchstat
-          key: ${{ runner.os }}-benchstat-legacy
-
+          key: ${{ runner.os }}-benchstat
       - name: Restore base benchmark result
-        id: base-benchmark
         if: env.CACHE_BENCHMARK == 'on'
-        uses: actions/cache@v3
+        id: benchmark-base
+        uses: actions/cache@v4
         with:
           path: |
             bench-master.txt
             bench-main.txt
           # Use base sha for PR or new commit hash for master/main push in benchmark result key.
           key: ${{ runner.os }}-bench-${{ (github.event.pull_request.base.sha != github.event.after) && github.event.pull_request.base.sha || github.event.after }}
-
-      - name: Run benchmark
+      - name: Checkout base code
+        if: env.RUN_BASE_BENCHMARK == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && (github.event.pull_request.base.sha != '' || github.event.inputs.old != '')
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ (github.event.pull_request.base.sha != '' ) && github.event.pull_request.base.sha || github.event.inputs.old }}
+          path: __base
+      - name: Run base benchmark
+        if: env.RUN_BASE_BENCHMARK == 'on' && steps.benchmark-base.outputs.cache-hit != 'true' && (github.event.pull_request.base.sha != '' || github.event.inputs.old != '')
         run: |
-          export REF_NAME=new
-          make bench
-          OUTPUT=$(make bench-stat-diff)
-          echo "${OUTPUT}"
-          echo "diff<<EOF" >> $GITHUB_OUTPUT && echo "$OUTPUT" >> $GITHUB_OUTPUT && echo "EOF" >> $GITHUB_OUTPUT
-          OUTPUT=$(make bench-stat)
-          echo "${OUTPUT}"
-          echo "result<<EOF" >> $GITHUB_OUTPUT && echo "$OUTPUT" >> $GITHUB_OUTPUT && echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Run benchmark for base code
-        if: env.RUN_BASE_BENCHMARK == 'on' && steps.base-benchmark.outputs.cache-hit != 'true' && (github.event.pull_request.base.sha != '' || github.event.inputs.old != '')
-        run: |
-          git fetch origin master ${{ github.event.pull_request.base.sha }}
-          HEAD=$(git rev-parse HEAD)
-          git reset --hard ${{ github.event.pull_request.base.sha }}
           export REF_NAME=master
-          make bench-run bench-stat
-          git reset --hard $HEAD
-
-      - name: Benchmark stats
+          cd __base
+          make | grep bench-run && (BENCH_COUNT=5 make bench-run bench-stat && cp bench-master.txt ../bench-master.txt) || echo "No benchmarks in base"
+      - name: Benchmark
         id: bench
         run: |
           export REF_NAME=new
+          BENCH_COUNT=5 make bench
           OUTPUT=$(make bench-stat-diff)
-          echo "${OUTPUT}"
-          echo "diff<<EOF" >> $GITHUB_OUTPUT && echo "$OUTPUT" >> $GITHUB_OUTPUT && echo "EOF" >> $GITHUB_OUTPUT
+          OUTPUT="${OUTPUT//'%'/'%25'}"
+          OUTPUT="${OUTPUT//$'\n'/'%0A'}"
+          OUTPUT="${OUTPUT//$'\r'/'%0D'}"
+          echo "::set-output name=diff::$OUTPUT"
           OUTPUT=$(make bench-stat)
-          echo "${OUTPUT}"
-          echo "result<<EOF" >> $GITHUB_OUTPUT && echo "$OUTPUT" >> $GITHUB_OUTPUT && echo "EOF" >> $GITHUB_OUTPUT
-
-      - name: Comment benchmark result
-        continue-on-error: true
+          OUTPUT="${OUTPUT//'%'/'%25'}"
+          OUTPUT="${OUTPUT//$'\n'/'%0A'}"
+          OUTPUT="${OUTPUT//$'\r'/'%0D'}"
+          echo "::set-output name=result::$OUTPUT"
+      - name: Comment Benchmark Result
         uses: marocchino/sticky-pull-request-comment@v2
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

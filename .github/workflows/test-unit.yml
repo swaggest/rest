@@ -15,36 +15,25 @@ concurrency:
 env:
   GO111MODULE: "on"
   RUN_BASE_COVERAGE: "on"  # Runs test for PR base in case base test coverage is missing.
-  COV_GO_VERSION: 1.22.x   # Version of Go to collect coverage
+  COV_GO_VERSION: stable   # Version of Go to collect coverage
   TARGET_DELTA_COV: 90     # Target coverage of changed lines, in percents
 jobs:
   test:
     strategy:
       matrix:
-        go-version: [ 1.13.x, 1.22.x, 1.23.x ]
+        go-version: [ 1.13.x, stable, oldstable ]
     runs-on: ubuntu-latest
     steps:
-      - name: Install Go stable
-        if: matrix.go-version != 'tip'
-        uses: actions/setup-go@v4
+      - name: Install Go
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ matrix.go-version }}
 
-      - name: Install Go tip
-        if: matrix.go-version == 'tip'
-        run: |
-          curl -sL https://storage.googleapis.com/go-build-snap/go/linux-amd64/$(git ls-remote https://github.com/golang/go.git HEAD | awk '{print $1;}').tar.gz -o gotip.tar.gz
-          ls -lah gotip.tar.gz
-          mkdir -p ~/sdk/gotip
-          tar -C ~/sdk/gotip -xzf gotip.tar.gz
-          ~/sdk/gotip/bin/go version
-          echo "PATH=$HOME/go/bin:$HOME/sdk/gotip/bin/:$PATH" >> $GITHUB_ENV
-
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Go cache
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           # In order:
           # * Module download cache
@@ -59,7 +48,7 @@ jobs:
       - name: Restore base test coverage
         id: base-coverage
         if: matrix.go-version == env.COV_GO_VERSION && github.event.pull_request.base.sha != ''
-        uses: actions/cache@v2
+        uses: actions/cache@v4
         with:
           path: |
             unit-base.txt
@@ -130,7 +119,7 @@ jobs:
 
       - name: Upload code coverage
         if: matrix.go-version == env.COV_GO_VERSION
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v5
         with:
-          file: ./unit.coverprofile
+          files: ./unit.coverprofile
           flags: unittests
