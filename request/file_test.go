@@ -91,6 +91,9 @@ func TestDecoder_Decode_fileUploadTag(t *testing.T) {
 	u.Interactor = usecase.Interact(func(_ context.Context, input, _ interface{}) error {
 		in, ok := input.(*fileReqTest)
 		assert.True(t, ok)
+
+		assert.Equal(t, "def", in.Simple)
+
 		assert.NotNil(t, in.Upload)
 		assert.NotNil(t, in.UploadHeader)
 		assert.Equal(t, "my.csv", in.UploadHeader.Filename)
@@ -146,6 +149,8 @@ func TestDecoder_Decode_fileUploadTag(t *testing.T) {
 
 	_, err = writer.Write([]byte(`Hello2!`))
 	assert.NoError(t, err)
+
+	assert.NoError(t, w.WriteField("simple", "def"))
 
 	assert.NoError(t, w.Close())
 

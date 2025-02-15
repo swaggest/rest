@@ -79,7 +79,7 @@ func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamI
 func makeDecoder(in rest.ParamIn, formDecoder *form.Decoder, decoderFunc decoderFunc) valueDecoderFunc {
 	return func(r *http.Request, v interface{}, validator rest.Validator) error {
 		ct := r.Header.Get("Content-Type")
-		if in == rest.ParamInFormData && ct != "" && ct != "multipart/form-data" && ct != "application/x-www-form-urlencoded" {
+		if in == rest.ParamInFormData && ct != "" && !strings.HasPrefix(ct, "multipart/form-data") && ct != "application/x-www-form-urlencoded" {
 			return nil
 		}
 
