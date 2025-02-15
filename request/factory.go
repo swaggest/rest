@@ -61,6 +61,7 @@ func NewDecoderFactory() *DecoderFactory {
 	df.SetDecoderFunc(rest.ParamInHeader, headerToURLValues)
 	df.SetDecoderFunc(rest.ParamInQuery, queryToURLValues)
 	df.SetDecoderFunc("form", formToURLValues)
+	df.SetDecoderFunc("contentType", contentTypeBodyToURLValues)
 
 	defaultValDecoder := form.NewDecoder()
 	defaultValDecoder.SetNamespacePrefix("[")

@@ -70,7 +70,8 @@ Input data can be located in:
 * `form` parameter acts as `formData` or `query`,
 * `json` parameter in request body with `application/json` content,
 * `cookie` parameter in request cookie,
-* `header` parameter in request header.
+* `header` parameter in request header,
+* `contentType` of matching raw request body.
 
 For more explicit separation of concerns between use case and transport it is possible to provide request mapping 
 separately when initializing handler (please note, such mapping is [not applied](https://github.com/swaggest/rest/issues/61#issuecomment-1059851553) to `json` body).
@@ -152,7 +153,8 @@ type helloOutput struct {
 Output data can be located in:
 * `json` for response body with `application/json` content,
 * `header` for values in response header,
-* `cookie` for cookie values, cookie fields can have configuration in field tag (same as in actual cookie, but with comma separation).
+* `cookie` for cookie values, cookie fields can have configuration in field tag (same as in actual cookie, but with comma separation),
+* `contentType` for a non-empty string value that should be used as response body with given content type.
 
 For more explicit separation of concerns between use case and transport it is possible to provide response header mapping 
 separately when initializing handler.

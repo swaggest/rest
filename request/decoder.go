@@ -1,6 +1,7 @@
 package request
 
 import (
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -188,4 +189,15 @@ func cookiesToURLValues(r *http.Request) (url.Values, error) {
 	}
 
 	return params, nil
+}
+
+func contentTypeBodyToURLValues(r *http.Request) (url.Values, error) {
+	b, err := ioutil.ReadAll(r.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return url.Values{
+		r.Header.Get("Content-Type"): []string{string(b)},
+	}, nil
 }

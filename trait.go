@@ -76,7 +76,8 @@ func OutputHasNoContent(output interface{}) bool {
 		elemKind = rv.Elem().Kind()
 	}
 
-	hasTaggedFields := refl.HasTaggedFields(output, "json")
+	hasJSONTaggedFields := refl.HasTaggedFields(output, "json")
+	hasContentTypeTaggedFields := refl.HasTaggedFields(output, "contentType")
 	isSliceOrMap := refl.IsSliceOrMap(output)
 	hasEmbeddedSliceOrMap := refl.FindEmbeddedSliceOrMap(output) != nil
 	isJSONMarshaler := refl.As(output, new(json.Marshaler))
@@ -85,7 +86,8 @@ func OutputHasNoContent(output interface{}) bool {
 
 	if withWriter ||
 		noContent ||
-		hasTaggedFields ||
+		hasJSONTaggedFields ||
+		hasContentTypeTaggedFields ||
 		isSliceOrMap ||
 		hasEmbeddedSliceOrMap ||
 		isJSONMarshaler ||

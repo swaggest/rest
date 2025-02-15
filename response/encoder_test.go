@@ -300,3 +300,30 @@ func TestEmbeddedSetter_SetResponseWriter(t *testing.T) {
 	assert.Equal(t, `{"items":["one","two","three"]}`+"\n", w.Body.String())
 	assert.Equal(t, w, out.ResponseWriter())
 }
+
+func TestEncoder_contentTypeRaw(t *testing.T) {
+	type Resp struct {
+		TextBody string `contentType:"text/plain"`
+		CSVBody  string `contentType:"text/csv"`
+	}
+
+	ht := rest.HandlerTrait{}
+
+	e := response.Encoder{}
+	e.SetupOutput(Resp{}, &ht)
+
+	w := httptest.NewRecorder()
+
+	v := e.MakeOutput(w, ht)
+
+	re, ok := v.(*Resp)
+	assert.True(t, ok)
+
+	re.CSVBody = "hello,world"
+
+	e.WriteSuccessfulResponse(w, nil, v, ht)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "hello,world", w.Body.String())
+	assert.Equal(t, "text/csv", w.Header().Get("Content-Type"))
+}
