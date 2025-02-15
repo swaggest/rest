@@ -336,3 +336,34 @@ func TestNewDecoderFactory_default(t *testing.T) {
 	assert.Equal(t, enum1, string(*input.DefaultedQueryVal))
 	assert.Equal(t, enum2, string(input.DefaultedTagVal))
 }
+
+func TestNewDecoderFactory_requestBody(t *testing.T) {
+	type Req struct {
+		TextBody string `contentType:"text/plain"`
+		CSVBody  string `contentType:"text/csv"`
+	}
+
+	req, err := http.NewRequest(http.MethodPost, "/foo", bytes.NewReader([]byte(`hello world`)))
+	require.NoError(t, err)
+
+	req.Header.Set("Content-Type", "text/plain")
+
+	var input Req
+	dec := request.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
+
+	require.NoError(t, dec.Decode(req, &input, nil))
+
+	assert.Equal(t, "hello world", input.TextBody)
+	assert.Empty(t, input.CSVBody)
+
+	req, err = http.NewRequest(http.MethodPost, "/foo", bytes.NewReader([]byte(`hello,world`)))
+	require.NoError(t, err)
+
+	req.Header.Set("Content-Type", "text/csv")
+
+	input = Req{}
+	require.NoError(t, dec.Decode(req, &input, nil))
+
+	assert.Equal(t, "hello,world", input.CSVBody)
+	assert.Empty(t, input.TextBody)
+}

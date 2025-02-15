@@ -30,13 +30,14 @@ type (
 type Encoder struct {
 	JSONWriter func(v interface{})
 
-	outputBufferType     reflect.Type
-	outputHeadersEncoder *form.Encoder
-	outputCookiesEncoder *form.Encoder
-	outputCookieBase     []http.Cookie
-	skipRendering        bool
-	outputWithWriter     bool
-	unwrapInterface      bool
+	outputBufferType             reflect.Type
+	outputHeadersEncoder         *form.Encoder
+	outputCookiesEncoder         *form.Encoder
+	outputContentTypeBodyEncoder *form.Encoder
+	outputCookieBase             []http.Cookie
+	skipRendering                bool
+	outputWithWriter             bool
+	unwrapInterface              bool
 
 	dynamicWithHeadersSetup bool
 	dynamicSetter           bool
@@ -120,12 +121,59 @@ func (h *Encoder) setupHeadersEncoder(output interface{}, ht *rest.HandlerTrait)
 	}
 }
 
-func (h *Encoder) setupCookiesEncoder(output interface{}, ht *rest.HandlerTrait) {
-	// Enable dynamic headers check in interface mode.
+func (h *Encoder) setupContentTypeBodyEncoder(output interface{}) {
+	tagName := "contentType"
+
+	// Enable dynamic  check in interface mode.
 	if h.unwrapInterface {
 		enc := form.NewEncoder()
 		enc.SetMode(form.ModeExplicit)
-		enc.SetTagName(string(rest.ParamInCookie))
+		enc.SetTagName(tagName)
+
+		h.outputContentTypeBodyEncoder = enc
+
+		return
+	}
+
+	var mapping map[string]string
+	if refl.HasTaggedFields(output, tagName) {
+		mapping = make(map[string]string)
+
+		refl.WalkTaggedFields(reflect.ValueOf(output), func(_ reflect.Value, sf reflect.StructField, _ string) {
+			// Converting name to canonical form, while keeping omitempty and any other options.
+			t := sf.Tag.Get(tagName)
+			parts := strings.Split(t, ",")
+			t = strings.Join(parts, ",")
+
+			mapping[sf.Name] = t
+		}, tagName)
+	}
+
+	if len(mapping) > 0 {
+		enc := form.NewEncoder()
+		enc.SetMode(form.ModeExplicit)
+		enc.RegisterTagNameFunc(func(field reflect.StructField) string {
+			if name, ok := mapping[field.Name]; ok {
+				return name
+			}
+
+			if field.Anonymous {
+				return ""
+			}
+
+			return "-"
+		})
+
+		h.outputContentTypeBodyEncoder = enc
+	}
+}
+
+func (h *Encoder) setupCookiesEncoder(output interface{}, ht *rest.HandlerTrait) {
+	// Enable dynamic check in interface mode.
+	if h.unwrapInterface {
+		enc := form.NewEncoder()
+		enc.SetMode(form.ModeExplicit)
+		enc.SetTagName("contentType")
 
 		h.outputCookiesEncoder = enc
 
@@ -213,6 +261,7 @@ func (h *Encoder) SetupOutput(output interface{}, ht *rest.HandlerTrait) {
 
 	h.setupHeadersEncoder(output, ht)
 	h.setupCookiesEncoder(output, ht)
+	h.setupContentTypeBodyEncoder(output)
 
 	if h.outputBufferType.Kind() == reflect.Ptr {
 		h.outputBufferType = h.outputBufferType.Elem()
@@ -380,11 +429,15 @@ func (h *Encoder) WriteSuccessfulResponse(
 		}
 	}
 
-	if !h.whiteHeader(w, r, output, ht) {
+	if !h.writeHeader(w, r, output, ht) {
 		return
 	}
 
 	if !h.writeCookies(w, r, output, ht) {
+		return
+	}
+
+	if h.outputContentTypeBodyEncoder != nil && h.writeRawResponse(w, r, output, ht) {
 		return
 	}
 
@@ -423,7 +476,7 @@ func (h *Encoder) writeError(err error, w http.ResponseWriter, r *http.Request, 
 	}
 }
 
-func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output interface{}, ht rest.HandlerTrait) bool {
+func (h *Encoder) writeHeader(w http.ResponseWriter, r *http.Request, output interface{}, ht rest.HandlerTrait) bool {
 	if h.dynamicWithHeadersSetup {
 		if sh, ok := output.(outputWithHeadersSetup); ok {
 			sh.SetupResponseHeader(w.Header())
@@ -461,6 +514,29 @@ func (h *Encoder) whiteHeader(w http.ResponseWriter, r *http.Request, output int
 	}
 
 	return true
+}
+
+func (h *Encoder) writeRawResponse(w http.ResponseWriter, r *http.Request, output interface{}, ht rest.HandlerTrait) bool {
+	values, err := h.outputContentTypeBodyEncoder.Encode(output)
+	if err != nil {
+		h.writeError(err, w, r, ht)
+
+		return true
+	}
+
+	for k, v := range values {
+		if len(v) == 1 && v[0] != "" {
+			w.Header().Set("Content-Type", k)
+
+			if _, err := w.Write([]byte(v[0])); err != nil {
+				h.writeError(err, w, r, ht)
+			}
+
+			return true
+		}
+	}
+
+	return false
 }
 
 func (h *Encoder) writeCookies(w http.ResponseWriter, r *http.Request, output interface{}, ht rest.HandlerTrait) bool {
