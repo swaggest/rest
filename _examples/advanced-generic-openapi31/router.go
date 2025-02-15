@@ -154,6 +154,7 @@ func NewRouter() *web.Service {
 
 	s.Get("/query-object", queryObject())
 	s.Post("/form", form())
+	s.Post("/raw-body", rawBody())
 
 	s.Post("/file-upload", fileUploader())
 	s.Post("/file-multi-upload", fileMultiUploader())

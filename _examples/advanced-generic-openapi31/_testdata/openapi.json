@@ -655,6 +655,29 @@
     "x-forbid-unknown-query":true
    }
   },
+  "/raw-body":{
+   "parameters":[
+    {
+     "name":"X-Umbrella-Header","in":"header","description":"This request header is supported in all operations.",
+     "schema":{"type":"string"}
+    }
+   ],
+   "post":{
+    "tags":["Request","Response"],"summary":"Request/response With Raw Body",
+    "description":"The `contentType` tag acts as a discriminator of where to read/write the body.",
+    "operationId":"_examples/advanced-generic-openapi31.rawBody",
+    "requestBody":{"content":{"text/csv":{"schema":{"type":"string"}},"text/plain":{"schema":{"type":"string"}}}},
+    "responses":{
+     "200":{
+      "description":"OK",
+      "content":{
+       "application/json":{"schema":{"type":"string"}},"text/csv":{"schema":{"type":"string"}},
+       "text/plain":{"schema":{"type":"string"}}
+      }
+     }
+    }
+   }
+  },
   "/req-resp-mapping":{
    "parameters":[
     {
