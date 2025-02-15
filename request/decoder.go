@@ -1,7 +1,7 @@
 package request
 
 import (
-	"io"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -192,7 +192,7 @@ func cookiesToURLValues(r *http.Request) (url.Values, error) {
 }
 
 func contentTypeBodyToURLValues(r *http.Request) (url.Values, error) {
-	b, err := io.ReadAll(r.Body)
+	b, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
