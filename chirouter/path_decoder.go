@@ -9,7 +9,7 @@ import (
 )
 
 // PathToURLValues is a decoder function for parameters in path.
-func PathToURLValues(r *http.Request) (url.Values, error) { //nolint:unparam // Matches request.DecoderFactory.SetDecoderFunc.
+func PathToURLValues(r *http.Request) (url.Values, error) {
 	if routeCtx := chi.RouteContext(r.Context()); routeCtx != nil {
 		params := make(url.Values, len(routeCtx.URLParams.Keys))
 
