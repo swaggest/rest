@@ -20,6 +20,7 @@ func PathToURLValues(r *http.Request) (url.Values, error) { //nolint:unparam // 
 			if err != nil {
 				return nil, fmt.Errorf("unescaping path: %w", err)
 			}
+
 			params[key] = []string{value}
 		}
 
