@@ -45,7 +45,8 @@ func ExamplePathToURLValues() {
 
 	// Serving example URL.
 	w := httptest.NewRecorder()
-	req, _ := http.NewRequest(http.MethodPost, "/foo/abc/bar/123?query1=321",
+
+	req, _ := http.NewRequest(http.MethodPost, `/foo/a%2Fbc/bar/123?query1=321`,
 		bytes.NewBufferString("formData1=true&formData2=def"))
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -53,5 +54,5 @@ func ExamplePathToURLValues() {
 
 	router.ServeHTTP(w, req)
 	// Output:
-	// {Query1:321 Path1:abc Path2:123 Header1:1.23 FormData1:true FormData2:def}
+	// {Query1:321 Path1:a/bc Path2:123 Header1:1.23 FormData1:true FormData2:def}
 }

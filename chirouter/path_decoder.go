@@ -1,6 +1,7 @@
 package chirouter
 
 import (
+	"fmt"
 	"net/http"
 	"net/url"
 
@@ -14,6 +15,10 @@ func PathToURLValues(r *http.Request) (url.Values, error) { //nolint:unparam // 
 
 		for i, key := range routeCtx.URLParams.Keys {
 			value := routeCtx.URLParams.Values[i]
+			value, err := url.PathUnescape(value)
+			if err != nil {
+				return nil, fmt.Errorf("PathToUrlValues: %w", err)
+			}
 			params[key] = []string{value}
 		}
 
