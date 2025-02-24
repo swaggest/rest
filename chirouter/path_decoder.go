@@ -17,7 +17,7 @@ func PathToURLValues(r *http.Request) (url.Values, error) { //nolint:unparam // 
 			value := routeCtx.URLParams.Values[i]
 			value, err := url.PathUnescape(value)
 			if err != nil {
-				return nil, fmt.Errorf("PathToUrlValues: %w", err)
+				return nil, fmt.Errorf("unescaping path: %w", err)
 			}
 			params[key] = []string{value}
 		}
