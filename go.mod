@@ -3,7 +3,7 @@ module github.com/swaggest/rest
 go 1.17
 
 require (
-	github.com/bool64/dev v0.2.38
+	github.com/bool64/dev v0.2.39
 	github.com/bool64/httpmock v0.1.15
 	github.com/bool64/shared v0.1.5
 	github.com/cespare/xxhash/v2 v2.3.0
@@ -14,8 +14,8 @@ require (
 	github.com/swaggest/assertjson v1.9.0
 	github.com/swaggest/form/v5 v5.1.1
 	github.com/swaggest/jsonschema-go v0.3.73
-	github.com/swaggest/openapi-go v0.2.55
-	github.com/swaggest/refl v1.3.0
+	github.com/swaggest/openapi-go v0.2.57
+	github.com/swaggest/refl v1.3.1
 	github.com/swaggest/usecase v1.3.1
 )
 

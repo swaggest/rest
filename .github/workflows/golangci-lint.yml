@@ -24,10 +24,10 @@ jobs:
           go-version: stable
       - uses: actions/checkout@v4
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6.2.0
+        uses: golangci/golangci-lint-action@v6.5.0
         with:
           # Required: the version of golangci-lint is required and must be specified without patch version: we always use the latest patch version.
-          version: v1.63.4
+          version: v1.64.5
 
           # Optional: working directory, useful for monorepos
           # working-directory: somedir
