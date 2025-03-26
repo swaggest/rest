@@ -4,8 +4,9 @@ github.com/bool64/dev v0.2.29/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8
 github.com/bool64/dev v0.2.31/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8ACg=
 github.com/bool64/dev v0.2.32/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8ACg=
 github.com/bool64/dev v0.2.36/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8ACg=
-github.com/bool64/dev v0.2.38 h1:C5H9wkx/BhTYRfV14X90iIQKpSuhzsG+OHQvWdQ5YQ4=
 github.com/bool64/dev v0.2.38/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8ACg=
+github.com/bool64/dev v0.2.39 h1:kP8DnMGlWXhGYJEZE/J0l/gVBdbuhoPGL+MJG4QbofE=
+github.com/bool64/dev v0.2.39/go.mod h1:iJbh1y/HkunEPhgebWRNcs8wfGq7sjvJ6W5iabL8ACg=
 github.com/bool64/httpmock v0.1.15 h1:PWvuqpew/FEigT7cvv03/t9G+UeE3wD2QP8PVyBBUwc=
 github.com/bool64/httpmock v0.1.15/go.mod h1:Ht82vaR7YJu8YHcJoK5mDi5OG6NJfv/MmYfdfod1huQ=
 github.com/bool64/shared v0.1.5 h1:fp3eUhBsrSjNCQPcSdQqZxxh9bBwrYiZ+zOKFkM0/2E=
@@ -78,10 +79,11 @@ github.com/swaggest/form/v5 v5.1.1 h1:ct6/rOQBGrqWUQ0FUv3vW5sHvTUb31AwTUWj947N6c
 github.com/swaggest/form/v5 v5.1.1/go.mod h1:X1hraaoONee20PMnGNLQpO32f9zbQ0Czfm7iZThuEKg=
 github.com/swaggest/jsonschema-go v0.3.73 h1:gU1pBzF3pkZ1GDD3dRMdQoCjrA0sldJ+QcM7aSSPgvc=
 github.com/swaggest/jsonschema-go v0.3.73/go.mod h1:qp+Ym2DIXHlHzch3HKz50gPf2wJhKOrAB/VYqLS2oJU=
-github.com/swaggest/openapi-go v0.2.55 h1:PI9r7E8l0iKHriqQ6QxLbTjkZyUIHA8rlpzatYZff3c=
-github.com/swaggest/openapi-go v0.2.55/go.mod h1:sTmhR2sTvauaRX45WdaqRyJVTfRQ5FxD4OPVym49BXM=
-github.com/swaggest/refl v1.3.0 h1:PEUWIku+ZznYfsoyheF97ypSduvMApYyGkYF3nabS0I=
+github.com/swaggest/openapi-go v0.2.57 h1:ofY6NlZzix6LSMNIzfx74aa6U2OeyVmb6KEnkItT60U=
+github.com/swaggest/openapi-go v0.2.57/go.mod h1:pWhyF7lAIBRW6UYAvCijYkhy7PEmD92y3DMefiAQiL8=
 github.com/swaggest/refl v1.3.0/go.mod h1:3Ujvbmh1pfSbDYjC6JGG7nMgPvpG0ehQL4iNonnLNbg=
+github.com/swaggest/refl v1.3.1 h1:XGplEkYftR7p9cz1lsiwXMM2yzmOymTE9vneVVpaOh4=
+github.com/swaggest/refl v1.3.1/go.mod h1:4uUVFVfPJ0NSX9FPwMPspeHos9wPFlCMGoPRllUbpvA=
 github.com/swaggest/usecase v1.3.1 h1:JdKV30MTSsDxAXxkldLNcEn8O2uf565khyo6gr5sS+w=
 github.com/swaggest/usecase v1.3.1/go.mod h1:cae3lDd5VDmM36OQcOOOdAlEDg40TiQYIp99S9ejWqA=
 github.com/yosuke-furukawa/json5 v0.1.2-0.20201207051438-cf7bb3f354ff h1:7YqG491bE4vstXRz1lD38rbSgbXnirvROz1lZiOnPO8=
