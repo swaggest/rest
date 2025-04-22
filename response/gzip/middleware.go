@@ -215,9 +215,10 @@ func (rw *gzipResponseWriter) writeHeader(statusCode int) { //nolint:funlen
 		"application/manifest+json",
 		"application/ld+json",
 		"application/graphql+json",
+		"application/gpx+xml",
 		"application/geo+json":
 	default:
-		if !strings.HasSuffix(ct, "+json") {
+		if !strings.HasSuffix(ct, "+json") && !strings.HasSuffix(ct, "+xml") {
 			rw.disableCompression = true
 		}
 	}
