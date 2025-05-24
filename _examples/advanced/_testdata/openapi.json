@@ -54,12 +54,11 @@
         "parameters":[
           {"name":"bar","in":"query","schema":{"type":"string"}},
           {"name":"type","in":"query","schema":{"type":"string"}},
-          {"name":"foo","in":"header","schema":{"enum":["123","456","789"],"type":"integer"}}
+          {"name":"foo","in":"header","schema":{"enum":[123,456,789],"type":"integer"}}
         ],
         "responses":{
           "200":{
-            "description":"OK",
-            "headers":{"foo":{"style":"simple","schema":{"enum":["123","456","789"],"type":"integer"}}},
+            "description":"OK","headers":{"foo":{"style":"simple","schema":{"enum":[123,456,789],"type":"integer"}}},
             "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/DynOut123"}}}
           },
           "400":{
@@ -84,13 +83,10 @@
         "parameters":[
           {"name":"bar","in":"query","schema":{"type":"string"}},
           {"name":"type","in":"query","schema":{"type":"string"}},
-          {"name":"foo","in":"header","schema":{"enum":["123","456","789"],"type":"integer"}}
+          {"name":"foo","in":"header","schema":{"enum":[123,456,789],"type":"integer"}}
         ],
         "responses":{
-          "200":{
-            "description":"OK",
-            "headers":{"foo":{"style":"simple","schema":{"enum":["123","456","789"],"type":"integer"}}}
-          },
+          "200":{"description":"OK","headers":{"foo":{"style":"simple","schema":{"enum":[123,456,789],"type":"integer"}}}},
           "400":{"description":"Bad Request"},"409":{"description":"Conflict"},
           "412":{"description":"Precondition Failed"}
         },
@@ -342,7 +338,9 @@
             "schema":{"type":"string","description":"Simple scalar value in header."}
           }
         ],
-        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonMapReq"}}}},
+        "requestBody":{
+          "content":{"application/json":{"schema":{"type":"object","additionalProperties":{"type":"number"},"nullable":true}}}
+        },
         "responses":{
           "200":{
             "description":"OK",
@@ -442,7 +440,7 @@
             "schema":{"type":"string","description":"Simple scalar value in header."}
           }
         ],
-        "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonSliceReq"}}}},
+        "requestBody":{"content":{"application/json":{"schema":{"type":"array","items":{"type":"integer"},"nullable":true}}}},
         "responses":{
           "200":{
             "description":"OK",
@@ -701,7 +699,8 @@
       "AdvancedInfo":{
         "type":"object",
         "properties":{
-          "filename":{"type":"string"},"header":{"$ref":"#/components/schemas/TextprotoMIMEHeader"},
+          "filename":{"type":"string"},
+          "header":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}},"nullable":true},
           "inQuery":{"type":"integer"},"peek1":{"type":"string"},"peek2":{"type":"string"},"simple":{"type":"string"},
           "size":{"type":"integer"}
         }
@@ -710,7 +709,10 @@
         "type":"object",
         "properties":{
           "filenames":{"type":"array","items":{"type":"string"},"nullable":true},
-          "headers":{"type":"array","items":{"$ref":"#/components/schemas/TextprotoMIMEHeader"},"nullable":true},
+          "headers":{
+            "type":"array","items":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}},
+            "nullable":true
+          },
           "inQuery":{"type":"integer"},"peeks1":{"type":"array","items":{"type":"string"},"nullable":true},
           "peeks2":{"type":"array","items":{"type":"string"},"nullable":true},"simple":{"type":"string"},
           "sizes":{"type":"array","items":{"type":"integer"},"nullable":true}
@@ -741,7 +743,7 @@
         "type":"object",
         "properties":{
           "id":{"type":"integer"},"name":{"type":"string"},
-          "namedStruct":{"allOf":[{"deprecated":true},{"$ref":"#/components/schemas/AdvancedJSONPayloadType2"}]}
+          "namedStruct":{"$ref":"#/components/schemas/AdvancedJSONPayloadType2"}
         },
         "additionalProperties":false
       },
@@ -749,26 +751,22 @@
         "type":"object","properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}},
         "additionalProperties":false
       },
-      "AdvancedJSONMapPayload":{"type":"object","additionalProperties":{"type":"number"}},
       "AdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONPayloadType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
-      "AdvancedJSONSlicePayload":{"type":"array","items":{"type":"integer"},"nullable":true},
-      "AdvancedJsonMapReq":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
       "AdvancedJsonOutput":{
         "type":"object",
         "properties":{
-          "data":{"$ref":"#/components/schemas/AdvancedJSONSlicePayload"},"inHeader":{"type":"string"},
+          "data":{"type":"array","items":{"type":"integer"},"nullable":true},"inHeader":{"type":"string"},
           "inQuery":{"type":"integer"}
         }
       },
       "AdvancedJsonOutputType2":{
         "type":"object",
         "properties":{
-          "data":{"$ref":"#/components/schemas/AdvancedJSONMapPayload"},"inHeader":{"type":"string"},
-          "inQuery":{"type":"integer"}
+          "data":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
+          "inHeader":{"type":"string"},"inQuery":{"type":"integer"}
         }
       },
-      "AdvancedJsonSliceReq":{"type":"array","items":{"type":"integer"},"nullable":true},
       "AdvancedOkResp":{"type":"object","properties":{"status":{"type":"string"}}},
       "AdvancedOutputPortType2":{
         "required":["data"],"type":"object",
@@ -836,7 +834,6 @@
           "status":{"type":"string","description":"Status text."}
         }
       },
-      "TextprotoMIMEHeader":{"type":"object","additionalProperties":{"type":"array","items":{"type":"string"}}},
       "UuidUUID":{"type":"string","format":"uuid","example":"248df4b7-aa70-47b8-a036-33ac447e668d"}
     },
     "securitySchemes":{"User":{"type":"apiKey","name":"sessid","in":"cookie","description":"Session cookie."}}

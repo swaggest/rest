@@ -430,7 +430,7 @@
      },
      {
       "name":"in_cookie","in":"cookie","description":"UUID in cookie.",
-      "schema":{"$ref":"#/components/schemas/UuidUUID","description":"UUID in cookie."}
+      "schema":{"$ref":"#/components/schemas/UuidUUID"}
      },
      {
       "name":"X-Header","in":"header","description":"Simple scalar value in header.",
@@ -466,7 +466,7 @@
       "schema":{"description":"Simple scalar value in header.","type":"string"}
      }
     ],
-    "requestBody":{"content":{"application/json":{"schema":{"$ref":"#/components/schemas/AdvancedJsonSliceReq"}}}},
+    "requestBody":{"content":{"application/json":{"schema":{"items":{"type":"integer"},"type":"array"}}}},
     "responses":{
      "200":{
       "description":"OK",
@@ -645,10 +645,7 @@
      },
      {
       "name":"deep_object_filter","in":"query","description":"Deep object value in query params.",
-      "schema":{
-       "$ref":"#/components/schemas/AdvancedDeepObjectFilter","description":"Deep object value in query params."
-      },
-      "style":"deepObject","explode":true
+      "schema":{"$ref":"#/components/schemas/AdvancedDeepObjectFilter"},"style":"deepObject","explode":true
      }
     ],
     "responses":{
@@ -850,7 +847,8 @@
    "AdvancedHeaderOutput":{"properties":{"inBody":{"deprecated":true,"type":"string"}},"type":"object"},
    "AdvancedInfo":{
     "properties":{
-     "filename":{"type":"string"},"header":{"$ref":"#/components/schemas/TextprotoMIMEHeader"},
+     "filename":{"type":"string"},
+     "header":{"additionalProperties":{"items":{"type":"string"},"type":"array"},"type":["object","null"]},
      "inQuery":{"type":"integer"},"peek1":{"type":"string"},"peek2":{"type":"string"},"simple":{"type":"string"},
      "size":{"format":"int64","type":"integer"}
     },
@@ -859,7 +857,10 @@
    "AdvancedInfoType2":{
     "properties":{
      "filenames":{"items":{"type":"string"},"type":["array","null"]},
-     "headers":{"items":{"$ref":"#/components/schemas/TextprotoMIMEHeader"},"type":["array","null"]},
+     "headers":{
+      "items":{"additionalProperties":{"items":{"type":"string"},"type":"array"},"type":"object"},
+      "type":["array","null"]
+     },
      "inQuery":{"type":"integer"},"peeks1":{"items":{"type":"string"},"type":["array","null"]},
      "peeks2":{"items":{"type":"string"},"type":["array","null"]},"simple":{"type":"string"},
      "sizes":{"items":{"format":"int64","type":"integer"},"type":["array","null"]}
@@ -891,7 +892,7 @@
     "additionalProperties":false,
     "properties":{
      "id":{"type":"integer"},"name":{"type":"string"},
-     "namedStruct":{"$ref":"#/components/schemas/AdvancedJSONPayloadType2","deprecated":true}
+     "namedStruct":{"$ref":"#/components/schemas/AdvancedJSONPayloadType2"}
     },
     "type":"object"
    },
@@ -899,7 +900,7 @@
     "additionalProperties":false,
     "properties":{
      "id":{"type":"integer"},"name":{"type":"string"},
-     "namedStruct":{"$ref":"#/components/schemas/AdvancedJSONPayloadType3","deprecated":true}
+     "namedStruct":{"$ref":"#/components/schemas/AdvancedJSONPayloadType3"}
     },
     "type":"object"
    },
@@ -911,12 +912,11 @@
    "AdvancedJSONPayload":{"additionalProperties":false,"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
    "AdvancedJSONPayloadType2":{"additionalProperties":false,"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
    "AdvancedJSONPayloadType3":{"additionalProperties":false,"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
-   "AdvancedJSONSlicePayload":{"items":{"type":"integer"},"type":["array","null"]},
    "AdvancedJsonFilter":{"properties":{"foo":{"maxLength":5,"type":"string"}},"type":"object"},
    "AdvancedJsonMapReq":{"additionalProperties":{"format":"double","type":"number"},"type":"object"},
    "AdvancedJsonOutput":{
     "properties":{
-     "data":{"$ref":"#/components/schemas/AdvancedJSONSlicePayload"},"inHeader":{"type":"string"},
+     "data":{"items":{"type":"integer"},"type":["array","null"]},"inHeader":{"type":"string"},
      "inQuery":{"type":"integer"}
     },
     "type":"object"
@@ -928,7 +928,6 @@
     },
     "type":"object"
    },
-   "AdvancedJsonSliceReq":{"items":{"type":"integer"},"type":"array"},
    "AdvancedOkResp":{"properties":{"status":{"type":"string"}},"type":"object"},
    "AdvancedOutput":{"properties":{"id":{"type":"integer"},"name":{"type":"string"}},"type":"object"},
    "AdvancedOutputPortType2":{
@@ -985,8 +984,8 @@
     "additionalProperties":false,
     "properties":{
      "simple":{"description":"Simple scalar value in body.","type":"string"},
-     "upload1":{"$ref":"#/components/schemas/MultipartFileHeader","description":"Upload with *multipart.FileHeader."},
-     "upload2":{"$ref":"#/components/schemas/MultipartFile","description":"Upload with multipart.File."}
+     "upload1":{"$ref":"#/components/schemas/MultipartFileHeader"},
+     "upload2":{"$ref":"#/components/schemas/MultipartFile"}
     },
     "type":"object"
    },
@@ -1016,7 +1015,6 @@
     },
     "type":"object"
    },
-   "TextprotoMIMEHeader":{"additionalProperties":{"items":{"type":"string"},"type":"array"},"type":"object"},
    "UuidUUID":{"examples":["248df4b7-aa70-47b8-a036-33ac447e668d"],"format":"uuid","type":"string"}
   },
   "securitySchemes":{"User":{"description":"Session cookie.","type":"apiKey","name":"sessid","in":"cookie"}}
