@@ -17,8 +17,8 @@ require (
 	github.com/rs/cors v1.11.1
 	github.com/stretchr/testify v1.9.0
 	github.com/swaggest/assertjson v1.9.0
-	github.com/swaggest/jsonschema-go v0.3.73
-	github.com/swaggest/openapi-go v0.2.57
+	github.com/swaggest/jsonschema-go v0.3.78-0.20250512235213-e2a396853945
+	github.com/swaggest/openapi-go v0.2.58
 	github.com/swaggest/rest v0.0.0-00010101000000-000000000000
 	github.com/swaggest/swgui v1.8.2
 	github.com/swaggest/usecase v1.3.1
@@ -63,7 +63,7 @@ require (
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/swaggest/form/v5 v5.1.1 // indirect
-	github.com/swaggest/refl v1.3.1 // indirect
+	github.com/swaggest/refl v1.4.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
