@@ -10,7 +10,7 @@ require (
 	github.com/bool64/httpmock v0.1.15
 	github.com/bool64/httptestbench v0.1.4
 	github.com/gin-gonic/gin v1.10.0
-	github.com/go-chi/chi/v5 v5.2.1
+	github.com/go-chi/chi/v5 v5.2.2
 	github.com/go-chi/jwtauth/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/kelseyhightower/envconfig v1.4.0
@@ -63,7 +63,7 @@ require (
 	github.com/segmentio/asm v1.2.0 // indirect
 	github.com/sergi/go-diff v1.3.1 // indirect
 	github.com/swaggest/form/v5 v5.1.1 // indirect
-	github.com/swaggest/refl v1.3.1 // indirect
+	github.com/swaggest/refl v1.4.0 // indirect
 	github.com/twitchyliquid64/golang-asm v0.15.1 // indirect
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
