@@ -79,7 +79,10 @@ func decodeValidate(d *form.Decoder, v interface{}, p url.Values, in rest.ParamI
 func makeDecoder(in rest.ParamIn, formDecoder *form.Decoder, decoderFunc decoderFunc) valueDecoderFunc {
 	return func(r *http.Request, v interface{}, validator rest.Validator) error {
 		ct := r.Header.Get("Content-Type")
-		if in == rest.ParamInFormData && ct != "" && !strings.HasPrefix(ct, "multipart/form-data") && ct != "application/x-www-form-urlencoded" {
+		if in == rest.ParamInFormData && ct != "" && !compareContentType(
+			ct,
+			"multipart/form-data",
+		) && !compareContentType(ct, "application/x-www-form-urlencoded") {
 			return nil
 		}
 
@@ -147,7 +150,7 @@ func formDataToURLValues(r *http.Request) (url.Values, error) {
 		return nil, nil
 	}
 
-	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+	if compareContentType(r.Header.Get("Content-Type"), "multipart/form-data") {
 		err := r.ParseMultipartForm(defaultMaxMemory)
 		if err != nil {
 			return nil, err
@@ -168,7 +171,7 @@ func queryToURLValues(r *http.Request) (url.Values, error) {
 }
 
 func formToURLValues(r *http.Request) (url.Values, error) {
-	if strings.HasPrefix(r.Header.Get("Content-Type"), "multipart/form-data") {
+	if compareContentType(r.Header.Get("Content-Type"), "multipart/form-data") {
 		err := r.ParseMultipartForm(defaultMaxMemory)
 		if err != nil {
 			return nil, err
@@ -200,4 +203,16 @@ func contentTypeBodyToURLValues(r *http.Request) (url.Values, error) {
 	return url.Values{
 		r.Header.Get("Content-Type"): []string{string(b)},
 	}, nil
+}
+
+func compareContentType(contentType, expectedContentType string) bool {
+	ct := strings.TrimSpace(strings.ToLower(contentType))
+	ect := strings.TrimSpace(strings.ToLower(expectedContentType))
+	if len(ct) < len(ect) {
+		return false
+	} else if len(ct) > len(ect) && ct[len(ect)] == ';' {
+		ct = ct[:len(ect)]
+	}
+
+	return ct == ect
 }
