@@ -54,12 +54,11 @@
         "parameters":[
           {"name":"bar","in":"query","schema":{"type":"string"}},
           {"name":"type","in":"query","schema":{"type":"string"}},
-          {"name":"foo","in":"header","schema":{"enum":["123","456","789"],"type":"integer"}}
+          {"name":"foo","in":"header","schema":{"enum":[123,456,789],"type":"integer"}}
         ],
         "responses":{
           "200":{
-            "description":"OK",
-            "headers":{"foo":{"style":"simple","schema":{"enum":["123","456","789"],"type":"integer"}}},
+            "description":"OK","headers":{"foo":{"style":"simple","schema":{"enum":[123,456,789],"type":"integer"}}},
             "content":{"application/dummy+json":{"schema":{"$ref":"#/components/schemas/DynOut123"}}}
           },
           "400":{
@@ -84,13 +83,10 @@
         "parameters":[
           {"name":"bar","in":"query","schema":{"type":"string"}},
           {"name":"type","in":"query","schema":{"type":"string"}},
-          {"name":"foo","in":"header","schema":{"enum":["123","456","789"],"type":"integer"}}
+          {"name":"foo","in":"header","schema":{"enum":[123,456,789],"type":"integer"}}
         ],
         "responses":{
-          "200":{
-            "description":"OK",
-            "headers":{"foo":{"style":"simple","schema":{"enum":["123","456","789"],"type":"integer"}}}
-          },
+          "200":{"description":"OK","headers":{"foo":{"style":"simple","schema":{"enum":[123,456,789],"type":"integer"}}}},
           "400":{"description":"Bad Request"},"409":{"description":"Conflict"},
           "412":{"description":"Precondition Failed"}
         },
