@@ -51,7 +51,14 @@ func NewService(refl oapi.Reflector, options ...func(s *Service)) *Service {
 	}
 
 	validatorFactory := jsonschema.NewFactory(s.OpenAPICollector, s.OpenAPICollector)
-	s.ResponseValidatorFactory = validatorFactory
+
+	if s.ResponseValidatorFactory == nil {
+		s.ResponseValidatorFactory = validatorFactory
+	}
+
+	if s.RequestValidatorFactory == nil {
+		s.RequestValidatorFactory = validatorFactory
+	}
 
 	if s.PanicRecoveryMiddleware == nil {
 		s.PanicRecoveryMiddleware = middleware.Recoverer
@@ -59,11 +66,11 @@ func NewService(refl oapi.Reflector, options ...func(s *Service)) *Service {
 
 	// Setup middlewares.
 	s.Wrapper.Wrap(
-		s.PanicRecoveryMiddleware,                     // Panic recovery.
-		nethttp.OpenAPIMiddleware(s.OpenAPICollector), // Documentation collector.
-		request.DecoderMiddleware(s.DecoderFactory),   // Request decoder setup.
-		request.ValidatorMiddleware(validatorFactory), // Request validator setup.
-		response.EncoderMiddleware,                    // Response encoder setup.
+		s.PanicRecoveryMiddleware,                              // Panic recovery.
+		nethttp.OpenAPIMiddleware(s.OpenAPICollector),          // Documentation collector.
+		request.DecoderMiddleware(s.DecoderFactory),            // Request decoder setup.
+		request.ValidatorMiddleware(s.RequestValidatorFactory), // Request validator setup.
+		response.EncoderMiddleware,                             // Response encoder setup.
 	)
 
 	return &s
@@ -108,6 +115,10 @@ type Service struct {
 	// This field is populated so that response.ValidatorMiddleware(s.ResponseValidatorFactory) can be
 	// added to service via Wrap.
 	ResponseValidatorFactory rest.ResponseValidatorFactory
+
+	// Request validation is enabled by default, but the default validator can be overriden by
+	// populating this field.
+	RequestValidatorFactory rest.RequestValidatorFactory
 
 	// AddHeadToGet is an option to enable HEAD method for each usecase added with Service.Get.
 	AddHeadToGet bool
