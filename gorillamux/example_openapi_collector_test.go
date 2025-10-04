@@ -139,6 +139,7 @@ func ExampleNewOpenAPICollector() {
 	//       - in: header
 	//         name: X-Header-1
 	//         schema:
+	//           format: double
 	//           type: number
 	//       responses:
 	//         "200":
@@ -188,6 +189,7 @@ func ExampleNewOpenAPICollector() {
 	//         concat:
 	//           type: string
 	//         sum:
+	//           format: double
 	//           type: number
 	//       type: object
 }

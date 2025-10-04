@@ -431,7 +431,7 @@ func TestCollector_Collect_queryObject(t *testing.T) {
 				"description":"Object value in query.","style":"deepObject",
 				"explode":true,
 				"schema":{
-				  "type":"object","additionalProperties":{"type":"number"},
+				  "type":"object","additionalProperties":{"type":"number","format":"double"},
 				  "description":"Object value in query."
 				}
 			  },

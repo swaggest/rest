@@ -58,7 +58,7 @@ func NewService(refl oapi.Reflector, options ...func(s *Service)) *Service {
 	}
 
 	// Setup middlewares.
-	s.Wrapper.Wrap(
+	s.Wrap(
 		s.PanicRecoveryMiddleware,                     // Panic recovery.
 		nethttp.OpenAPIMiddleware(s.OpenAPICollector), // Documentation collector.
 		request.DecoderMiddleware(s.DecoderFactory),   // Request decoder setup.
