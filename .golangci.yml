@@ -1,73 +1,89 @@
-# See https://github.com/golangci/golangci-lint/blob/master/.golangci.example.yml
+# See https://golangci-lint.run/docs/linters/configuration/
+version: "2"
 run:
   tests: true
-
-linters-settings:
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-  gocyclo:
-    min-complexity: 20
-  dupl:
-    threshold: 100
-  misspell:
-    locale: US
-  unparam:
-    check-exported: true
-
 linters:
-  enable-all: true
+  default: all
   disable:
-    - intrange
-    - copyloopvar
-    - lll
+    - embeddedstructfieldcheck
     - nilnil
-    - err113
-    - cyclop
-    - gochecknoglobals
-    - wrapcheck
-    - paralleltest
+    - noinlineerr
+    - wsl_v5
+    - funcorder
+    - copyloopvar
+    - depguard
+    - dupword
+    - errname
+    - exhaustruct
     - forbidigo
     - forcetypeassert
-    - varnamelen
-    - tagliatelle
-    - errname
+    - gochecknoglobals
+    - intrange
     - ireturn
-    - exhaustruct
-    - nonamedreturns
-    - testableexamples
-    - dupword
-    - depguard
-    - tagalign
+    - lll
     - mnd
-    - testifylint
+    - nonamedreturns
+    - paralleltest
     - recvcheck
-
-issues:
-  exclude-use-default: false
-  exclude-rules:
-    - linters:
-        - staticcheck
-      path: ".go"
-      text: "\"io/ioutil\" has been deprecated since Go 1.19" # Keeping backwards compatibility with go1.13.
-    - linters:
-        - errcheck
-        - canonicalheader
-        - testifylint
-        - gomnd
-        - mnd
-        - goconst
-        - noctx
-        - funlen
-        - dupl
-        - unused
-        - unparam
-      path: "_test.go"
-    - linters:
-        - errcheck # Error checking omitted for brevity.
-        - gosec
-      path: "example_"
-    - linters:
-        - revive
-      text: "unused-parameter: parameter"
-
+    - tagalign
+    - tagliatelle
+    - testableexamples
+    - testifylint
+    - varnamelen
+    - wrapcheck
+  settings:
+    dupl:
+      threshold: 100
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    cyclop:
+      max-complexity: 20
+    gocyclo:
+      min-complexity: 20
+    misspell:
+      locale: US
+    unparam:
+      check-exported: true
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - canonicalheader
+          - err113
+          - errcheck
+          - gosec
+          - dupl
+          - funlen
+          - goconst
+          - mnd
+          - noctx
+          - unparam
+          - unused
+        path: _test.go
+      - linters:
+          - errcheck
+          - gosec
+        path: example_
+      - linters:
+          - revive
+        text: 'unused-parameter: parameter'
+      - linters:
+          - staticcheck
+        text: could apply De Morgan's law
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
+    - gci
+    - gofmt
+    - gofumpt
+    - goimports
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

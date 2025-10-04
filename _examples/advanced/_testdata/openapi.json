@@ -567,7 +567,10 @@
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Object value in query.","style":"deepObject","explode":true,
-            "schema":{"type":"object","additionalProperties":{"type":"number"},"description":"Object value in query."}
+            "schema":{
+              "type":"object","additionalProperties":{"type":"number","format":"double"},
+              "description":"Object value in query."
+            }
           }
         ],
         "responses":{
@@ -583,7 +586,10 @@
         "parameters":[
           {
             "name":"in_query","in":"query","description":"Object value in query.","style":"deepObject","explode":true,
-            "schema":{"type":"object","additionalProperties":{"type":"number"},"description":"Object value in query."}
+            "schema":{
+              "type":"object","additionalProperties":{"type":"number","format":"double"},
+              "description":"Object value in query."
+            }
           }
         ],
         "responses":{"200":{"description":"OK"}},"x-forbid-unknown-query":true
@@ -699,7 +705,7 @@
         "properties":{
           "filename":{"type":"string"},"header":{"$ref":"#/components/schemas/TextprotoMIMEHeader"},
           "inQuery":{"type":"integer"},"peek1":{"type":"string"},"peek2":{"type":"string"},"simple":{"type":"string"},
-          "size":{"type":"integer"}
+          "size":{"type":"integer","format":"int64"}
         }
       },
       "AdvancedInfoType2":{
@@ -709,7 +715,7 @@
           "headers":{"type":"array","items":{"$ref":"#/components/schemas/TextprotoMIMEHeader"},"nullable":true},
           "inQuery":{"type":"integer"},"peeks1":{"type":"array","items":{"type":"string"},"nullable":true},
           "peeks2":{"type":"array","items":{"type":"string"},"nullable":true},"simple":{"type":"string"},
-          "sizes":{"type":"array","items":{"type":"integer"},"nullable":true}
+          "sizes":{"type":"array","items":{"type":"integer","format":"int64"},"nullable":true}
         }
       },
       "AdvancedInputPort":{
@@ -745,11 +751,11 @@
         "type":"object","properties":{"id":{"minimum":100,"type":"integer"},"name":{"minLength":3,"type":"string"}},
         "additionalProperties":false
       },
-      "AdvancedJSONMapPayload":{"type":"object","additionalProperties":{"type":"number"}},
+      "AdvancedJSONMapPayload":{"type":"object","additionalProperties":{"type":"number","format":"double"}},
       "AdvancedJSONPayload":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONPayloadType2":{"type":"object","properties":{"id":{"type":"integer"},"name":{"type":"string"}},"additionalProperties":false},
       "AdvancedJSONSlicePayload":{"type":"array","items":{"type":"integer"},"nullable":true},
-      "AdvancedJsonMapReq":{"type":"object","additionalProperties":{"type":"number"},"nullable":true},
+      "AdvancedJsonMapReq":{"type":"object","additionalProperties":{"type":"number","format":"double"},"nullable":true},
       "AdvancedJsonOutput":{
         "type":"object",
         "properties":{
@@ -773,7 +779,7 @@
       "AdvancedOutputPortType3":{"type":"object","properties":{"data":{"type":"object","properties":{"value":{"type":"string"}}}}},
       "AdvancedOutputQueryObject":{
         "type":"object",
-        "properties":{"inQuery":{"type":"object","additionalProperties":{"type":"number"},"nullable":true}}
+        "properties":{"inQuery":{"type":"object","additionalProperties":{"type":"number","format":"double"},"nullable":true}}
       },
       "AdvancedOutputWithJSON":{
         "type":"object",

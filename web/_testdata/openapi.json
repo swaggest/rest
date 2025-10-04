@@ -288,7 +288,7 @@
         "type":"object",
         "properties":{
           "artist":{"type":"string"},"id":{"type":"integer"},
-          "price":{"type":"number"},"title":{"type":"string"}
+          "price":{"type":"number","format":"double"},"title":{"type":"string"}
         }
       }
     }
