@@ -290,6 +290,9 @@ func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 
 			s, err := df.JSONSchemaReflector.Reflect(vi)
 			if err != nil {
+				if err == jsonschema.ErrSkipProperty {
+					return
+				}
 				panic(err.Error())
 			}
 
