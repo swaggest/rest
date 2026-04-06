@@ -8,7 +8,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  cloc:
+  gocan:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,4 +18,6 @@ jobs:
           curl -sLO https://github.com/vearutop/gocan/releases/download/v0.0.2/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz
           gocan_hash=$(git hash-object ./gocan)
           [ "$gocan_hash" == "0da18e8ea60c2addf699e3301aca6c103b2ae657" ] || (echo "::error::unexpected hash for gocan, possible tampering: $gocan_hash" && exit 1)
+          git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
+          git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.head.sha }}
           ./gocan -gh-annotate -gh-base "${{ github.event.pull_request.base.sha }}" -gh-head ${{ github.event.pull_request.head.sha }}
