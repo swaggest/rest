@@ -18,4 +18,4 @@ jobs:
           curl -sLO https://github.com/vearutop/gocan/releases/download/v0.0.1/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz
           gocan_hash=$(git hash-object ./gocan)
           [ "$gocan_hash" == "d3484d7cae5f9314243ee932dbabd3e6ba4aed63" ] || (echo "::error::unexpected hash for gocan, possible tampering: $gocan_hash" && exit 1)
-          ./gocan -gh-annotate -gh-base "${{ github.event.pull_request.base.sha }}"
+          ./gocan -gh-annotate -gh-base "${{ github.event.pull_request.base.sha }}" -gh-head ${{ github.event.pull_request.head.sha }}
