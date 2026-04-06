@@ -1,4 +1,4 @@
-package request
+package requestaaaaaa
 
 import (
 	"io/ioutil"
@@ -47,6 +47,7 @@ type (
 
 const defaultMaxMemory = 32 << 20 // 32 MB
 
+// 32 MB
 var _ nethttp.RequestDecoder = &decoder{}
 
 func makeDecoder(in rest.ParamIn, formDecoder *form.Decoder, decoderFunc decoderFunc) valueDecoderFunc {

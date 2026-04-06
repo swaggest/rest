@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 	"github.com/swaggest/rest/response"
 	"github.com/swaggest/usecase"
 )
@@ -60,7 +60,7 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	)
 	h.SetResponseEncoder(&response.Encoder{})
 
-	h.SetRequestDecoder(request.DecoderFunc(
+	h.SetRequestDecoder(requestaaaaaa.DecoderFunc(
 		func(r *http.Request, input interface{}, validator rest.Validator) error {
 			assert.Equal(t, req, r)
 
@@ -155,7 +155,7 @@ func TestHandler_ServeHTTP_customMapping(t *testing.T) {
 	}
 
 	ws := []func(handler http.Handler) http.Handler{
-		request.DecoderMiddleware(request.NewDecoderFactory()),
+		requestaaaaaa.DecoderMiddleware(requestaaaaaa.NewDecoderFactory()),
 		nethttp.HandlerWithRouteMiddleware(http.MethodGet, "/test"),
 		response.EncoderMiddleware,
 	}
@@ -196,7 +196,7 @@ func TestHandler_ServeHTTP_decodeErr(t *testing.T) {
 	require.NoError(t, err)
 
 	uh := nethttp.NewHandler(u)
-	uh.SetRequestDecoder(request.DecoderFunc(
+	uh.SetRequestDecoder(requestaaaaaa.DecoderFunc(
 		func(_ *http.Request, _ interface{}, _ rest.Validator) error {
 			return errors.New("failed to decode request")
 		},
@@ -265,7 +265,7 @@ func TestHandler_ServeHTTP_getWithBody(t *testing.T) {
 	})
 
 	h := nethttp.NewHandler(u)
-	h.SetRequestDecoder(request.NewDecoderFactory().MakeDecoder(http.MethodGet, new(reqWithBody), nil))
+	h.SetRequestDecoder(requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodGet, new(reqWithBody), nil))
 	h.SetResponseEncoder(&response.Encoder{})
 
 	req, err := http.NewRequest(http.MethodGet, "/test", strings.NewReader(`{"id":123}`))

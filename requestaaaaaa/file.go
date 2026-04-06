@@ -1,4 +1,4 @@
-package request
+package requestaaaaaa
 
 import (
 	"errors"
@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"github.com/swaggest/rest"
+	"github.com/swaggest/rest/requestaaaaaa/reqerr"
 )
 
 var (
@@ -67,7 +68,7 @@ func setFile(r *http.Request, field reflect.StructField, v reflect.Value) error 
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
 			if field.Tag.Get("required") == "true" {
-				return fmt.Errorf("%w: %q", ErrMissingRequiredFile, name)
+				return fmt.Errorf("%w: %q", reqerr.ErrMissingRequiredFile, name)
 			}
 
 			return nil

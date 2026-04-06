@@ -1,10 +1,10 @@
-package request_test
+package requestaaaaaa_test
 
 import (
 	"fmt"
 	"net/http"
 
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 )
 
 func ExampleDecoder_Decode() {
@@ -15,7 +15,7 @@ func ExampleDecoder_Decode() {
 	}
 
 	// A decoder for particular structure, can be reused for multiple HTTP requests.
-	myDecoder := request.NewDecoderFactory().MakeDecoder(http.MethodPost, new(MyRequest), nil)
+	myDecoder := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodPost, new(MyRequest), nil)
 
 	// Request and response writer from ServeHTTP.
 	var (
@@ -33,7 +33,7 @@ func ExampleDecoder_Decode() {
 
 func ExampleEmbeddedSetter_Request() {
 	type MyRequest struct {
-		request.EmbeddedSetter
+		requestaaaaaa.EmbeddedSetter
 
 		Foo int    `header:"X-Foo"`
 		Bar string `formData:"bar"`
@@ -41,7 +41,7 @@ func ExampleEmbeddedSetter_Request() {
 	}
 
 	// A decoder for particular structure, can be reused for multiple HTTP requests.
-	myDecoder := request.NewDecoderFactory().MakeDecoder(http.MethodPost, new(MyRequest), nil)
+	myDecoder := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodPost, new(MyRequest), nil)
 
 	// Request and response writer from ServeHTTP.
 	var (

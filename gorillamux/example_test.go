@@ -9,13 +9,13 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/gorillamux"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 )
 
 func ExamplePathToURLValues() {
 	// Instantiate decoder factory with gorillamux.PathToURLValues.
 	// Single factory can be used to create multiple request decoders.
-	decoderFactory := request.NewDecoderFactory()
+	decoderFactory := requestaaaaaa.NewDecoderFactory()
 	decoderFactory.ApplyDefaults = true
 	decoderFactory.SetDecoderFunc(rest.ParamInPath, gorillamux.PathToURLValues)
 

@@ -11,7 +11,7 @@ import (
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/jsonschema"
 	"github.com/swaggest/rest/openapi"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 )
 
 // BenchmarkRequestValidator_ValidateRequestData-4   	  634356	      1761 ns/op	    2496 B/op	       8 allocs/op.
@@ -115,7 +115,7 @@ func TestValidator_ForbidUnknownParams(t *testing.T) {
 
 	in := new(input)
 
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodGet, in, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodGet, in, nil)
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodGet, in, nil)
 

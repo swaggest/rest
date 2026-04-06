@@ -1,4 +1,4 @@
-package request
+package requestaaaaaa
 
 import (
 	"bytes"
@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/swaggest/rest"
+	"github.com/swaggest/rest/requestaaaaaa/reqerr"
 )
 
 var bufPool = sync.Pool{
@@ -21,7 +22,7 @@ var bufPool = sync.Pool{
 func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error, tolerateFormData bool) valueDecoderFunc {
 	return func(r *http.Request, input interface{}, validator rest.Validator) error {
 		if r.ContentLength == 0 {
-			return ErrMissingRequestBody
+			return reqerr.ErrMissingRequestBody
 		}
 
 		if ret, err := checkJSONBodyContentType(r.Header.Get("Content-Type"), tolerateFormData); err != nil {
@@ -71,7 +72,7 @@ func checkJSONBodyContentType(contentType string, tolerateFormData bool) (ret bo
 			return true, nil
 		}
 
-		return true, fmt.Errorf("%w, received: %s", ErrJSONExpected, contentType)
+		return true, fmt.Errorf("%w, received: %s", reqerr.ErrJSONExpected, contentType)
 	}
 
 	return false, nil

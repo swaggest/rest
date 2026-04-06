@@ -12,7 +12,7 @@ import (
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/gorillamux"
 	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 )
 
 func ExampleNewOpenAPICollector() {
@@ -125,7 +125,7 @@ func ExampleNewOpenAPICollector() {
 }
 
 func newMyHandler() *myHandler {
-	decoderFactory := request.NewDecoderFactory()
+	decoderFactory := requestaaaaaa.NewDecoderFactory()
 	decoderFactory.ApplyDefaults = true
 	decoderFactory.SetDecoderFunc(rest.ParamInPath, gorillamux.PathToURLValues)
 

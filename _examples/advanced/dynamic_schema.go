@@ -8,7 +8,7 @@ import (
 
 	"github.com/bool64/ctxd"
 	"github.com/swaggest/jsonschema-go"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 )
@@ -62,7 +62,7 @@ func dynamicSchema() usecase.Interactor {
 
 type dynamicInput struct {
 	jsonschema.Struct
-	request.EmbeddedSetter
+	requestaaaaaa.EmbeddedSetter
 
 	// Type is a static field example.
 	Type string `query:"type"`

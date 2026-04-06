@@ -1,4 +1,4 @@
-package request_test
+package requestaaaaaa_test
 
 import (
 	"bytes"
@@ -16,12 +16,12 @@ import (
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/jsonschema"
 	"github.com/swaggest/rest/openapi"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 )
 
 // BenchmarkDecoder_Decode-4   	 1314788	       857 ns/op	     448 B/op	       4 allocs/op.
 func BenchmarkDecoder_Decode(b *testing.B) {
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 
 	type req struct {
 		Q string `query:"q"`
@@ -51,7 +51,7 @@ func BenchmarkDecoder_Decode(b *testing.B) {
 // BenchmarkDecoder_Decode_json-4   	   36660	     29688 ns/op	   12310 B/op	     169 allocs/op.
 func BenchmarkDecoder_Decode_json(b *testing.B) {
 	input := new(reqJSONTest)
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodPost, input, nil)
 
@@ -103,7 +103,7 @@ func BenchmarkDecoder_Decode_jsonParam(b *testing.B) {
 		} `query:"filter"`
 	}
 
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 	dec := df.MakeDecoder(http.MethodGet, new(inp), nil)
 
 	req, err := http.NewRequest(http.MethodGet, "/?filter=%7B%22a%22%3A123%2C%22b%22%3A%22abc%22%7D", nil)
@@ -135,7 +135,7 @@ func BenchmarkDecoder_Decode_queryObject(b *testing.B) {
 		"/?in_query[1]=1.0&in_query[2]=2.1&in_query[c]=0", nil)
 	assert.NoError(b, err)
 
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 
 	input := new(struct {
 		InQuery map[int]float64 `query:"in_query"`
@@ -174,7 +174,7 @@ func BenchmarkDecoderFunc_Decode(b *testing.B) {
 
 	req.AddCookie(&c)
 
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 	df.SetDecoderFunc(rest.ParamInPath, func(_ *http.Request) (url.Values, error) {
 		return url.Values{"in_path": []string{"mno"}}, nil
 	})
@@ -213,7 +213,7 @@ func TestDecoder_Decode(t *testing.T) {
 
 	req.AddCookie(&c)
 
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 	df.SetDecoderFunc(rest.ParamInPath, func(r *http.Request) (url.Values, error) {
 		assert.Equal(t, req, r)
 
@@ -260,7 +260,7 @@ func TestDecoder_Decode_dateTime(t *testing.T) {
 	}
 
 	input := new(reqTest)
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodGet, input, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodGet, input, nil)
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodGet, input, nil)
 
@@ -273,7 +273,7 @@ func TestDecoder_Decode_error(t *testing.T) {
 		Q int `default:"100" query:"q"`
 	}
 
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 	df.ApplyDefaults = true
 
 	d := df.MakeDecoder(http.MethodGet, new(req), nil)
@@ -294,7 +294,7 @@ func TestDecoder_Decode_json(t *testing.T) {
 	assert.NoError(t, err)
 
 	input := new(reqJSONTest)
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodPost, input, nil)
 
@@ -331,7 +331,7 @@ func TestDecoder_Decode_jsonParam(t *testing.T) {
 		} `query:"filter"`
 	}
 
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 	dec := df.MakeDecoder(http.MethodGet, new(inp), nil)
 
 	req, err := http.NewRequest(http.MethodGet, "/?filter=%7B%22a%22%3A123%2C%22b%22%3A%22abc%22%7D", nil)
@@ -360,7 +360,7 @@ func TestDecoder_Decode_manualLoader_ptr(t *testing.T) {
 		return nil
 	}
 
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodGet, input, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodGet, input, nil)
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodGet, input, nil)
 
@@ -386,7 +386,7 @@ func TestDecoder_Decode_manualLoader_val(t *testing.T) {
 		return nil
 	}
 
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodGet, input, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodGet, input, nil)
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodGet, input, nil)
 
@@ -401,7 +401,7 @@ func TestDecoder_Decode_queryObject(t *testing.T) {
 		"/?in_query[1]=1.0&in_query[2]=2.1&in_query[3]=0", nil)
 	assert.NoError(t, err)
 
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 
 	input := new(struct {
 		InQuery map[int]float64 `query:"in_query"`
@@ -427,7 +427,7 @@ func TestDecoder_Decode_required(t *testing.T) {
 	assert.NoError(t, err)
 
 	input := new(reqTest)
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodPost, input, nil)
 
@@ -441,7 +441,7 @@ func TestDecoder_Decode_required_header_case(t *testing.T) {
 	assert.NoError(t, err)
 
 	input := new(reqTest)
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodPost, input, nil)
 
@@ -456,7 +456,7 @@ func TestDecoder_Decode_setter_ptr(t *testing.T) {
 
 	input := new(inputWithSetter)
 
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodGet, input, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodGet, input, nil)
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodGet, input, nil)
 
@@ -473,7 +473,7 @@ func TestDecoder_Decode_setter_val(t *testing.T) {
 
 	input := inputWithSetter{}
 
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodGet, input, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodGet, input, nil)
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodGet, input, nil)
 
@@ -498,7 +498,7 @@ func TestDecoder_Decode_unknownParams(t *testing.T) {
 
 	in := new(input)
 
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodGet, in, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodGet, in, nil)
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodGet, in, nil)
 
@@ -513,7 +513,7 @@ func TestDecoderFactory_MakeDecoder_default_unexported(t *testing.T) {
 		req  *http.Request
 	}
 
-	f := request.NewDecoderFactory()
+	f := requestaaaaaa.NewDecoderFactory()
 	f.ApplyDefaults = true
 
 	dec := f.MakeDecoder(http.MethodGet, showImageInput{}, nil)
@@ -523,7 +523,7 @@ func TestDecoderFactory_MakeDecoder_default_unexported(t *testing.T) {
 func TestDecoderFactory_MakeDecoder_formOrJSON(t *testing.T) {
 	var in formOrJSONInput
 
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodPost, in, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodPost, in, nil)
 
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodPost, in, nil)

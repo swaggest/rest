@@ -14,7 +14,7 @@ import (
 	"github.com/swaggest/rest/jsonschema"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/openapi"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 	"github.com/swaggest/rest/response"
 	"github.com/swaggest/usecase"
 )
@@ -65,7 +65,7 @@ func NewService(refl oapi.Reflector, options ...func(s *Service)) *Service {
 	}
 
 	if s.DecoderFactory == nil {
-		decoderFactory := request.NewDecoderFactory()
+		decoderFactory := requestaaaaaa.NewDecoderFactory()
 		decoderFactory.ApplyDefaults = true
 		decoderFactory.JSONSchemaReflector = s.OpenAPICollector.Refl().JSONSchemaReflector()
 		decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
@@ -82,11 +82,11 @@ func NewService(refl oapi.Reflector, options ...func(s *Service)) *Service {
 
 	// Setup middlewares.
 	s.Wrap(
-		s.PanicRecoveryMiddleware,                     // Panic recovery.
-		nethttp.OpenAPIMiddleware(s.OpenAPICollector), // Documentation collector.
-		request.DecoderMiddleware(s.DecoderFactory),   // Request decoder setup.
-		request.ValidatorMiddleware(validatorFactory), // Request validator setup.
-		response.EncoderMiddleware,                    // Response encoder setup.
+		s.PanicRecoveryMiddleware,                           // Panic recovery.
+		nethttp.OpenAPIMiddleware(s.OpenAPICollector),       // Documentation collector.
+		requestaaaaaa.DecoderMiddleware(s.DecoderFactory),   // Request decoder setup.
+		requestaaaaaa.ValidatorMiddleware(validatorFactory), // Request validator setup.
+		response.EncoderMiddleware,                          // Response encoder setup.
 	)
 
 	return &s
@@ -102,7 +102,7 @@ type Service struct {
 	OpenAPI *openapi3.Spec
 
 	OpenAPICollector *openapi.Collector
-	DecoderFactory   *request.DecoderFactory
+	DecoderFactory   *requestaaaaaa.DecoderFactory
 
 	// Response validation is not enabled by default for its less justifiable performance impact.
 	// This field is populated so that response.ValidatorMiddleware(s.ResponseValidatorFactory) can be

@@ -1,0 +1,21 @@
+name: gocan
+on:
+  pull_request:
+
+# Cancel the workflow in progress in newer build is about to start.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  cloc:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Annotate layout-only changes
+        run: |
+          curl -sLO https://github.com/vearutop/gocan/releases/download/v0.0.1/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz
+          gocan_hash=$(git hash-object ./gocan)
+          [ "$gocan_hash" == "d3484d7cae5f9314243ee932dbabd3e6ba4aed63" ] || (echo "::error::unexpected hash for gocan, possible tampering: $gocan_hash" && exit 1)
+          ./gocan -gh-annotate

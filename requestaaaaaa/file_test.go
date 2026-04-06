@@ -1,4 +1,4 @@
-package request_test
+package requestaaaaaa_test
 
 import (
 	"bytes"
@@ -18,7 +18,7 @@ import (
 	"github.com/swaggest/rest/jsonschema"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/openapi"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 	"github.com/swaggest/rest/response"
 	"github.com/swaggest/rest/web"
 	"github.com/swaggest/usecase"
@@ -52,15 +52,15 @@ func TestDecoder_Decode_fileUploadOptional(t *testing.T) {
 func TestDecoder_Decode_fileUploadTag(t *testing.T) {
 	r := chirouter.NewWrapper(chi.NewRouter())
 	apiSchema := openapi.NewCollector(openapi3.NewReflector())
-	decoderFactory := request.NewDecoderFactory()
+	decoderFactory := requestaaaaaa.NewDecoderFactory()
 	validatorFactory := jsonschema.NewFactory(apiSchema, apiSchema)
 
 	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
 	ws := []func(handler http.Handler) http.Handler{
 		nethttp.OpenAPIMiddleware(apiSchema),
-		request.DecoderMiddleware(decoderFactory),
-		request.ValidatorMiddleware(validatorFactory),
+		requestaaaaaa.DecoderMiddleware(decoderFactory),
+		requestaaaaaa.ValidatorMiddleware(validatorFactory),
 		response.EncoderMiddleware,
 	}
 

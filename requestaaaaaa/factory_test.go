@@ -1,4 +1,4 @@
-package request_test
+package requestaaaaaa_test
 
 import (
 	"bytes"
@@ -13,12 +13,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 )
 
 // BenchmarkDecoderFactory_SetDecoderFunc-4   	  577378	      1994 ns/op	    1024 B/op	      16 allocs/op.
 func BenchmarkDecoderFactory_SetDecoderFunc(b *testing.B) {
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 	df.SetDecoderFunc("jwt", func(r *http.Request) (url.Values, error) {
 		ah := r.Header.Get("Authorization")
 		if ah == "" || len(ah) < 8 || strings.ToLower(ah[0:7]) != "bearer " {
@@ -78,7 +78,7 @@ func TestDecoderFactory_MakeDecoder_customMapping(t *testing.T) {
 		Name string `default:"foo"`
 	}
 
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 	df.ApplyDefaults = true
 
 	customMapping := rest.RequestMapping{
@@ -134,7 +134,7 @@ func TestDecoderFactory_MakeDecoder_default(t *testing.T) {
 		unexported bool `query:"unexported"` // This field is skipped because it is unexported.
 	}
 
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 	df.ApplyDefaults = true
 
 	dec := df.MakeDecoder(http.MethodPost, new(MyInput), nil)
@@ -174,7 +174,7 @@ func TestDecoderFactory_MakeDecoder_default(t *testing.T) {
 }
 
 func TestDecoderFactory_MakeDecoder_header_case_sensitivity(t *testing.T) {
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 
 	type input struct {
 		A string `header:"x-one-two-three" required:"true"`
@@ -210,7 +210,7 @@ func TestDecoderFactory_MakeDecoder_invalidMapping(t *testing.T) {
 			Name string `default:"foo"`
 		}
 
-		df := request.NewDecoderFactory()
+		df := requestaaaaaa.NewDecoderFactory()
 
 		customMapping := rest.RequestMapping{
 			rest.ParamInQuery:  map[string]string{"ID2": "id"},
@@ -222,7 +222,7 @@ func TestDecoderFactory_MakeDecoder_invalidMapping(t *testing.T) {
 }
 
 func TestDecoderFactory_SetDecoderFunc(t *testing.T) {
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 	df.SetDecoderFunc("jwt", func(r *http.Request) (url.Values, error) {
 		ah := r.Header.Get("Authorization")
 		if ah == "" || len(ah) < 8 || strings.ToLower(ah[0:7]) != "bearer " {
@@ -284,7 +284,7 @@ func TestNewDecoderFactory_default(t *testing.T) {
 		DefaultedTagVal   defaultFromSchemaVal  `query:"dtv" default:"none"`
 	}
 
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 	df.ApplyDefaults = true
 	df.JSONSchemaReflector = &jsonschema.Reflector{}
 
@@ -318,7 +318,7 @@ func TestNewDecoderFactory_requestBody(t *testing.T) {
 	req.Header.Set("Content-Type", "text/plain")
 
 	var input Req
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
 
 	require.NoError(t, dec.Decode(req, &input, nil))
 

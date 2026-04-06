@@ -13,7 +13,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/swaggest/jsonschema-go"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 	"github.com/swaggest/usecase"
 )
 
@@ -22,7 +22,7 @@ type JSONPayload struct {
 	Name string `json:"name"`
 }
 
-var _ request.Loader = &inputWithJSON{}
+var _ requestaaaaaa.Loader = &inputWithJSON{}
 
 func jsonBodyManual() usecase.Interactor {
 	type outputWithJSON struct {
