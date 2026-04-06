@@ -17,14 +17,6 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-type Input struct {
-	ID int
-}
-
-type Output struct {
-	Value string `json:"value"`
-}
-
 func TestHandler_ServeHTTP(t *testing.T) {
 	u := &struct {
 		usecase.Interactor
@@ -108,6 +100,82 @@ func TestHandler_ServeHTTP(t *testing.T) {
 	assert.True(t, umwCalled)
 }
 
+func TestHandler_ServeHTTP_customErrResp(t *testing.T) {
+	u := struct {
+		usecase.Interactor
+		usecase.OutputWithNoContent
+	}{}
+
+	u.Interactor = usecase.Interact(func(_ context.Context, input, output interface{}) error {
+		assert.Nil(t, input)
+		assert.Nil(t, output)
+
+		return errors.New("use case failed")
+	})
+
+	h := nethttp.NewHandler(u)
+	h.MakeErrResp = func(_ context.Context, err error) (int, interface{}) {
+		return http.StatusExpectationFailed, struct {
+			Custom string `json:"custom"`
+		}{
+			Custom: err.Error(),
+		}
+	}
+	h.SetResponseEncoder(&response.Encoder{})
+
+	req, err := http.NewRequest(http.MethodGet, "/test", nil)
+	require.NoError(t, err)
+
+	rw := httptest.NewRecorder()
+	h.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusExpectationFailed, rw.Code)
+	assert.Equal(t, `{"custom":"use case failed"}`+"\n", rw.Body.String())
+}
+
+func TestHandler_ServeHTTP_customMapping(t *testing.T) {
+	u := &struct {
+		usecase.Interactor
+		usecase.WithInput
+		usecase.OutputWithNoContent
+	}{}
+
+	u.Input = new(Input)
+	u.Interactor = usecase.Interact(func(_ context.Context, input, _ interface{}) error {
+		in, ok := input.(*Input)
+		assert.True(t, ok)
+		assert.Equal(t, 123, in.ID)
+
+		return nil
+	})
+
+	uh := nethttp.NewHandler(u)
+	uh.ReqMapping = rest.RequestMapping{
+		rest.ParamInQuery: map[string]string{"ID": "ident"},
+	}
+
+	ws := []func(handler http.Handler) http.Handler{
+		request.DecoderMiddleware(request.NewDecoderFactory()),
+		nethttp.HandlerWithRouteMiddleware(http.MethodGet, "/test"),
+		response.EncoderMiddleware,
+	}
+
+	h := nethttp.WrapHandler(uh, ws...)
+
+	for i, w := range ws {
+		assert.True(t, nethttp.MiddlewareIsWrapper(w), i)
+	}
+
+	req, err := http.NewRequest(http.MethodGet, "/test?ident=123", nil)
+	require.NoError(t, err)
+
+	rw := httptest.NewRecorder()
+	h.ServeHTTP(rw, req)
+
+	assert.Equal(t, http.StatusNoContent, rw.Code)
+	assert.Equal(t, "", rw.Body.String())
+}
+
 func TestHandler_ServeHTTP_decodeErr(t *testing.T) {
 	u := &struct {
 		usecase.Interactor
@@ -178,63 +246,6 @@ func TestHandler_ServeHTTP_emptyPorts(t *testing.T) {
 	assert.Equal(t, "", rw.Body.String())
 }
 
-func TestHandler_ServeHTTP_customErrResp(t *testing.T) {
-	u := struct {
-		usecase.Interactor
-		usecase.OutputWithNoContent
-	}{}
-
-	u.Interactor = usecase.Interact(func(_ context.Context, input, output interface{}) error {
-		assert.Nil(t, input)
-		assert.Nil(t, output)
-
-		return errors.New("use case failed")
-	})
-
-	h := nethttp.NewHandler(u)
-	h.MakeErrResp = func(_ context.Context, err error) (int, interface{}) {
-		return http.StatusExpectationFailed, struct {
-			Custom string `json:"custom"`
-		}{
-			Custom: err.Error(),
-		}
-	}
-	h.SetResponseEncoder(&response.Encoder{})
-
-	req, err := http.NewRequest(http.MethodGet, "/test", nil)
-	require.NoError(t, err)
-
-	rw := httptest.NewRecorder()
-	h.ServeHTTP(rw, req)
-
-	assert.Equal(t, http.StatusExpectationFailed, rw.Code)
-	assert.Equal(t, `{"custom":"use case failed"}`+"\n", rw.Body.String())
-}
-
-func TestHandlerWithRouteMiddleware(t *testing.T) {
-	called := false
-
-	var h http.Handler
-	h = http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
-		called = true
-	})
-
-	h = nethttp.HandlerWithRouteMiddleware(http.MethodPost, "/test/")(h)
-	hr, ok := h.(rest.HandlerWithRoute)
-	require.True(t, ok)
-	assert.Equal(t, http.MethodPost, hr.RouteMethod())
-	assert.Equal(t, "/test/", hr.RoutePattern())
-
-	h.ServeHTTP(nil, nil)
-	assert.True(t, called)
-}
-
-type reqWithBody struct {
-	ID int `json:"id"`
-}
-
-func (*reqWithBody) ForceRequestBody() {}
-
 func TestHandler_ServeHTTP_getWithBody(t *testing.T) {
 	u := struct {
 		usecase.Interactor
@@ -267,47 +278,22 @@ func TestHandler_ServeHTTP_getWithBody(t *testing.T) {
 	assert.Equal(t, ``, rw.Body.String())
 }
 
-func TestHandler_ServeHTTP_customMapping(t *testing.T) {
-	u := &struct {
-		usecase.Interactor
-		usecase.WithInput
-		usecase.OutputWithNoContent
-	}{}
+func TestHandlerWithRouteMiddleware(t *testing.T) {
+	called := false
 
-	u.Input = new(Input)
-	u.Interactor = usecase.Interact(func(_ context.Context, input, _ interface{}) error {
-		in, ok := input.(*Input)
-		assert.True(t, ok)
-		assert.Equal(t, 123, in.ID)
-
-		return nil
+	var h http.Handler
+	h = http.HandlerFunc(func(_ http.ResponseWriter, _ *http.Request) {
+		called = true
 	})
 
-	uh := nethttp.NewHandler(u)
-	uh.ReqMapping = rest.RequestMapping{
-		rest.ParamInQuery: map[string]string{"ID": "ident"},
-	}
+	h = nethttp.HandlerWithRouteMiddleware(http.MethodPost, "/test/")(h)
+	hr, ok := h.(rest.HandlerWithRoute)
+	require.True(t, ok)
+	assert.Equal(t, http.MethodPost, hr.RouteMethod())
+	assert.Equal(t, "/test/", hr.RoutePattern())
 
-	ws := []func(handler http.Handler) http.Handler{
-		request.DecoderMiddleware(request.NewDecoderFactory()),
-		nethttp.HandlerWithRouteMiddleware(http.MethodGet, "/test"),
-		response.EncoderMiddleware,
-	}
-
-	h := nethttp.WrapHandler(uh, ws...)
-
-	for i, w := range ws {
-		assert.True(t, nethttp.MiddlewareIsWrapper(w), i)
-	}
-
-	req, err := http.NewRequest(http.MethodGet, "/test?ident=123", nil)
-	require.NoError(t, err)
-
-	rw := httptest.NewRecorder()
-	h.ServeHTTP(rw, req)
-
-	assert.Equal(t, http.StatusNoContent, rw.Code)
-	assert.Equal(t, "", rw.Body.String())
+	h.ServeHTTP(nil, nil)
+	assert.True(t, called)
 }
 
 func TestOptionsMiddleware(t *testing.T) {
@@ -344,3 +330,17 @@ func TestOptionsMiddleware(t *testing.T) {
 	assert.EqualError(t, loggedErr, "failed")
 	assert.Equal(t, `{"foo":"failed"}`+"\n", rw.Body.String())
 }
+
+type Input struct {
+	ID int
+}
+
+type Output struct {
+	Value string `json:"value"`
+}
+
+type reqWithBody struct {
+	ID int `json:"id"`
+}
+
+func (*reqWithBody) ForceRequestBody() {}

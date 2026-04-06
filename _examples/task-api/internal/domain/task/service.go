@@ -8,9 +8,10 @@ type Creator interface {
 	Create(context.Context, Value) (Entity, error)
 }
 
-// Updater updates tasks.
-type Updater interface {
-	Update(context.Context, Identity, Value) error
+// Finder finds tasks.
+type Finder interface {
+	Find(context.Context) []Entity
+	FindByID(context.Context, Identity) (Entity, error)
 }
 
 // Finisher closes tasks.
@@ -19,8 +20,7 @@ type Finisher interface {
 	Finish(context.Context, Identity) error
 }
 
-// Finder finds tasks.
-type Finder interface {
-	Find(context.Context) []Entity
-	FindByID(context.Context, Identity) (Entity, error)
+// Updater updates tasks.
+type Updater interface {
+	Update(context.Context, Identity, Value) error
 }

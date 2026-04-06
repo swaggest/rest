@@ -18,12 +18,6 @@ var bufPool = sync.Pool{
 	},
 }
 
-func readJSON(rd io.Reader, v interface{}) error {
-	d := json.NewDecoder(rd)
-
-	return d.Decode(v)
-}
-
 func decodeJSONBody(readJSON func(rd io.Reader, v interface{}) error, tolerateFormData bool) valueDecoderFunc {
 	return func(r *http.Request, input interface{}, validator rest.Validator) error {
 		if r.ContentLength == 0 {
@@ -81,4 +75,10 @@ func checkJSONBodyContentType(contentType string, tolerateFormData bool) (ret bo
 	}
 
 	return false, nil
+}
+
+func readJSON(rd io.Reader, v interface{}) error {
+	d := json.NewDecoder(rd)
+
+	return d.Decode(v)
 }

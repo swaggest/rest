@@ -11,18 +11,6 @@ import (
 	"github.com/swaggest/rest"
 )
 
-var _ rest.Validator = &Validator{}
-
-// Validator is a JSON Schema based validator.
-type Validator struct {
-	// JSONMarshal controls custom marshaler, nil value enables "encoding/json".
-	JSONMarshal func(interface{}) ([]byte, error)
-
-	inNamedSchemas map[rest.ParamIn]map[string]*jsonschema.Schema
-	inRequired     map[rest.ParamIn][]string
-	forbidUnknown  map[rest.ParamIn]bool
-}
-
 // NewFactory creates new validator factory.
 func NewFactory(
 	requestSchemas rest.RequestJSONSchemaProvider,
@@ -88,13 +76,14 @@ func (f Factory) MakeResponseValidator(
 	return &v
 }
 
-// ForbidUnknownParams configures if unknown parameters should be forbidden.
-func (v *Validator) ForbidUnknownParams(in rest.ParamIn, forbidden bool) {
-	if v.forbidUnknown == nil {
-		v.forbidUnknown = make(map[rest.ParamIn]bool)
-	}
+// Validator is a JSON Schema based validator.
+type Validator struct {
+	// JSONMarshal controls custom marshaler, nil value enables "encoding/json".
+	JSONMarshal func(interface{}) ([]byte, error)
 
-	v.forbidUnknown[in] = forbidden
+	inNamedSchemas map[rest.ParamIn]map[string]*jsonschema.Schema
+	inRequired     map[rest.ParamIn][]string
+	forbidUnknown  map[rest.ParamIn]bool
 }
 
 // AddSchema registers schema for validation.
@@ -144,48 +133,13 @@ func (v *Validator) AddSchema(in rest.ParamIn, name string, jsonSchema []byte, r
 	return nil
 }
 
-func (v *Validator) checkRequired(in rest.ParamIn, namedData map[string]interface{}) []string {
-	required := v.inRequired[in]
-
-	if len(required) == 0 {
-		return nil
+// ForbidUnknownParams configures if unknown parameters should be forbidden.
+func (v *Validator) ForbidUnknownParams(in rest.ParamIn, forbidden bool) {
+	if v.forbidUnknown == nil {
+		v.forbidUnknown = make(map[rest.ParamIn]bool)
 	}
 
-	var missing []string
-
-	for _, name := range v.inRequired[in] {
-		if _, ok := namedData[name]; !ok {
-			missing = append(missing, name)
-		}
-	}
-
-	return missing
-}
-
-// ValidateJSONBody performs validation of JSON body.
-func (v *Validator) ValidateJSONBody(jsonBody []byte) error {
-	name := "body"
-
-	schema, found := v.inNamedSchemas[rest.ParamInBody][name]
-	if !found || schema == nil {
-		return nil
-	}
-
-	err := schema.Validate(bytes.NewBuffer(jsonBody))
-	if err == nil {
-		return nil
-	}
-
-	errs := make(rest.ValidationErrors, 1)
-
-	//nolint:errorlint // Error is not wrapped, type assertion is more performant.
-	if ve, ok := err.(*jsonschema.ValidationError); ok {
-		errs[name] = appendError(errs[name], ve)
-	} else {
-		errs[name] = append(errs[name], err.Error())
-	}
-
-	return errs
+	v.forbidUnknown[in] = forbidden
 }
 
 // HasConstraints indicates if there are validation rules for parameter location.
@@ -254,6 +208,52 @@ func (v *Validator) ValidateData(in rest.ParamIn, namedData map[string]interface
 
 	return nil
 }
+
+// ValidateJSONBody performs validation of JSON body.
+func (v *Validator) ValidateJSONBody(jsonBody []byte) error {
+	name := "body"
+
+	schema, found := v.inNamedSchemas[rest.ParamInBody][name]
+	if !found || schema == nil {
+		return nil
+	}
+
+	err := schema.Validate(bytes.NewBuffer(jsonBody))
+	if err == nil {
+		return nil
+	}
+
+	errs := make(rest.ValidationErrors, 1)
+
+	//nolint:errorlint // Error is not wrapped, type assertion is more performant.
+	if ve, ok := err.(*jsonschema.ValidationError); ok {
+		errs[name] = appendError(errs[name], ve)
+	} else {
+		errs[name] = append(errs[name], err.Error())
+	}
+
+	return errs
+}
+
+func (v *Validator) checkRequired(in rest.ParamIn, namedData map[string]interface{}) []string {
+	required := v.inRequired[in]
+
+	if len(required) == 0 {
+		return nil
+	}
+
+	var missing []string
+
+	for _, name := range v.inRequired[in] {
+		if _, ok := namedData[name]; !ok {
+			missing = append(missing, name)
+		}
+	}
+
+	return missing
+}
+
+var _ rest.Validator = &Validator{}
 
 func appendError(errorMessages []string, err *jsonschema.ValidationError) []string {
 	errorMessages = append(errorMessages, err.InstancePtr+": "+err.Message)

@@ -10,24 +10,6 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-type htmlResponseOutput struct {
-	ID         int
-	Filter     string
-	Title      string
-	Items      []string
-	AntiHeader bool `header:"X-Anti-Header"`
-
-	writer io.Writer
-}
-
-func (o *htmlResponseOutput) SetWriter(w io.Writer) {
-	o.writer = w
-}
-
-func (o *htmlResponseOutput) Render(tmpl *template.Template) error {
-	return tmpl.Execute(o.writer, o)
-}
-
 func htmlResponse() usecase.Interactor {
 	type htmlResponseInput struct {
 		ID     int    `path:"id"`
@@ -67,4 +49,22 @@ func htmlResponse() usecase.Interactor {
 	u.SetTags("Response")
 
 	return u
+}
+
+type htmlResponseOutput struct {
+	ID         int
+	Filter     string
+	Title      string
+	Items      []string
+	AntiHeader bool `header:"X-Anti-Header"`
+
+	writer io.Writer
+}
+
+func (o *htmlResponseOutput) Render(tmpl *template.Template) error {
+	return tmpl.Execute(o.writer, o)
+}
+
+func (o *htmlResponseOutput) SetWriter(w io.Writer) {
+	o.writer = w
 }

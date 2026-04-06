@@ -17,12 +17,6 @@ var (
 	multipartFileHeadersType = reflect.TypeOf(([]*multipart.FileHeader)(nil))
 )
 
-func decodeFiles(r *http.Request, input interface{}, _ rest.Validator) error {
-	v := reflect.ValueOf(input)
-
-	return decodeFilesInStruct(r, v)
-}
-
 func decodeFilesInStruct(r *http.Request, v reflect.Value) error {
 	for v.Kind() == reflect.Ptr {
 		v = v.Elem()
@@ -110,4 +104,10 @@ func setFile(r *http.Request, field reflect.StructField, v reflect.Value) error 
 	}
 
 	return nil
+}
+
+func decodeFiles(r *http.Request, input interface{}, _ rest.Validator) error {
+	v := reflect.ValueOf(input)
+
+	return decodeFilesInStruct(r, v)
 }

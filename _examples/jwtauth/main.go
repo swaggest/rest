@@ -72,17 +72,6 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-var tokenAuth *jwtauth.JWTAuth
-
-func init() {
-	tokenAuth = jwtauth.New("HS256", []byte("secret"), nil)
-
-	// For debugging/example purposes, we generate and print
-	// a sample jwt token with claims `user_id:123` here:
-	_, tokenString, _ := tokenAuth.Encode(map[string]interface{}{"user_id": 123})
-	fmt.Printf("DEBUG: a sample jwt is %s\n\n", tokenString)
-}
-
 func main() {
 	addr := "localhost:3333"
 	fmt.Printf("Starting server on http://%v\n", addr)
@@ -102,6 +91,17 @@ func Get() usecase.Interactor {
 			return nil
 		})
 	return u
+}
+
+var tokenAuth *jwtauth.JWTAuth
+
+func init() {
+	tokenAuth = jwtauth.New("HS256", []byte("secret"), nil)
+
+	// For debugging/example purposes, we generate and print
+	// a sample jwt token with claims `user_id:123` here:
+	_, tokenString, _ := tokenAuth.Encode(map[string]interface{}{"user_id": 123})
+	fmt.Printf("DEBUG: a sample jwt is %s\n\n", tokenString)
 }
 
 func router() http.Handler {

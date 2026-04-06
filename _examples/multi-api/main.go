@@ -83,18 +83,6 @@ func service() *web.Service {
 	return s
 }
 
-func specHandler(s openapi.SpecSchema) http.Handler {
-	j, err := json.Marshal(s)
-	if err != nil {
-		panic(err)
-	}
-
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		_, _ = w.Write(j)
-	})
-}
-
 func mul() usecase.Interactor {
 	return usecase.NewInteractor(func(ctx context.Context, input []int, output *int) error {
 		*output = 1
@@ -104,6 +92,18 @@ func mul() usecase.Interactor {
 		}
 
 		return nil
+	})
+}
+
+func specHandler(s openapi.SpecSchema) http.Handler {
+	j, err := json.Marshal(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write(j)
 	})
 }
 

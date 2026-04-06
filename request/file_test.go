@@ -24,18 +24,6 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-type ReqEmb struct {
-	Simple         string                  `formData:"simple"`
-	UploadHeader   *multipart.FileHeader   `formData:"upload"`
-	UploadsHeaders []*multipart.FileHeader `formData:"uploads"`
-}
-
-type fileReqTest struct {
-	ReqEmb
-	Upload  multipart.File   `file:"upload"`
-	Uploads []multipart.File `formData:"uploads"`
-}
-
 func TestDecoder_Decode_fileUploadOptional(t *testing.T) {
 	u := usecase.NewIOI(new(ReqEmb), nil, func(_ context.Context, _, _ interface{}) error {
 		return nil
@@ -161,4 +149,16 @@ func TestDecoder_Decode_fileUploadTag(t *testing.T) {
 	resp, err := srv.Client().Do(hreq)
 	assert.NoError(t, err)
 	assert.NoError(t, resp.Body.Close())
+}
+
+type ReqEmb struct {
+	Simple         string                  `formData:"simple"`
+	UploadHeader   *multipart.FileHeader   `formData:"upload"`
+	UploadsHeaders []*multipart.FileHeader `formData:"uploads"`
+}
+
+type fileReqTest struct {
+	ReqEmb
+	Upload  multipart.File   `file:"upload"`
+	Uploads []multipart.File `formData:"uploads"`
 }

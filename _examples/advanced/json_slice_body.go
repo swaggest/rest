@@ -9,16 +9,6 @@ import (
 
 type JSONSlicePayload []int
 
-type jsonSliceReq struct {
-	Header string `header:"X-Header" description:"Simple scalar value in header."`
-	Query  int    `query:"in_query" description:"Simple scalar value in query."`
-	JSONSlicePayload
-}
-
-func (j *jsonSliceReq) UnmarshalJSON(data []byte) error {
-	return json.Unmarshal(data, &j.JSONSlicePayload)
-}
-
 func jsonSliceBody() usecase.Interactor {
 	type jsonOutput struct {
 		Header string           `json:"inHeader"`
@@ -42,4 +32,14 @@ func jsonSliceBody() usecase.Interactor {
 	u.SetTitle("Request With JSON Array In Body")
 
 	return u
+}
+
+type jsonSliceReq struct {
+	Header string `header:"X-Header" description:"Simple scalar value in header."`
+	Query  int    `query:"in_query" description:"Simple scalar value in query."`
+	JSONSlicePayload
+}
+
+func (j *jsonSliceReq) UnmarshalJSON(data []byte) error {
+	return json.Unmarshal(data, &j.JSONSlicePayload)
 }

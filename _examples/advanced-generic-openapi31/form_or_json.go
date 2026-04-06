@@ -6,14 +6,6 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-type formOrJSONInput struct {
-	Field1 string `json:"field1" formData:"field1" required:"true"`
-	Field2 int    `json:"field2" formData:"field2" required:"true"`
-	Field3 string `path:"path" required:"true"`
-}
-
-func (formOrJSONInput) ForceJSONRequestBody() {}
-
 func formOrJSON() usecase.Interactor {
 	type formOrJSONOutput struct {
 		F1 string `json:"f1"`
@@ -34,3 +26,11 @@ func formOrJSON() usecase.Interactor {
 
 	return u
 }
+
+type formOrJSONInput struct {
+	Field1 string `json:"field1" formData:"field1" required:"true"`
+	Field2 int    `json:"field2" formData:"field2" required:"true"`
+	Field3 string `path:"path" required:"true"`
+}
+
+func (formOrJSONInput) ForceJSONRequestBody() {}

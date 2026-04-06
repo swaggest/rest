@@ -7,11 +7,6 @@ type TaskCreatorProvider interface {
 	TaskCreator() task.Creator
 }
 
-// TaskUpdaterProvider is a service locator provider.
-type TaskUpdaterProvider interface {
-	TaskUpdater() task.Updater
-}
-
 // TaskFinderProvider is a service locator provider.
 type TaskFinderProvider interface {
 	TaskFinder() task.Finder
@@ -20,4 +15,9 @@ type TaskFinderProvider interface {
 // TaskFinisherProvider is a service locator provider.
 type TaskFinisherProvider interface {
 	TaskFinisher() task.Finisher
+}
+
+// TaskUpdaterProvider is a service locator provider.
+type TaskUpdaterProvider interface {
+	TaskUpdater() task.Updater
 }

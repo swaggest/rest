@@ -11,6 +11,19 @@ import (
 	"github.com/swaggest/rest/openapi"
 )
 
+// NewOpenAPICollector creates route walker for gorilla/mux, that collects OpenAPI operations.
+func NewOpenAPICollector(r oapi.Reflector) *OpenAPICollector {
+	c := openapi.NewCollector(r)
+
+	return &OpenAPICollector{
+		Collector: c,
+		DefaultMethods: []string{
+			http.MethodHead, http.MethodGet, http.MethodPost,
+			http.MethodPut, http.MethodPatch, http.MethodDelete,
+		},
+	}
+}
+
 // OpenAPICollector is a wrapper for openapi.Collector tailored to walk gorilla/mux router.
 type OpenAPICollector struct {
 	// Collector is an actual OpenAPI collector.
@@ -27,26 +40,6 @@ type OpenAPICollector struct {
 	// OpenAPI document.
 	Host string
 }
-
-// NewOpenAPICollector creates route walker for gorilla/mux, that collects OpenAPI operations.
-func NewOpenAPICollector(r oapi.Reflector) *OpenAPICollector {
-	c := openapi.NewCollector(r)
-
-	return &OpenAPICollector{
-		Collector: c,
-		DefaultMethods: []string{
-			http.MethodHead, http.MethodGet, http.MethodPost,
-			http.MethodPut, http.MethodPatch, http.MethodDelete,
-		},
-	}
-}
-
-// OpenAPIPreparer defines http.Handler with OpenAPI information.
-type OpenAPIPreparer interface {
-	SetupOpenAPIOperation(oc oapi.OperationContext) error
-}
-
-type preparerFunc func(oc oapi.OperationContext) error
 
 // Walker walks route tree and collects OpenAPI information.
 func (dc *OpenAPICollector) Walker(route *mux.Route, _ *mux.Router, _ []*mux.Route) error {
@@ -133,3 +126,10 @@ func (dc *OpenAPICollector) collect(method, path string, preparer preparerFunc) 
 		return nil
 	}
 }
+
+// OpenAPIPreparer defines http.Handler with OpenAPI information.
+type OpenAPIPreparer interface {
+	SetupOpenAPIOperation(oc oapi.OperationContext) error
+}
+
+type preparerFunc func(oc oapi.OperationContext) error

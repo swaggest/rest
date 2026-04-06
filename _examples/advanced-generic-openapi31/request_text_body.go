@@ -8,22 +8,6 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-type textReqBodyInput struct {
-	Path  string `path:"path"`
-	Query int    `query:"query"`
-	text  []byte
-	err   error
-}
-
-func (c *textReqBodyInput) SetRequest(r *http.Request) {
-	c.text, c.err = io.ReadAll(r.Body)
-	clErr := r.Body.Close()
-
-	if c.err == nil {
-		c.err = clErr
-	}
-}
-
 func textReqBody() usecase.Interactor {
 	type output struct {
 		Path  string `json:"path"`
@@ -66,4 +50,20 @@ func textReqBodyPtr() usecase.Interactor {
 	u.SetTags("Request")
 
 	return u
+}
+
+type textReqBodyInput struct {
+	Path  string `path:"path"`
+	Query int    `query:"query"`
+	text  []byte
+	err   error
+}
+
+func (c *textReqBodyInput) SetRequest(r *http.Request) {
+	c.text, c.err = io.ReadAll(r.Body)
+	clErr := r.Body.Close()
+
+	if c.err == nil {
+		c.err = clErr
+	}
 }

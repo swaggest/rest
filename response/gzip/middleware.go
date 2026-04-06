@@ -16,15 +16,6 @@ import (
 	gz "github.com/swaggest/rest/gzip"
 )
 
-const (
-	contentTypeHeader     = "Content-Type"
-	contentLengthHeader   = "Content-Length"
-	contentEncodingHeader = "Content-Encoding"
-	acceptEncodingHeader  = "Accept-Encoding"
-
-	defaultBufferSize = 8 * 1024
-)
-
 // Middleware enables gzip compression of handler response for requests that accept gzip encoding.
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -42,10 +33,46 @@ func Middleware(next http.Handler) http.Handler {
 	})
 }
 
+const (
+	contentTypeHeader     = "Content-Type"
+	contentLengthHeader   = "Content-Length"
+	contentEncodingHeader = "Content-Encoding"
+	acceptEncodingHeader  = "Accept-Encoding"
+
+	defaultBufferSize = 8 * 1024
+)
+
+var (
+	_ gz.Writer = &gzipResponseWriter{}
+	_ gz.Writer = &gzipResponseWriterHijacker{}
+
+	_ http.ResponseWriter = &gzipResponseWriter{}
+	_ http.ResponseWriter = &gzipResponseWriterHijacker{}
+
+	_ http.Flusher = &gzipResponseWriter{}
+	_ http.Flusher = &gzipResponseWriterHijacker{}
+
+	_ http.Hijacker = &gzipResponseWriterHijacker{}
+)
+
 var (
 	gzipWriterPool sync.Pool
 	bufWriterPool  sync.Pool
 )
+
+func getBufWriter(w io.Writer) *bufio.Writer {
+	v := bufWriterPool.Get()
+	if v == nil {
+		return bufio.NewWriterSize(w, defaultBufferSize)
+	}
+
+	//nolint:errcheck // OK to panic here.
+	bw := v.(*bufio.Writer)
+
+	bw.Reset(w)
+
+	return bw
+}
 
 func getGzipWriter(w io.Writer) *gzip.Writer {
 	v := gzipWriterPool.Get()
@@ -66,18 +93,13 @@ func getGzipWriter(w io.Writer) *gzip.Writer {
 	return zw
 }
 
-func getBufWriter(w io.Writer) *bufio.Writer {
-	v := bufWriterPool.Get()
-	if v == nil {
-		return bufio.NewWriterSize(w, defaultBufferSize)
+func isTrivialNetworkError(err error) bool {
+	s := err.Error()
+	if strings.Contains(s, "broken pipe") || strings.Contains(s, "reset by peer") {
+		return true
 	}
 
-	//nolint:errcheck // OK to panic here.
-	bw := v.(*bufio.Writer)
-
-	bw.Reset(w)
-
-	return bw
+	return false
 }
 
 func maybeGzipResponseWriter(w http.ResponseWriter, r *http.Request) http.ResponseWriter {
@@ -110,6 +132,14 @@ func maybeGzipResponseWriter(w http.ResponseWriter, r *http.Request) http.Respon
 	return zrw
 }
 
+func putBufWriter(bw *bufio.Writer) {
+	bufWriterPool.Put(bw)
+}
+
+func putGzipWriter(zw *gzip.Writer) {
+	gzipWriterPool.Put(zw)
+}
+
 type gzipResponseWriter struct {
 	http.ResponseWriter
 	gzipWriter *gzip.Writer
@@ -120,27 +150,49 @@ type gzipResponseWriter struct {
 	disableCompression    bool
 }
 
-type gzipResponseWriterHijacker struct {
-	gzipResponseWriter
-	hijacker http.Hijacker
+// Close flushes and closes response.
+func (rw *gzipResponseWriter) Close() error {
+	if !rw.headersWritten {
+		rw.disableCompression = true
+
+		return nil
+	}
+
+	if rw.bufWriter == nil || rw.gzipWriter == nil {
+		return nil
+	}
+
+	rw.Flush()
+
+	err := rw.gzipWriter.Close()
+
+	putBufWriter(rw.bufWriter)
+	rw.bufWriter = nil
+
+	putGzipWriter(rw.gzipWriter)
+	rw.gzipWriter = nil
+
+	return err
 }
 
-func (rw *gzipResponseWriterHijacker) Hijack() (net.Conn, *bufio.ReadWriter, error) {
-	return rw.hijacker.Hijack()
+// Flush implements http.Flusher.
+func (rw *gzipResponseWriter) Flush() {
+	if rw.bufWriter == nil || rw.gzipWriter == nil {
+		return
+	}
+
+	if err := rw.bufWriter.Flush(); err != nil && !isTrivialNetworkError(err) {
+		panic(fmt.Sprintf("BUG: cannot flush bufio.Writer: %s", err))
+	}
+
+	if err := rw.gzipWriter.Flush(); err != nil && !isTrivialNetworkError(err) {
+		panic(fmt.Sprintf("BUG: cannot flush gzip.Writer: %s", err))
+	}
+
+	if fw, ok := rw.ResponseWriter.(http.Flusher); ok {
+		fw.Flush()
+	}
 }
-
-var (
-	_ gz.Writer = &gzipResponseWriter{}
-	_ gz.Writer = &gzipResponseWriterHijacker{}
-
-	_ http.ResponseWriter = &gzipResponseWriter{}
-	_ http.ResponseWriter = &gzipResponseWriterHijacker{}
-
-	_ http.Flusher = &gzipResponseWriter{}
-	_ http.Flusher = &gzipResponseWriterHijacker{}
-
-	_ http.Hijacker = &gzipResponseWriterHijacker{}
-)
 
 func (rw *gzipResponseWriter) GzipWrite(data []byte) (int, error) {
 	if rw.headersWritten {
@@ -150,6 +202,22 @@ func (rw *gzipResponseWriter) GzipWrite(data []byte) (int, error) {
 	rw.expectCompressedBytes = true
 
 	return rw.Write(data)
+}
+
+func (rw *gzipResponseWriter) Write(p []byte) (int, error) {
+	if !rw.headersWritten {
+		rw.writeHeader(http.StatusOK)
+	}
+
+	if rw.disableCompression || rw.expectCompressedBytes {
+		return rw.ResponseWriter.Write(p)
+	}
+
+	return rw.bufWriter.Write(p)
+}
+
+func (rw *gzipResponseWriter) WriteHeader(statusCode int) {
+	rw.writeHeader(statusCode)
 }
 
 func (rw *gzipResponseWriter) writeHeader(statusCode int) { //nolint:funlen
@@ -248,79 +316,11 @@ func (rw *gzipResponseWriter) writeHeader(statusCode int) { //nolint:funlen
 	rw.headersWritten = true
 }
 
-func (rw *gzipResponseWriter) Write(p []byte) (int, error) {
-	if !rw.headersWritten {
-		rw.writeHeader(http.StatusOK)
-	}
-
-	if rw.disableCompression || rw.expectCompressedBytes {
-		return rw.ResponseWriter.Write(p)
-	}
-
-	return rw.bufWriter.Write(p)
+type gzipResponseWriterHijacker struct {
+	gzipResponseWriter
+	hijacker http.Hijacker
 }
 
-func (rw *gzipResponseWriter) WriteHeader(statusCode int) {
-	rw.writeHeader(statusCode)
-}
-
-func isTrivialNetworkError(err error) bool {
-	s := err.Error()
-	if strings.Contains(s, "broken pipe") || strings.Contains(s, "reset by peer") {
-		return true
-	}
-
-	return false
-}
-
-// Flush implements http.Flusher.
-func (rw *gzipResponseWriter) Flush() {
-	if rw.bufWriter == nil || rw.gzipWriter == nil {
-		return
-	}
-
-	if err := rw.bufWriter.Flush(); err != nil && !isTrivialNetworkError(err) {
-		panic(fmt.Sprintf("BUG: cannot flush bufio.Writer: %s", err))
-	}
-
-	if err := rw.gzipWriter.Flush(); err != nil && !isTrivialNetworkError(err) {
-		panic(fmt.Sprintf("BUG: cannot flush gzip.Writer: %s", err))
-	}
-
-	if fw, ok := rw.ResponseWriter.(http.Flusher); ok {
-		fw.Flush()
-	}
-}
-
-// Close flushes and closes response.
-func (rw *gzipResponseWriter) Close() error {
-	if !rw.headersWritten {
-		rw.disableCompression = true
-
-		return nil
-	}
-
-	if rw.bufWriter == nil || rw.gzipWriter == nil {
-		return nil
-	}
-
-	rw.Flush()
-
-	err := rw.gzipWriter.Close()
-
-	putBufWriter(rw.bufWriter)
-	rw.bufWriter = nil
-
-	putGzipWriter(rw.gzipWriter)
-	rw.gzipWriter = nil
-
-	return err
-}
-
-func putGzipWriter(zw *gzip.Writer) {
-	gzipWriterPool.Put(zw)
-}
-
-func putBufWriter(bw *bufio.Writer) {
-	bufWriterPool.Put(bw)
+func (rw *gzipResponseWriterHijacker) Hijack() (net.Conn, *bufio.ReadWriter, error) {
+	return rw.hijacker.Hijack()
 }

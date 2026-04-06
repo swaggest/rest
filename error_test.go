@@ -12,24 +12,6 @@ import (
 	"github.com/swaggest/usecase/status"
 )
 
-func TestHTTPStatusFromCanonicalCode(t *testing.T) {
-	maxStatusCode := 17
-	for i := 0; i <= maxStatusCode; i++ {
-		s := status.Code(i)
-		assert.NotEmpty(t, rest.HTTPStatusFromCanonicalCode(s))
-	}
-}
-
-type errWithHTTPStatus int
-
-func (e errWithHTTPStatus) Error() string {
-	return "failed very much"
-}
-
-func (e errWithHTTPStatus) HTTPStatus() int {
-	return int(e)
-}
-
 func TestErr(t *testing.T) {
 	err := usecase.Error{
 		StatusCode: status.InvalidArgument,
@@ -87,4 +69,22 @@ func TestErr(t *testing.T) {
 		_, er := rest.Err(nil)
 		assert.NoError(t, er)
 	})
+}
+
+func TestHTTPStatusFromCanonicalCode(t *testing.T) {
+	maxStatusCode := 17
+	for i := 0; i <= maxStatusCode; i++ {
+		s := status.Code(i)
+		assert.NotEmpty(t, rest.HTTPStatusFromCanonicalCode(s))
+	}
+}
+
+type errWithHTTPStatus int
+
+func (e errWithHTTPStatus) Error() string {
+	return "failed very much"
+}
+
+func (e errWithHTTPStatus) HTTPStatus() int {
+	return int(e)
 }

@@ -36,6 +36,37 @@ func BenchmarkRequestValidator_ValidateRequestData(b *testing.B) {
 	}
 }
 
+func TestFactory_MakeResponseValidator(t *testing.T) {
+	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
+		MakeResponseValidator(http.StatusOK, "application/json", new(struct {
+			Name  string `json:"name" minLength:"1"`
+			Trace string `maxLength:"3"`
+		}), map[string]string{
+			"Trace": "x-TrAcE",
+		})
+
+	assert.NoError(t, validator.ValidateJSONBody([]byte(`{"name":"John"}`)))
+	assert.Error(t, validator.ValidateJSONBody([]byte(`{"name":""}`))) // minLength:"1" violated.
+	assert.NoError(t, validator.ValidateData(rest.ParamInHeader, map[string]interface{}{
+		"X-Trace": "abc",
+	}))
+	assert.Error(t, validator.ValidateData(rest.ParamInHeader, map[string]interface{}{
+		"X-Trace": "abcd", // maxLength:"3" violated.
+	}))
+}
+
+func TestNullableTime(t *testing.T) {
+	type request struct {
+		ExpiryDate *time.Time `json:"expiryDate"`
+	}
+
+	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
+		MakeRequestValidator(http.MethodPost, new(request), nil)
+	err := validator.ValidateJSONBody([]byte(`{"expiryDate":null}`))
+
+	assert.NoError(t, err, "%+v", err)
+}
+
 func TestRequestValidator_ValidateData(t *testing.T) {
 	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
 		MakeRequestValidator(http.MethodPost, new(struct {
@@ -69,37 +100,6 @@ func TestRequestValidator_ValidateData(t *testing.T) {
 
 	err = validator.ValidateData(rest.ParamInFormData, map[string]interface{}{"inFormData": "ab"})
 	assert.Equal(t, err, rest.ValidationErrors{"formData:inFormData": []string{"#: length must be >= 3, but got 2"}})
-}
-
-func TestFactory_MakeResponseValidator(t *testing.T) {
-	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
-		MakeResponseValidator(http.StatusOK, "application/json", new(struct {
-			Name  string `json:"name" minLength:"1"`
-			Trace string `maxLength:"3"`
-		}), map[string]string{
-			"Trace": "x-TrAcE",
-		})
-
-	assert.NoError(t, validator.ValidateJSONBody([]byte(`{"name":"John"}`)))
-	assert.Error(t, validator.ValidateJSONBody([]byte(`{"name":""}`))) // minLength:"1" violated.
-	assert.NoError(t, validator.ValidateData(rest.ParamInHeader, map[string]interface{}{
-		"X-Trace": "abc",
-	}))
-	assert.Error(t, validator.ValidateData(rest.ParamInHeader, map[string]interface{}{
-		"X-Trace": "abcd", // maxLength:"3" violated.
-	}))
-}
-
-func TestNullableTime(t *testing.T) {
-	type request struct {
-		ExpiryDate *time.Time `json:"expiryDate"`
-	}
-
-	validator := jsonschema.NewFactory(&openapi.Collector{}, &openapi.Collector{}).
-		MakeRequestValidator(http.MethodPost, new(request), nil)
-	err := validator.ValidateJSONBody([]byte(`{"expiryDate":null}`))
-
-	assert.NoError(t, err, "%+v", err)
 }
 
 func TestValidator_ForbidUnknownParams(t *testing.T) {

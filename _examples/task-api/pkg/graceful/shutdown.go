@@ -32,15 +32,6 @@ func (s *Shutdown) Close() {
 	}
 }
 
-// Wait blocks until shutdown.
-func (s *Shutdown) Wait() error {
-	if s.shutdownSignal != nil {
-		<-s.shutdownSignal
-	}
-
-	return s.shutdown()
-}
-
 // EnableGracefulShutdown schedules service locator termination SIGTERM or SIGINT.
 func (s *Shutdown) EnableGracefulShutdown() {
 	s.mu.Lock()
@@ -66,6 +57,35 @@ func (s *Shutdown) EnableGracefulShutdown() {
 	}
 }
 
+// ShutdownSignal returns a channel that is closed when service locator is closed or os shutdownSignal is received and
+// a confirmation channel that should be closed once subscriber has finished the shutdown.
+func (s *Shutdown) ShutdownSignal(subscriber string) (shutdown <-chan struct{}, done chan<- struct{}) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if s.subscribers == nil {
+		s.subscribers = make(map[string]chan struct{})
+	}
+
+	if d, ok := s.subscribers[subscriber]; ok {
+		return s.shutdownSignal, d
+	}
+
+	d := make(chan struct{}, 1)
+	s.subscribers[subscriber] = d
+
+	return s.shutdownSignal, d
+}
+
+// Wait blocks until shutdown.
+func (s *Shutdown) Wait() error {
+	if s.shutdownSignal != nil {
+		<-s.shutdownSignal
+	}
+
+	return s.shutdown()
+}
+
 func (s *Shutdown) shutdown() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -87,24 +107,4 @@ func (s *Shutdown) shutdown() error {
 	}
 
 	return nil
-}
-
-// ShutdownSignal returns a channel that is closed when service locator is closed or os shutdownSignal is received and
-// a confirmation channel that should be closed once subscriber has finished the shutdown.
-func (s *Shutdown) ShutdownSignal(subscriber string) (shutdown <-chan struct{}, done chan<- struct{}) {
-	s.mu.Lock()
-	defer s.mu.Unlock()
-
-	if s.subscribers == nil {
-		s.subscribers = make(map[string]chan struct{})
-	}
-
-	if d, ok := s.subscribers[subscriber]; ok {
-		return s.shutdownSignal, d
-	}
-
-	d := make(chan struct{}, 1)
-	s.subscribers[subscriber] = d
-
-	return s.shutdownSignal, d
 }

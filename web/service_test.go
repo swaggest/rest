@@ -16,20 +16,6 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-type albumID struct {
-	ID     int    `path:"id"`
-	Locale string `query:"locale"`
-}
-
-func albumByID() usecase.Interactor {
-	u := usecase.NewIOI(new(albumID), new(album), func(_ context.Context, _, _ interface{}) error {
-		return nil
-	})
-	u.SetTags("Album")
-
-	return u
-}
-
 func TestDefaultService(t *testing.T) {
 	var l []string
 
@@ -91,4 +77,18 @@ func TestDefaultService(t *testing.T) {
 	assertjson.EqualMarshal(t, expected, service.OpenAPISchema())
 
 	assert.Equal(t, []string{"one", "two"}, l)
+}
+
+func albumByID() usecase.Interactor {
+	u := usecase.NewIOI(new(albumID), new(album), func(_ context.Context, _, _ interface{}) error {
+		return nil
+	})
+	u.SetTags("Album")
+
+	return u
+}
+
+type albumID struct {
+	ID     int    `path:"id"`
+	Locale string `query:"locale"`
 }

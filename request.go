@@ -1,8 +1,5 @@
 package rest
 
-// ParamIn defines parameter location.
-type ParamIn string
-
 const (
 	// ParamInPath indicates path parameters, such as `/users/{id}`.
 	ParamInPath = ParamIn("path")
@@ -24,15 +21,8 @@ const (
 	ParamInHeader = ParamIn("header")
 )
 
-// RequestMapping describes how decoded request should be applied to container struct.
-//
-// It is defined as a map by parameter location.
-// Each item is a map with struct field name as key and decoded field name as value.
-//
-// Example:
-//
-//	map[rest.ParamIn]map[string]string{rest.ParamInQuery:map[string]string{"ID": "id", "FirstName": "first-name"}}
-type RequestMapping map[ParamIn]map[string]string
+// ParamIn defines parameter location.
+type ParamIn string
 
 // RequestErrors is a list of validation or decoding errors.
 //
@@ -54,3 +44,13 @@ func (re RequestErrors) Fields() map[string]interface{} {
 
 	return res
 }
+
+// RequestMapping describes how decoded request should be applied to container struct.
+//
+// It is defined as a map by parameter location.
+// Each item is a map with struct field name as key and decoded field name as value.
+//
+// Example:
+//
+//	map[rest.ParamIn]map[string]string{rest.ParamInQuery:map[string]string{"ID": "id", "FirstName": "first-name"}}
+type RequestMapping map[ParamIn]map[string]string

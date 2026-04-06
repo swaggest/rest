@@ -6,31 +6,6 @@ import (
 	"runtime"
 )
 
-// WrapHandler wraps http.Handler with an unwrappable middleware.
-//
-// Wrapping order is reversed, e.g. if you call WrapHandler(h, mw1, mw2, mw3) middlewares will be
-// invoked in order of mw1(mw2(mw3(h))), mw3 first and mw1 last. So that request processing is first
-// affected by mw1.
-func WrapHandler(h http.Handler, mw ...func(http.Handler) http.Handler) http.Handler {
-	for i := len(mw) - 1; i >= 0; i-- {
-		w := mw[i](h)
-		if w == nil {
-			panic("nil handler returned from middleware: " + runtime.FuncForPC(reflect.ValueOf(mw[i]).Pointer()).Name())
-		}
-
-		fp := reflect.ValueOf(mw[i]).Pointer()
-		mwName := runtime.FuncForPC(fp).Name()
-
-		h = &wrappedHandler{
-			Handler: w,
-			wrapped: h,
-			mwName:  mwName,
-		}
-	}
-
-	return h
-}
-
 // HandlerAs finds the first http.Handler in http.Handler's chain that matches target, and if so, sets
 // target to that http.Handler value and returns true.
 //
@@ -82,6 +57,31 @@ func HandlerAs(handler http.Handler, target interface{}) bool {
 	}
 
 	return false
+}
+
+// WrapHandler wraps http.Handler with an unwrappable middleware.
+//
+// Wrapping order is reversed, e.g. if you call WrapHandler(h, mw1, mw2, mw3) middlewares will be
+// invoked in order of mw1(mw2(mw3(h))), mw3 first and mw1 last. So that request processing is first
+// affected by mw1.
+func WrapHandler(h http.Handler, mw ...func(http.Handler) http.Handler) http.Handler {
+	for i := len(mw) - 1; i >= 0; i-- {
+		w := mw[i](h)
+		if w == nil {
+			panic("nil handler returned from middleware: " + runtime.FuncForPC(reflect.ValueOf(mw[i]).Pointer()).Name())
+		}
+
+		fp := reflect.ValueOf(mw[i]).Pointer()
+		mwName := runtime.FuncForPC(fp).Name()
+
+		h = &wrappedHandler{
+			Handler: w,
+			wrapped: h,
+			mwName:  mwName,
+		}
+	}
+
+	return h
 }
 
 var handlerType = reflect.TypeOf((*http.Handler)(nil)).Elem()
