@@ -1,0 +1,23 @@
+name: layout-only changes
+on:
+  pull_request:
+
+# Cancel the workflow in progress if a newer build is about to start.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  gocan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6
+      - name: Annotate layout-only changes
+        run: |
+          curl -sLO https://github.com/vearutop/gocan/releases/download/v0.0.6/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz
+          gocan_hash=$(git hash-object ./gocan)
+          [ "$gocan_hash" == "3ff3d1bd62d8a1c459ed68ca9dd997afcac1cfcc" ] || (echo "::error::unexpected hash for gocan, possible tampering: $gocan_hash" && exit 1)
+          git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
+          git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.head.sha }}
+          GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }} ./gocan -gh-checks -gh-base ${{ github.event.pull_request.base.sha }} -gh-head ${{ github.event.pull_request.head.sha }}

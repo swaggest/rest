@@ -11,7 +11,20 @@ import (
 	"github.com/swaggest/usecase/status"
 )
 
-var _ http.Handler = &Handler{}
+// HandlerWithRouteMiddleware wraps handler with routing information.
+func HandlerWithRouteMiddleware(method, pathPattern string) func(http.Handler) http.Handler {
+	return func(handler http.Handler) http.Handler {
+		if IsWrapperChecker(handler) {
+			return handler
+		}
+
+		return handlerWithRoute{
+			Handler:     handler,
+			pathPattern: pathPattern,
+			method:      method,
+		}
+	}
+}
 
 // NewHandler creates use case http handler.
 func NewHandler(useCase usecase.Interactor, options ...func(h *Handler)) *Handler {
@@ -31,19 +44,6 @@ func NewHandler(useCase usecase.Interactor, options ...func(h *Handler)) *Handle
 	h.SetUseCase(useCase)
 
 	return h
-}
-
-// UseCase returns use case interactor.
-func (h *Handler) UseCase() usecase.Interactor {
-	return h.useCase
-}
-
-// SetUseCase prepares handler for a use case.
-func (h *Handler) SetUseCase(useCase usecase.Interactor) {
-	h.useCase = useCase
-
-	h.setupInputBuffer()
-	h.setupOutputBuffer()
 }
 
 // Handler is a use case http handler with documentation and inputPort validation.
@@ -69,33 +69,6 @@ type Handler struct {
 	inputIsPtr      bool
 
 	responseEncoder ResponseEncoder
-}
-
-// SetResponseEncoder sets response encoder.
-func (h *Handler) SetResponseEncoder(responseEncoder ResponseEncoder) {
-	h.responseEncoder = responseEncoder
-
-	h.setupOutputBuffer()
-}
-
-// SetRequestDecoder sets request decoder.
-func (h *Handler) SetRequestDecoder(requestDecoder RequestDecoder) {
-	h.requestDecoder = requestDecoder
-}
-
-func (h *Handler) decodeRequest(r *http.Request) (interface{}, error) {
-	if h.requestDecoder == nil {
-		panic("request decoder is not initialized, please use SetRequestDecoder")
-	}
-
-	iv := reflect.New(h.inputBufferType)
-	err := h.requestDecoder.Decode(r, iv.Interface(), h.ReqValidator)
-
-	if !h.inputIsPtr {
-		return iv.Elem().Interface(), err
-	}
-
-	return iv.Interface(), err
 }
 
 // ServeHTTP serves http inputPort with use case interactor.
@@ -135,6 +108,66 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	h.responseEncoder.WriteSuccessfulResponse(w, r, output, h.HandlerTrait)
 }
 
+// SetRequestDecoder sets request decoder.
+func (h *Handler) SetRequestDecoder(requestDecoder RequestDecoder) {
+	h.requestDecoder = requestDecoder
+}
+
+// SetResponseEncoder sets response encoder.
+func (h *Handler) SetResponseEncoder(responseEncoder ResponseEncoder) {
+	h.responseEncoder = responseEncoder
+
+	h.setupOutputBuffer()
+}
+
+// SetUseCase prepares handler for a use case.
+func (h *Handler) SetUseCase(useCase usecase.Interactor) {
+	h.useCase = useCase
+
+	h.setupInputBuffer()
+	h.setupOutputBuffer()
+}
+
+// UseCase returns use case interactor.
+func (h *Handler) UseCase() usecase.Interactor {
+	return h.useCase
+}
+
+func (h *Handler) decodeRequest(r *http.Request) (interface{}, error) {
+	if h.requestDecoder == nil {
+		panic("request decoder is not initialized, please use SetRequestDecoder")
+	}
+
+	iv := reflect.New(h.inputBufferType)
+	err := h.requestDecoder.Decode(r, iv.Interface(), h.ReqValidator)
+
+	if !h.inputIsPtr {
+		return iv.Elem().Interface(), err
+	}
+
+	return iv.Interface(), err
+}
+
+func (h *Handler) handleDecodeError(w http.ResponseWriter, r *http.Request, err error, input, output interface{}) {
+	err = status.Wrap(err, status.InvalidArgument)
+
+	if h.failingUseCase != nil {
+		err = h.failingUseCase.Interact(context.WithValue(r.Context(), decodeErrCtxKey{}, err), input, output)
+	}
+
+	h.handleErrResponse(w, r, err)
+}
+
+func (h *Handler) handleErrResponse(w http.ResponseWriter, r *http.Request, err error) {
+	if h.HandleErrResponse != nil {
+		h.HandleErrResponse(w, r, err)
+
+		return
+	}
+
+	h.handleErrResponseDefault(w, r, err)
+}
+
 func (h *Handler) handleErrResponseDefault(w http.ResponseWriter, r *http.Request, err error) {
 	var (
 		code int
@@ -148,34 +181,6 @@ func (h *Handler) handleErrResponseDefault(w http.ResponseWriter, r *http.Reques
 	}
 
 	h.responseEncoder.WriteErrResponse(w, r, code, er)
-}
-
-func (h *Handler) handleErrResponse(w http.ResponseWriter, r *http.Request, err error) {
-	if h.HandleErrResponse != nil {
-		h.HandleErrResponse(w, r, err)
-
-		return
-	}
-
-	h.handleErrResponseDefault(w, r, err)
-}
-
-func closeMultipartForm(r *http.Request) {
-	if err := r.MultipartForm.RemoveAll(); err != nil {
-		log.Println(err)
-	}
-}
-
-type decodeErrCtxKey struct{}
-
-func (h *Handler) handleDecodeError(w http.ResponseWriter, r *http.Request, err error, input, output interface{}) {
-	err = status.Wrap(err, status.InvalidArgument)
-
-	if h.failingUseCase != nil {
-		err = h.failingUseCase.Interact(context.WithValue(r.Context(), decodeErrCtxKey{}, err), input, output)
-	}
-
-	h.handleErrResponse(w, r, err)
 }
 
 func (h *Handler) setupInputBuffer() {
@@ -212,35 +217,6 @@ func (h *Handler) setupOutputBuffer() {
 	}
 }
 
-type handlerWithRoute struct {
-	http.Handler
-	method      string
-	pathPattern string
-}
-
-func (h handlerWithRoute) RouteMethod() string {
-	return h.method
-}
-
-func (h handlerWithRoute) RoutePattern() string {
-	return h.pathPattern
-}
-
-// HandlerWithRouteMiddleware wraps handler with routing information.
-func HandlerWithRouteMiddleware(method, pathPattern string) func(http.Handler) http.Handler {
-	return func(handler http.Handler) http.Handler {
-		if IsWrapperChecker(handler) {
-			return handler
-		}
-
-		return handlerWithRoute{
-			Handler:     handler,
-			pathPattern: pathPattern,
-			method:      method,
-		}
-	}
-}
-
 // RequestDecoder maps data from http.Request into structured Go input value.
 type RequestDecoder interface {
 	// Decode fills input with data from request, input should be a pointer.
@@ -258,4 +234,28 @@ type ResponseEncoder interface {
 	)
 	SetupOutput(output interface{}, ht *rest.HandlerTrait)
 	MakeOutput(w http.ResponseWriter, ht rest.HandlerTrait) interface{}
+}
+
+var _ http.Handler = &Handler{}
+
+func closeMultipartForm(r *http.Request) {
+	if err := r.MultipartForm.RemoveAll(); err != nil {
+		log.Println(err)
+	}
+}
+
+type decodeErrCtxKey struct{}
+
+type handlerWithRoute struct {
+	http.Handler
+	method      string
+	pathPattern string
+}
+
+func (h handlerWithRoute) RouteMethod() string {
+	return h.method
+}
+
+func (h handlerWithRoute) RoutePattern() string {
+	return h.pathPattern
 }

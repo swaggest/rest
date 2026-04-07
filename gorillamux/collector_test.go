@@ -13,28 +13,6 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-type structuredHandler struct {
-	usecase.Info
-	usecase.WithInput
-	usecase.WithOutput
-}
-
-func (s structuredHandler) SetupOpenAPIOperation(oc openapi.OperationContext) error {
-	oc.AddReqStructure(s.Input)
-	oc.AddRespStructure(s.Output)
-
-	return nil
-}
-
-func newStructuredHandler(setup func(h *structuredHandler)) structuredHandler {
-	h := structuredHandler{}
-	setup(&h)
-
-	return h
-}
-
-func (s structuredHandler) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {}
-
 func TestOpenAPICollector_Walker(t *testing.T) {
 	r := mux.NewRouter()
 
@@ -232,4 +210,26 @@ func TestOpenAPICollector_Walker(t *testing.T) {
 		}
 	  }
 	}`, rf.Spec)
+}
+
+func newStructuredHandler(setup func(h *structuredHandler)) structuredHandler {
+	h := structuredHandler{}
+	setup(&h)
+
+	return h
+}
+
+type structuredHandler struct {
+	usecase.Info
+	usecase.WithInput
+	usecase.WithOutput
+}
+
+func (s structuredHandler) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {}
+
+func (s structuredHandler) SetupOpenAPIOperation(oc openapi.OperationContext) error {
+	oc.AddReqStructure(s.Input)
+	oc.AddRespStructure(s.Output)
+
+	return nil
 }

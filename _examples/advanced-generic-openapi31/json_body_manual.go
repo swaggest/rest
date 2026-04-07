@@ -13,9 +13,16 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/swaggest/jsonschema-go"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 	"github.com/swaggest/usecase"
 )
+
+type JSONPayload struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+}
+
+var _ requestaaaaaa.Loader = &inputWithJSON{}
 
 func jsonBodyManual() usecase.Interactor {
 	type outputWithJSON struct {
@@ -41,11 +48,6 @@ func jsonBodyManual() usecase.Interactor {
 	return u
 }
 
-type JSONPayload struct {
-	ID   int    `json:"id"`
-	Name string `json:"name"`
-}
-
 type inputWithJSON struct {
 	Header      string          `header:"X-Header" description:"Simple scalar value in header."`
 	Query       jsonschema.Date `query:"in_query" description:"Simple scalar value in query."`
@@ -53,8 +55,6 @@ type inputWithJSON struct {
 	NamedStruct JSONPayload     `json:"namedStruct" deprecated:"true"`
 	JSONPayload
 }
-
-var _ request.Loader = &inputWithJSON{}
 
 func (i *inputWithJSON) LoadFromHTTPRequest(r *http.Request) (err error) {
 	defer func() {

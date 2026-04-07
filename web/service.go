@@ -14,60 +14,10 @@ import (
 	"github.com/swaggest/rest/jsonschema"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/openapi"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 	"github.com/swaggest/rest/response"
 	"github.com/swaggest/usecase"
 )
-
-// NewService initializes router and other basic components of web service.
-func NewService(refl oapi.Reflector, options ...func(s *Service)) *Service {
-	s := Service{}
-
-	for _, option := range options {
-		option(&s)
-	}
-
-	// Init API documentation schema.
-	if s.OpenAPICollector == nil {
-		c := openapi.NewCollector(refl)
-
-		c.DefaultSuccessResponseContentType = response.DefaultSuccessResponseContentType
-		c.DefaultErrorResponseContentType = response.DefaultErrorResponseContentType
-
-		s.OpenAPICollector = c
-	}
-
-	if s.Wrapper == nil {
-		s.Wrapper = chirouter.NewWrapper(chi.NewRouter())
-	}
-
-	if s.DecoderFactory == nil {
-		decoderFactory := request.NewDecoderFactory()
-		decoderFactory.ApplyDefaults = true
-		decoderFactory.JSONSchemaReflector = s.OpenAPICollector.Refl().JSONSchemaReflector()
-		decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
-
-		s.DecoderFactory = decoderFactory
-	}
-
-	validatorFactory := jsonschema.NewFactory(s.OpenAPICollector, s.OpenAPICollector)
-	s.ResponseValidatorFactory = validatorFactory
-
-	if s.PanicRecoveryMiddleware == nil {
-		s.PanicRecoveryMiddleware = middleware.Recoverer
-	}
-
-	// Setup middlewares.
-	s.Wrap(
-		s.PanicRecoveryMiddleware,                     // Panic recovery.
-		nethttp.OpenAPIMiddleware(s.OpenAPICollector), // Documentation collector.
-		request.DecoderMiddleware(s.DecoderFactory),   // Request decoder setup.
-		request.ValidatorMiddleware(validatorFactory), // Request validator setup.
-		response.EncoderMiddleware,                    // Response encoder setup.
-	)
-
-	return &s
-}
 
 // DefaultService initializes router and other basic components of web service.
 //
@@ -92,6 +42,56 @@ func DefaultService(options ...func(s *Service, initialized bool)) *Service {
 	return s
 }
 
+// NewService initializes router and other basic components of web service.
+func NewService(refl oapi.Reflector, options ...func(s *Service)) *Service {
+	s := Service{}
+
+	for _, option := range options {
+		option(&s)
+	}
+
+	// Init API documentation schema.
+	if s.OpenAPICollector == nil {
+		c := openapi.NewCollector(refl)
+
+		c.DefaultSuccessResponseContentType = response.DefaultSuccessResponseContentType
+		c.DefaultErrorResponseContentType = response.DefaultErrorResponseContentType
+
+		s.OpenAPICollector = c
+	}
+
+	if s.Wrapper == nil {
+		s.Wrapper = chirouter.NewWrapper(chi.NewRouter())
+	}
+
+	if s.DecoderFactory == nil {
+		decoderFactory := requestaaaaaa.NewDecoderFactory()
+		decoderFactory.ApplyDefaults = true
+		decoderFactory.JSONSchemaReflector = s.OpenAPICollector.Refl().JSONSchemaReflector()
+		decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
+
+		s.DecoderFactory = decoderFactory
+	}
+
+	validatorFactory := jsonschema.NewFactory(s.OpenAPICollector, s.OpenAPICollector)
+	s.ResponseValidatorFactory = validatorFactory
+
+	if s.PanicRecoveryMiddleware == nil {
+		s.PanicRecoveryMiddleware = middleware.Recoverer
+	}
+
+	// Setup middlewares.
+	s.Wrap(
+		s.PanicRecoveryMiddleware,                           // Panic recovery.
+		nethttp.OpenAPIMiddleware(s.OpenAPICollector),       // Documentation collector.
+		requestaaaaaa.DecoderMiddleware(s.DecoderFactory),   // Request decoder setup.
+		requestaaaaaa.ValidatorMiddleware(validatorFactory), // Request validator setup.
+		response.EncoderMiddleware,                          // Response encoder setup.
+	)
+
+	return &s
+}
+
 // Service keeps instrumented router and documentation collector.
 type Service struct {
 	*chirouter.Wrapper
@@ -102,7 +102,7 @@ type Service struct {
 	OpenAPI *openapi3.Spec
 
 	OpenAPICollector *openapi.Collector
-	DecoderFactory   *request.DecoderFactory
+	DecoderFactory   *requestaaaaaa.DecoderFactory
 
 	// Response validation is not enabled by default for its less justifiable performance impact.
 	// This field is populated so that response.ValidatorMiddleware(s.ResponseValidatorFactory) can be
@@ -113,21 +113,30 @@ type Service struct {
 	AddHeadToGet bool
 }
 
-// OpenAPISchema returns OpenAPI schema.
-//
-// Returned value can be type asserted to *openapi3.Spec, *openapi31.Spec or marshaled.
-func (s *Service) OpenAPISchema() oapi.SpecSchema {
-	return s.OpenAPICollector.SpecSchema()
-}
-
-// OpenAPIReflector returns OpenAPI structure reflector for customizations.
-func (s *Service) OpenAPIReflector() oapi.Reflector {
-	return s.OpenAPICollector.Refl()
-}
-
 // Delete adds the route `pattern` that matches a DELETE http method to invoke use case interactor.
 func (s *Service) Delete(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
 	s.Method(http.MethodDelete, pattern, nethttp.NewHandler(uc, options...))
+}
+
+// Docs adds the route `pattern` that serves API documentation with Swagger UI.
+//
+// Swagger UI should be provided by `swgui` handler constructor, you can use one of these functions
+//
+//	github.com/swaggest/swgui/v5emb.New
+//	github.com/swaggest/swgui/v5cdn.New
+//	github.com/swaggest/swgui/v5.New
+//	github.com/swaggest/swgui/v4emb.New
+//	github.com/swaggest/swgui/v4cdn.New
+//	github.com/swaggest/swgui/v4.New
+//	github.com/swaggest/swgui/v3emb.New
+//	github.com/swaggest/swgui/v3cdn.New
+//	github.com/swaggest/swgui/v3.New
+//
+// or create your own.
+func (s *Service) Docs(pattern string, swgui func(title, schemaURL, basePath string) http.Handler) {
+	pattern = strings.TrimRight(pattern, "/")
+	s.Method(http.MethodGet, pattern+"/openapi.json", s.OpenAPICollector)
+	s.Mount(pattern, swgui(s.OpenAPISchema().Title(), pattern+"/openapi.json", pattern))
 }
 
 // Get adds the route `pattern` that matches a GET http method to invoke use case interactor.
@@ -158,6 +167,28 @@ func (s *Service) HeadGet(pattern string, uc usecase.Interactor, options ...func
 	s.Method(http.MethodHead, pattern, h)
 }
 
+// OnMethodNotAllowed registers usecase interactor as a handler for method not allowed conditions.
+func (s *Service) OnMethodNotAllowed(uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	s.MethodNotAllowed(s.HandlerFunc(nethttp.NewHandler(uc, options...)))
+}
+
+// OnNotFound registers usecase interactor as a handler for not found conditions.
+func (s *Service) OnNotFound(uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
+	s.NotFound(s.HandlerFunc(nethttp.NewHandler(uc, options...)))
+}
+
+// OpenAPIReflector returns OpenAPI structure reflector for customizations.
+func (s *Service) OpenAPIReflector() oapi.Reflector {
+	return s.OpenAPICollector.Refl()
+}
+
+// OpenAPISchema returns OpenAPI schema.
+//
+// Returned value can be type asserted to *openapi3.Spec, *openapi31.Spec or marshaled.
+func (s *Service) OpenAPISchema() oapi.SpecSchema {
+	return s.OpenAPICollector.SpecSchema()
+}
+
 // Options adds the route `pattern` that matches a OPTIONS http method to invoke use case interactor.
 func (s *Service) Options(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
 	s.Method(http.MethodOptions, pattern, nethttp.NewHandler(uc, options...))
@@ -181,35 +212,4 @@ func (s *Service) Put(pattern string, uc usecase.Interactor, options ...func(h *
 // Trace adds the route `pattern` that matches a TRACE http method to invoke use case interactor.
 func (s *Service) Trace(pattern string, uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
 	s.Method(http.MethodTrace, pattern, nethttp.NewHandler(uc, options...))
-}
-
-// OnNotFound registers usecase interactor as a handler for not found conditions.
-func (s *Service) OnNotFound(uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
-	s.NotFound(s.HandlerFunc(nethttp.NewHandler(uc, options...)))
-}
-
-// OnMethodNotAllowed registers usecase interactor as a handler for method not allowed conditions.
-func (s *Service) OnMethodNotAllowed(uc usecase.Interactor, options ...func(h *nethttp.Handler)) {
-	s.MethodNotAllowed(s.HandlerFunc(nethttp.NewHandler(uc, options...)))
-}
-
-// Docs adds the route `pattern` that serves API documentation with Swagger UI.
-//
-// Swagger UI should be provided by `swgui` handler constructor, you can use one of these functions
-//
-//	github.com/swaggest/swgui/v5emb.New
-//	github.com/swaggest/swgui/v5cdn.New
-//	github.com/swaggest/swgui/v5.New
-//	github.com/swaggest/swgui/v4emb.New
-//	github.com/swaggest/swgui/v4cdn.New
-//	github.com/swaggest/swgui/v4.New
-//	github.com/swaggest/swgui/v3emb.New
-//	github.com/swaggest/swgui/v3cdn.New
-//	github.com/swaggest/swgui/v3.New
-//
-// or create your own.
-func (s *Service) Docs(pattern string, swgui func(title, schemaURL, basePath string) http.Handler) {
-	pattern = strings.TrimRight(pattern, "/")
-	s.Method(http.MethodGet, pattern+"/openapi.json", s.OpenAPICollector)
-	s.Mount(pattern, swgui(s.OpenAPISchema().Title(), pattern+"/openapi.json", pattern))
 }

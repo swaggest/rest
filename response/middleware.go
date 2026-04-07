@@ -8,10 +8,6 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-type responseEncoderSetter interface {
-	SetResponseEncoder(responseWriter nethttp.ResponseEncoder)
-}
-
 // EncoderMiddleware instruments qualifying http.Handler with Encoder.
 func EncoderMiddleware(handler http.Handler) http.Handler {
 	if nethttp.IsWrapperChecker(handler) {
@@ -40,4 +36,8 @@ func EncoderMiddleware(handler http.Handler) http.Handler {
 	setResponseEncoder.SetResponseEncoder(&responseEncoder)
 
 	return handler
+}
+
+type responseEncoderSetter interface {
+	SetResponseEncoder(responseWriter nethttp.ResponseEncoder)
 }

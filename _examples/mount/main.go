@@ -15,26 +15,11 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-func mul() usecase.Interactor {
-	return usecase.NewInteractor(func(ctx context.Context, input []int, output *int) error {
-		*output = 1
-
-		for _, v := range input {
-			*output *= v
-		}
-
-		return nil
-	})
-}
-
-func sum() usecase.Interactor {
-	return usecase.NewInteractor(func(ctx context.Context, input []int, output *int) error {
-		for _, v := range input {
-			*output += v
-		}
-
-		return nil
-	})
+func main() {
+	fmt.Println("Swagger UI at http://localhost:8010/api/docs.")
+	if err := http.ListenAndServe("localhost:8010", service()); err != nil {
+		log.Fatal(err)
+	}
 }
 
 func service() *web.Service {
@@ -78,9 +63,24 @@ func service() *web.Service {
 	return s
 }
 
-func main() {
-	fmt.Println("Swagger UI at http://localhost:8010/api/docs.")
-	if err := http.ListenAndServe("localhost:8010", service()); err != nil {
-		log.Fatal(err)
-	}
+func mul() usecase.Interactor {
+	return usecase.NewInteractor(func(ctx context.Context, input []int, output *int) error {
+		*output = 1
+
+		for _, v := range input {
+			*output *= v
+		}
+
+		return nil
+	})
+}
+
+func sum() usecase.Interactor {
+	return usecase.NewInteractor(func(ctx context.Context, input []int, output *int) error {
+		for _, v := range input {
+			*output += v
+		}
+
+		return nil
+	})
 }

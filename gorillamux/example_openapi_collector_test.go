@@ -12,78 +12,8 @@ import (
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/gorillamux"
 	"github.com/swaggest/rest/nethttp"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 )
-
-// Define request structure for your HTTP handler.
-type myRequest struct {
-	Query1    int     `query:"query1"`
-	Path1     string  `path:"path1"`
-	Path2     int     `path:"path2"`
-	Header1   float64 `header:"X-Header-1"`
-	FormData1 bool    `formData:"formData1"`
-	FormData2 string  `formData:"formData2"`
-}
-
-type myResp struct {
-	Sum    float64 `json:"sum"`
-	Concat string  `json:"concat"`
-}
-
-func newMyHandler() *myHandler {
-	decoderFactory := request.NewDecoderFactory()
-	decoderFactory.ApplyDefaults = true
-	decoderFactory.SetDecoderFunc(rest.ParamInPath, gorillamux.PathToURLValues)
-
-	return &myHandler{
-		dec: decoderFactory.MakeDecoder(http.MethodPost, myRequest{}, nil),
-	}
-}
-
-type myHandler struct {
-	// Automated request decoding is not required to collect OpenAPI schema,
-	// but it is good to have to establish a single source of truth and to simplify request reading.
-	dec nethttp.RequestDecoder
-}
-
-func (m *myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var in myRequest
-
-	if err := m.dec.Decode(r, &in, nil); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-
-		return
-	}
-
-	// Serve request.
-	out := myResp{
-		Sum:    in.Header1 + float64(in.Path2) + float64(in.Query1),
-		Concat: in.Path1 + in.FormData2 + strconv.FormatBool(in.FormData1),
-	}
-
-	j, err := json.Marshal(out)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-
-		return
-	}
-
-	_, _ = w.Write(j)
-}
-
-// SetupOpenAPIOperation declares OpenAPI schema for the handler.
-func (m *myHandler) SetupOpenAPIOperation(oc openapi.OperationContext) error {
-	oc.SetTags("My Tag")
-	oc.SetSummary("My Summary")
-	oc.SetDescription("This endpoint aggregates request in structured way.")
-
-	oc.AddReqStructure(myRequest{})
-	oc.AddRespStructure(myResp{})
-	oc.AddRespStructure(nil, openapi.WithContentType("text/html"), openapi.WithHTTPStatus(http.StatusBadRequest))
-	oc.AddRespStructure(nil, openapi.WithContentType("text/html"), openapi.WithHTTPStatus(http.StatusInternalServerError))
-
-	return nil
-}
 
 func ExampleNewOpenAPICollector() {
 	// Your router does not need special instrumentation.
@@ -192,4 +122,74 @@ func ExampleNewOpenAPICollector() {
 	//           format: double
 	//           type: number
 	//       type: object
+}
+
+func newMyHandler() *myHandler {
+	decoderFactory := requestaaaaaa.NewDecoderFactory()
+	decoderFactory.ApplyDefaults = true
+	decoderFactory.SetDecoderFunc(rest.ParamInPath, gorillamux.PathToURLValues)
+
+	return &myHandler{
+		dec: decoderFactory.MakeDecoder(http.MethodPost, myRequest{}, nil),
+	}
+}
+
+type myHandler struct {
+	// Automated request decoding is not required to collect OpenAPI schema,
+	// but it is good to have to establish a single source of truth and to simplify request reading.
+	dec nethttp.RequestDecoder
+}
+
+func (m *myHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	var in myRequest
+
+	if err := m.dec.Decode(r, &in, nil); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+
+		return
+	}
+
+	// Serve request.
+	out := myResp{
+		Sum:    in.Header1 + float64(in.Path2) + float64(in.Query1),
+		Concat: in.Path1 + in.FormData2 + strconv.FormatBool(in.FormData1),
+	}
+
+	j, err := json.Marshal(out)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+
+		return
+	}
+
+	_, _ = w.Write(j)
+}
+
+// SetupOpenAPIOperation declares OpenAPI schema for the handler.
+func (m *myHandler) SetupOpenAPIOperation(oc openapi.OperationContext) error {
+	oc.SetTags("My Tag")
+	oc.SetSummary("My Summary")
+	oc.SetDescription("This endpoint aggregates request in structured way.")
+
+	oc.AddReqStructure(myRequest{})
+	oc.AddRespStructure(myResp{})
+	oc.AddRespStructure(nil, openapi.WithContentType("text/html"), openapi.WithHTTPStatus(http.StatusBadRequest))
+	oc.AddRespStructure(nil, openapi.WithContentType("text/html"), openapi.WithHTTPStatus(http.StatusInternalServerError))
+
+	return nil
+}
+
+// Define request structure for your HTTP handler.
+type myRequest struct {
+	Query1    int     `query:"query1"`
+	Path1     string  `path:"path1"`
+	Path2     int     `path:"path2"`
+	Header1   float64 `header:"X-Header-1"`
+	FormData1 bool    `formData:"formData1"`
+	FormData2 string  `formData:"formData2"`
+}
+
+type myResp struct {
+	Sum    float64 `json:"sum"`
+	Concat string  `json:"concat"`
 }

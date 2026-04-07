@@ -2,12 +2,6 @@ package nethttp
 
 import "net/http"
 
-type wrapperChecker struct {
-	found bool
-}
-
-func (*wrapperChecker) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {}
-
 // IsWrapperChecker is a hack to mark middleware as a handler wrapper.
 // See chirouter.Wrapper Wrap() documentation for more details on the difference.
 //
@@ -30,3 +24,9 @@ func MiddlewareIsWrapper(mw func(h http.Handler) http.Handler) bool {
 
 	return wm.found
 }
+
+type wrapperChecker struct {
+	found bool
+}
+
+func (*wrapperChecker) ServeHTTP(_ http.ResponseWriter, _ *http.Request) {}

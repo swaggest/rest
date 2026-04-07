@@ -11,11 +11,6 @@ import (
 	"github.com/swaggest/usecase/status"
 )
 
-type customErr struct {
-	Message string                 `json:"msg"`
-	Details map[string]interface{} `json:"details,omitempty"`
-}
-
 func errorResponse() usecase.Interactor {
 	type errType struct {
 		Type string `query:"type" enum:"ok,invalid_argument,conflict" required:"true"`
@@ -55,4 +50,9 @@ type anotherErr struct {
 
 func (anotherErr) Error() string {
 	return "foo happened"
+}
+
+type customErr struct {
+	Message string                 `json:"msg"`
+	Details map[string]interface{} `json:"details,omitempty"`
 }

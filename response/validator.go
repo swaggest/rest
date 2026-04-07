@@ -8,10 +8,6 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-type withRestHandler interface {
-	RestHandler() *rest.HandlerTrait
-}
-
 // ValidatorMiddleware sets up response validator in suitable handlers.
 func ValidatorMiddleware(factory rest.ResponseValidatorFactory) func(http.Handler) http.Handler {
 	return func(handler http.Handler) http.Handler {
@@ -48,4 +44,8 @@ func ValidatorMiddleware(factory rest.ResponseValidatorFactory) func(http.Handle
 
 		return handler
 	}
+}
+
+type withRestHandler interface {
+	RestHandler() *rest.HandlerTrait
 }

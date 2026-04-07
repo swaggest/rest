@@ -8,45 +8,10 @@ import (
 
 	"github.com/bool64/ctxd"
 	"github.com/swaggest/jsonschema-go"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 	"github.com/swaggest/usecase"
 	"github.com/swaggest/usecase/status"
 )
-
-type dynamicInput struct {
-	jsonschema.Struct
-	request.EmbeddedSetter
-
-	// Type is a static field example.
-	Type string `query:"type"`
-}
-
-type dynamicOutput struct {
-	// Embedded jsonschema.Struct exposes dynamic fields for documentation.
-	jsonschema.Struct
-
-	jsonFields   map[string]interface{}
-	headerFields map[string]string
-
-	// Status is a static field example.
-	Status string `json:"status"`
-}
-
-func (o dynamicOutput) SetupResponseHeader(h http.Header) {
-	for k, v := range o.headerFields {
-		h.Set(k, v)
-	}
-}
-
-func (o dynamicOutput) MarshalJSON() ([]byte, error) {
-	if o.jsonFields == nil {
-		o.jsonFields = map[string]interface{}{}
-	}
-
-	o.jsonFields["status"] = o.Status
-
-	return json.Marshal(o.jsonFields)
-}
 
 func dynamicSchema() usecase.Interactor {
 	dynIn := dynamicInput{}
@@ -93,4 +58,39 @@ func dynamicSchema() usecase.Interactor {
 	u.SetExpectedErrors(status.InvalidArgument, status.FailedPrecondition, status.AlreadyExists)
 
 	return u
+}
+
+type dynamicInput struct {
+	jsonschema.Struct
+	requestaaaaaa.EmbeddedSetter
+
+	// Type is a static field example.
+	Type string `query:"type"`
+}
+
+type dynamicOutput struct {
+	// Embedded jsonschema.Struct exposes dynamic fields for documentation.
+	jsonschema.Struct
+
+	jsonFields   map[string]interface{}
+	headerFields map[string]string
+
+	// Status is a static field example.
+	Status string `json:"status"`
+}
+
+func (o dynamicOutput) MarshalJSON() ([]byte, error) {
+	if o.jsonFields == nil {
+		o.jsonFields = map[string]interface{}{}
+	}
+
+	o.jsonFields["status"] = o.Status
+
+	return json.Marshal(o.jsonFields)
+}
+
+func (o dynamicOutput) SetupResponseHeader(h http.Header) {
+	for k, v := range o.headerFields {
+		h.Set(k, v)
+	}
 }

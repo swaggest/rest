@@ -8,11 +8,6 @@ import (
 	"github.com/swaggest/usecase/status"
 )
 
-type updateTask struct {
-	task.Identity `json:"-"`
-	task.Value
-}
-
 // UpdateTask creates usecase interactor.
 func UpdateTask(
 	deps interface {
@@ -37,4 +32,9 @@ func UpdateTask(
 	u.SetTags("Tasks")
 
 	return u
+}
+
+type updateTask struct {
+	task.Identity `json:"-"`
+	task.Value
 }

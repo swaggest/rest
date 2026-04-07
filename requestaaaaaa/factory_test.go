@@ -1,4 +1,4 @@
-package request_test
+package requestaaaaaa_test
 
 import (
 	"bytes"
@@ -13,63 +13,12 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/swaggest/jsonschema-go"
 	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 )
-
-func TestDecoderFactory_SetDecoderFunc(t *testing.T) {
-	df := request.NewDecoderFactory()
-	df.SetDecoderFunc("jwt", func(r *http.Request) (url.Values, error) {
-		ah := r.Header.Get("Authorization")
-		if ah == "" || len(ah) < 8 || strings.ToLower(ah[0:7]) != "bearer " {
-			return nil, nil
-		}
-
-		var m map[string]json.RawMessage
-
-		err := json.Unmarshal([]byte(ah[7:]), &m)
-		if err != nil {
-			return nil, err
-		}
-
-		res := make(url.Values)
-
-		for k, v := range m {
-			if len(v) > 2 && v[0] == '"' && v[len(v)-1] == '"' {
-				v = v[1 : len(v)-1]
-			}
-
-			res[k] = []string{string(v)}
-		}
-
-		return res, err
-	})
-
-	type req struct {
-		Q    string `query:"q"`
-		Name string `jwt:"name"`
-		Iat  int    `jwt:"iat"`
-		Sub  string `jwt:"sub"`
-	}
-
-	r, err := http.NewRequest(http.MethodGet, "/?q=abc", nil)
-	require.NoError(t, err)
-
-	r.Header.Add("Authorization", `Bearer {"sub":"1234567890","name":"John Doe","iat": 1516239022}`)
-
-	d := df.MakeDecoder(http.MethodGet, new(req), nil)
-
-	rr := new(req)
-	require.NoError(t, d.Decode(r, rr, nil))
-
-	assert.Equal(t, "John Doe", rr.Name)
-	assert.Equal(t, "1234567890", rr.Sub)
-	assert.Equal(t, 1516239022, rr.Iat)
-	assert.Equal(t, "abc", rr.Q)
-}
 
 // BenchmarkDecoderFactory_SetDecoderFunc-4   	  577378	      1994 ns/op	    1024 B/op	      16 allocs/op.
 func BenchmarkDecoderFactory_SetDecoderFunc(b *testing.B) {
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 	df.SetDecoderFunc("jwt", func(r *http.Request) (url.Values, error) {
 		ah := r.Header.Get("Authorization")
 		if ah == "" || len(ah) < 8 || strings.ToLower(ah[0:7]) != "bearer " {
@@ -123,6 +72,46 @@ func BenchmarkDecoderFactory_SetDecoderFunc(b *testing.B) {
 	}
 }
 
+func TestDecoderFactory_MakeDecoder_customMapping(t *testing.T) {
+	type MyInput struct {
+		ID   int    `default:"123"`
+		Name string `default:"foo"`
+	}
+
+	df := requestaaaaaa.NewDecoderFactory()
+	df.ApplyDefaults = true
+
+	customMapping := rest.RequestMapping{
+		rest.ParamInQuery:  map[string]string{"ID": "id"},
+		rest.ParamInHeader: map[string]string{"Name": "X-Name"},
+	}
+
+	dec := df.MakeDecoder(http.MethodPost, new(MyInput), customMapping)
+	assert.NotNil(t, dec)
+
+	req, err := http.NewRequest(http.MethodPost, "/", nil)
+	require.NoError(t, err)
+
+	i := new(MyInput)
+
+	err = dec.Decode(req, i, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "foo", i.Name)
+	assert.Equal(t, 123, i.ID)
+
+	req, err = http.NewRequest(http.MethodPost, "/?id=321", nil)
+	require.NoError(t, err)
+
+	req.Header.Set("X-Name", "bar")
+
+	i = new(MyInput)
+
+	err = dec.Decode(req, i, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "bar", i.Name)
+	assert.Equal(t, 321, i.ID)
+}
+
 func TestDecoderFactory_MakeDecoder_default(t *testing.T) {
 	type Embed struct {
 		Baz bool `query:"baz" default:"true"`
@@ -145,7 +134,7 @@ func TestDecoderFactory_MakeDecoder_default(t *testing.T) {
 		unexported bool `query:"unexported"` // This field is skipped because it is unexported.
 	}
 
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 	df.ApplyDefaults = true
 
 	dec := df.MakeDecoder(http.MethodPost, new(MyInput), nil)
@@ -184,66 +173,8 @@ func TestDecoderFactory_MakeDecoder_default(t *testing.T) {
 	assert.Equal(t, false, i.Baz)
 }
 
-func TestDecoderFactory_MakeDecoder_invalidMapping(t *testing.T) {
-	assert.PanicsWithValue(t, "non existent fields in mapping: ID2, WrongName", func() {
-		type MyInput struct {
-			ID   int    `default:"123"`
-			Name string `default:"foo"`
-		}
-
-		df := request.NewDecoderFactory()
-
-		customMapping := rest.RequestMapping{
-			rest.ParamInQuery:  map[string]string{"ID2": "id"},
-			rest.ParamInHeader: map[string]string{"WrongName": "X-Name"},
-		}
-
-		_ = df.MakeDecoder(http.MethodPost, new(MyInput), customMapping)
-	})
-}
-
-func TestDecoderFactory_MakeDecoder_customMapping(t *testing.T) {
-	type MyInput struct {
-		ID   int    `default:"123"`
-		Name string `default:"foo"`
-	}
-
-	df := request.NewDecoderFactory()
-	df.ApplyDefaults = true
-
-	customMapping := rest.RequestMapping{
-		rest.ParamInQuery:  map[string]string{"ID": "id"},
-		rest.ParamInHeader: map[string]string{"Name": "X-Name"},
-	}
-
-	dec := df.MakeDecoder(http.MethodPost, new(MyInput), customMapping)
-	assert.NotNil(t, dec)
-
-	req, err := http.NewRequest(http.MethodPost, "/", nil)
-	require.NoError(t, err)
-
-	i := new(MyInput)
-
-	err = dec.Decode(req, i, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, "foo", i.Name)
-	assert.Equal(t, 123, i.ID)
-
-	req, err = http.NewRequest(http.MethodPost, "/?id=321", nil)
-	require.NoError(t, err)
-
-	req.Header.Set("X-Name", "bar")
-
-	i = new(MyInput)
-
-	err = dec.Decode(req, i, nil)
-	assert.NoError(t, err)
-	assert.Equal(t, "bar", i.Name)
-	assert.Equal(t, 321, i.ID)
-}
-
 func TestDecoderFactory_MakeDecoder_header_case_sensitivity(t *testing.T) {
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 
 	type input struct {
 		A string `header:"x-one-two-three" required:"true"`
@@ -272,35 +203,73 @@ func TestDecoderFactory_MakeDecoder_header_case_sensitivity(t *testing.T) {
 	assert.Equal(t, "hello!", v.D)
 }
 
-type defaultFromSchema string
+func TestDecoderFactory_MakeDecoder_invalidMapping(t *testing.T) {
+	assert.PanicsWithValue(t, "non existent fields in mapping: ID2, WrongName", func() {
+		type MyInput struct {
+			ID   int    `default:"123"`
+			Name string `default:"foo"`
+		}
 
-func (d *defaultFromSchema) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDefault(enum1)
-	schema.WithTitle("Value with default from schema")
+		df := requestaaaaaa.NewDecoderFactory()
 
-	return nil
+		customMapping := rest.RequestMapping{
+			rest.ParamInQuery:  map[string]string{"ID2": "id"},
+			rest.ParamInHeader: map[string]string{"WrongName": "X-Name"},
+		}
+
+		_ = df.MakeDecoder(http.MethodPost, new(MyInput), customMapping)
+	})
 }
 
-type defaultFromSchemaVal string
+func TestDecoderFactory_SetDecoderFunc(t *testing.T) {
+	df := requestaaaaaa.NewDecoderFactory()
+	df.SetDecoderFunc("jwt", func(r *http.Request) (url.Values, error) {
+		ah := r.Header.Get("Authorization")
+		if ah == "" || len(ah) < 8 || strings.ToLower(ah[0:7]) != "bearer " {
+			return nil, nil
+		}
 
-func (d defaultFromSchemaVal) PrepareJSONSchema(schema *jsonschema.Schema) error {
-	schema.WithDefault(enum1)
-	schema.WithTitle("Value with default from schema")
+		var m map[string]json.RawMessage
 
-	return nil
-}
+		err := json.Unmarshal([]byte(ah[7:]), &m)
+		if err != nil {
+			return nil, err
+		}
 
-const (
-	enum1 = "all"
-	enum2 = "none"
-)
+		res := make(url.Values)
 
-func (d *defaultFromSchema) Enum() []interface{} {
-	return []interface{}{enum1, enum2}
-}
+		for k, v := range m {
+			if len(v) > 2 && v[0] == '"' && v[len(v)-1] == '"' {
+				v = v[1 : len(v)-1]
+			}
 
-func (d defaultFromSchemaVal) Enum() []interface{} {
-	return []interface{}{enum1, enum2}
+			res[k] = []string{string(v)}
+		}
+
+		return res, err
+	})
+
+	type req struct {
+		Q    string `query:"q"`
+		Name string `jwt:"name"`
+		Iat  int    `jwt:"iat"`
+		Sub  string `jwt:"sub"`
+	}
+
+	r, err := http.NewRequest(http.MethodGet, "/?q=abc", nil)
+	require.NoError(t, err)
+
+	r.Header.Add("Authorization", `Bearer {"sub":"1234567890","name":"John Doe","iat": 1516239022}`)
+
+	d := df.MakeDecoder(http.MethodGet, new(req), nil)
+
+	rr := new(req)
+	require.NoError(t, d.Decode(r, rr, nil))
+
+	assert.Equal(t, "John Doe", rr.Name)
+	assert.Equal(t, "1234567890", rr.Sub)
+	assert.Equal(t, 1516239022, rr.Iat)
+	assert.Equal(t, "abc", rr.Q)
 }
 
 func TestNewDecoderFactory_default(t *testing.T) {
@@ -315,7 +284,7 @@ func TestNewDecoderFactory_default(t *testing.T) {
 		DefaultedTagVal   defaultFromSchemaVal  `query:"dtv" default:"none"`
 	}
 
-	df := request.NewDecoderFactory()
+	df := requestaaaaaa.NewDecoderFactory()
 	df.ApplyDefaults = true
 	df.JSONSchemaReflector = &jsonschema.Reflector{}
 
@@ -349,7 +318,7 @@ func TestNewDecoderFactory_requestBody(t *testing.T) {
 	req.Header.Set("Content-Type", "text/plain")
 
 	var input Req
-	dec := request.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
+	dec := requestaaaaaa.NewDecoderFactory().MakeDecoder(http.MethodPost, input, nil)
 
 	require.NoError(t, dec.Decode(req, &input, nil))
 
@@ -366,4 +335,35 @@ func TestNewDecoderFactory_requestBody(t *testing.T) {
 
 	assert.Equal(t, "hello,world", input.CSVBody)
 	assert.Empty(t, input.TextBody)
+}
+
+const (
+	enum1 = "all"
+	enum2 = "none"
+)
+
+type defaultFromSchema string
+
+func (d *defaultFromSchema) Enum() []interface{} {
+	return []interface{}{enum1, enum2}
+}
+
+func (d *defaultFromSchema) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDefault(enum1)
+	schema.WithTitle("Value with default from schema")
+
+	return nil
+}
+
+type defaultFromSchemaVal string
+
+func (d defaultFromSchemaVal) Enum() []interface{} {
+	return []interface{}{enum1, enum2}
+}
+
+func (d defaultFromSchemaVal) PrepareJSONSchema(schema *jsonschema.Schema) error {
+	schema.WithDefault(enum1)
+	schema.WithTitle("Value with default from schema")
+
+	return nil
 }

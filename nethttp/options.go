@@ -10,23 +10,6 @@ import (
 	"github.com/swaggest/rest"
 )
 
-// OptionsMiddleware applies options to encountered nethttp.Handler.
-func OptionsMiddleware(options ...func(h *Handler)) func(h http.Handler) http.Handler {
-	return func(h http.Handler) http.Handler {
-		var rh *Handler
-
-		if HandlerAs(h, &rh) {
-			rh.options = append(rh.options, options...)
-
-			for _, option := range options {
-				option(rh)
-			}
-		}
-
-		return h
-	}
-}
-
 // AnnotateOpenAPIOperation allows customization of OpenAPI operation, that is reflected from the Handler.
 func AnnotateOpenAPIOperation(annotations ...func(oc openapi.OperationContext) error) func(h *Handler) {
 	return func(h *Handler) {
@@ -53,6 +36,23 @@ func AnnotateOperation(annotations ...func(operation *openapi3.Operation) error)
 	}
 }
 
+// OptionsMiddleware applies options to encountered nethttp.Handler.
+func OptionsMiddleware(options ...func(h *Handler)) func(h http.Handler) http.Handler {
+	return func(h http.Handler) http.Handler {
+		var rh *Handler
+
+		if HandlerAs(h, &rh) {
+			rh.options = append(rh.options, options...)
+
+			for _, option := range options {
+				option(rh)
+			}
+		}
+
+		return h
+	}
+}
+
 // RequestBodyContent enables string request body with content type (e.g. text/plain).
 func RequestBodyContent(contentType string) func(h *Handler) {
 	return func(h *Handler) {
@@ -63,20 +63,6 @@ func RequestBodyContent(contentType string) func(h *Handler) {
 
 			return nil
 		})
-	}
-}
-
-// SuccessfulResponseContentType sets Content-Type of successful response.
-func SuccessfulResponseContentType(contentType string) func(h *Handler) {
-	return func(h *Handler) {
-		h.SuccessContentType = contentType
-	}
-}
-
-// SuccessStatus sets status code of successful response.
-func SuccessStatus(status int) func(h *Handler) {
-	return func(h *Handler) {
-		h.SuccessStatus = status
 	}
 }
 
@@ -131,5 +117,19 @@ func ResponseHeaderMapping(v interface{}) func(h *Handler) {
 		if len(mm) > 0 {
 			h.RespHeaderMapping = mm
 		}
+	}
+}
+
+// SuccessfulResponseContentType sets Content-Type of successful response.
+func SuccessfulResponseContentType(contentType string) func(h *Handler) {
+	return func(h *Handler) {
+		h.SuccessContentType = contentType
+	}
+}
+
+// SuccessStatus sets status code of successful response.
+func SuccessStatus(status int) func(h *Handler) {
+	return func(h *Handler) {
+		h.SuccessStatus = status
 	}
 }

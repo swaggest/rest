@@ -1,4 +1,4 @@
-package request
+package requestaaaaaa
 
 import (
 	"errors"
@@ -8,6 +8,7 @@ import (
 	"reflect"
 
 	"github.com/swaggest/rest"
+	"github.com/swaggest/rest/requestaaaaaa/reqerr"
 )
 
 var (
@@ -16,12 +17,6 @@ var (
 	multipartFileHeaderType  = reflect.TypeOf((*multipart.FileHeader)(nil))
 	multipartFileHeadersType = reflect.TypeOf(([]*multipart.FileHeader)(nil))
 )
-
-func decodeFiles(r *http.Request, input interface{}, _ rest.Validator) error {
-	v := reflect.ValueOf(input)
-
-	return decodeFilesInStruct(r, v)
-}
 
 func decodeFilesInStruct(r *http.Request, v reflect.Value) error {
 	for v.Kind() == reflect.Ptr {
@@ -73,7 +68,7 @@ func setFile(r *http.Request, field reflect.StructField, v reflect.Value) error 
 	if err != nil {
 		if errors.Is(err, http.ErrMissingFile) {
 			if field.Tag.Get("required") == "true" {
-				return fmt.Errorf("%w: %q", ErrMissingRequiredFile, name)
+				return fmt.Errorf("%w: %q", reqerr.ErrMissingRequiredFile, name)
 			}
 
 			return nil
@@ -110,4 +105,10 @@ func setFile(r *http.Request, field reflect.StructField, v reflect.Value) error 
 	}
 
 	return nil
+}
+
+func decodeFiles(r *http.Request, input interface{}, _ rest.Validator) error {
+	v := reflect.ValueOf(input)
+
+	return decodeFilesInStruct(r, v)
 }

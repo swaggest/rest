@@ -9,47 +9,6 @@ import (
 	"github.com/swaggest/usecase"
 )
 
-type gzipPassThroughInput struct {
-	PlainStruct bool `query:"plainStruct" description:"Output plain structure instead of gzip container."`
-	CountItems  bool `query:"countItems" description:"Invokes internal decoding of compressed data."`
-}
-
-// gzipPassThroughOutput defers data to an accessor function instead of using struct directly.
-// This is necessary to allow containers that can data in binary wire-friendly format.
-type gzipPassThroughOutput interface {
-	// Data should be accessed though an accessor to allow container interface.
-	gzipPassThroughStruct() gzipPassThroughStruct
-}
-
-// gzipPassThroughStruct represents the actual structure that is held in the container
-// and implements gzipPassThroughOutput to be directly useful in output.
-type gzipPassThroughStruct struct {
-	Header string   `header:"X-Header" json:"-"`
-	ID     int      `json:"id"`
-	Text   []string `json:"text"`
-}
-
-func (d gzipPassThroughStruct) gzipPassThroughStruct() gzipPassThroughStruct {
-	return d
-}
-
-// gzipPassThroughContainer is wrapping gzip.JSONContainer and implements gzipPassThroughOutput.
-type gzipPassThroughContainer struct {
-	Header string `header:"X-Header" json:"-"`
-	gzip.JSONContainer
-}
-
-func (dc gzipPassThroughContainer) gzipPassThroughStruct() gzipPassThroughStruct {
-	var p gzipPassThroughStruct
-
-	err := dc.UnpackJSON(&p)
-	if err != nil {
-		panic(err)
-	}
-
-	return p
-}
-
 func directGzip() usecase.Interactor {
 	// Prepare moderately big JSON, resulting JSON payload is ~67KB.
 	rawData := gzipPassThroughStruct{
@@ -90,4 +49,45 @@ func directGzip() usecase.Interactor {
 	u.SetTags("Response")
 
 	return u
+}
+
+// gzipPassThroughContainer is wrapping gzip.JSONContainer and implements gzipPassThroughOutput.
+type gzipPassThroughContainer struct {
+	Header string `header:"X-Header" json:"-"`
+	gzip.JSONContainer
+}
+
+func (dc gzipPassThroughContainer) gzipPassThroughStruct() gzipPassThroughStruct {
+	var p gzipPassThroughStruct
+
+	err := dc.UnpackJSON(&p)
+	if err != nil {
+		panic(err)
+	}
+
+	return p
+}
+
+type gzipPassThroughInput struct {
+	PlainStruct bool `query:"plainStruct" description:"Output plain structure instead of gzip container."`
+	CountItems  bool `query:"countItems" description:"Invokes internal decoding of compressed data."`
+}
+
+// gzipPassThroughOutput defers data to an accessor function instead of using struct directly.
+// This is necessary to allow containers that can data in binary wire-friendly format.
+type gzipPassThroughOutput interface {
+	// Data should be accessed though an accessor to allow container interface.
+	gzipPassThroughStruct() gzipPassThroughStruct
+}
+
+// gzipPassThroughStruct represents the actual structure that is held in the container
+// and implements gzipPassThroughOutput to be directly useful in output.
+type gzipPassThroughStruct struct {
+	Header string   `header:"X-Header" json:"-"`
+	ID     int      `json:"id"`
+	Text   []string `json:"text"`
+}
+
+func (d gzipPassThroughStruct) gzipPassThroughStruct() gzipPassThroughStruct {
+	return d
 }

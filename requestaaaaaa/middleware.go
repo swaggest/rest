@@ -1,4 +1,4 @@
-package request
+package requestaaaaaa
 
 import (
 	"net/http"
@@ -7,14 +7,6 @@ import (
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/usecase"
 )
-
-type requestDecoderSetter interface {
-	SetRequestDecoder(rd nethttp.RequestDecoder)
-}
-
-type requestMapping interface {
-	RequestMapping() rest.RequestMapping
-}
 
 // DecoderMiddleware sets up request decoder in suitable handlers.
 func DecoderMiddleware(factory DecoderMaker) func(http.Handler) http.Handler {
@@ -57,10 +49,6 @@ func DecoderMiddleware(factory DecoderMaker) func(http.Handler) http.Handler {
 	}
 }
 
-type withRestHandler interface {
-	RestHandler() *rest.HandlerTrait
-}
-
 // ValidatorMiddleware sets up request validator in suitable handlers.
 func ValidatorMiddleware(factory rest.RequestValidatorFactory) func(http.Handler) http.Handler {
 	return func(handler http.Handler) http.Handler {
@@ -91,8 +79,6 @@ func ValidatorMiddleware(factory rest.RequestValidatorFactory) func(http.Handler
 	}
 }
 
-var _ nethttp.RequestDecoder = DecoderFunc(nil)
-
 // DecoderFunc implements RequestDecoder with a func.
 type DecoderFunc func(r *http.Request, input interface{}, validator rest.Validator) error
 
@@ -104,4 +90,18 @@ func (df DecoderFunc) Decode(r *http.Request, input interface{}, validator rest.
 // DecoderMaker creates request decoder for particular structured Go input value.
 type DecoderMaker interface {
 	MakeDecoder(method string, input interface{}, customMapping rest.RequestMapping) nethttp.RequestDecoder
+}
+
+var _ nethttp.RequestDecoder = DecoderFunc(nil)
+
+type requestDecoderSetter interface {
+	SetRequestDecoder(rd nethttp.RequestDecoder)
+}
+
+type requestMapping interface {
+	RequestMapping() rest.RequestMapping
+}
+
+type withRestHandler interface {
+	RestHandler() *rest.HandlerTrait
 }

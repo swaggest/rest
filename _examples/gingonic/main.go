@@ -14,14 +14,27 @@ import (
 	"github.com/swaggest/openapi-go/openapi3"
 )
 
-func OpenAPICtx(c *gin.Context) openapi.OperationContext {
-	if oc, ok := c.Get("openapiContext"); ok {
-		if oc, ok := oc.(openapi.OperationContext); ok {
-			return oc
-		}
+func main() {
+	router := gin.Default()
+	router.GET("/albums", getAlbums)
+	router.GET("/albums/:id", getAlbumByID)
+	router.POST("/albums", postAlbums)
+
+	refl := openapi3.NewReflector()
+	refl.SpecSchema().SetTitle("Albums API")
+	refl.SpecSchema().SetVersion("v1.2.3")
+	refl.SpecSchema().SetDescription("This services keeps track of albums.")
+
+	if err := OpenAPICollect(refl, router.Routes()); err != nil {
+		fmt.Println(err.Error())
 	}
 
-	return nil
+	y, _ := refl.Spec.MarshalYAML()
+
+	os.WriteFile("openapi.yaml", y, 0o600)
+	fmt.Println(string(y))
+
+	router.Run("localhost:8080")
 }
 
 func OpenAPICollect(refl openapi.Reflector, routes gin.RoutesInfo) error {
@@ -85,12 +98,14 @@ func OpenAPICollect(refl openapi.Reflector, routes gin.RoutesInfo) error {
 	return nil
 }
 
-// album represents data about a record album.
-type album struct {
-	ID     string  `json:"id"`
-	Title  string  `json:"title"`
-	Artist string  `json:"artist"`
-	Price  float64 `json:"price"`
+func OpenAPICtx(c *gin.Context) openapi.OperationContext {
+	if oc, ok := c.Get("openapiContext"); ok {
+		if oc, ok := oc.(openapi.OperationContext); ok {
+			return oc
+		}
+	}
+
+	return nil
 }
 
 // albums slice to seed record album data.
@@ -100,27 +115,32 @@ var albums = []album{
 	{ID: "3", Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
 }
 
-func main() {
-	router := gin.Default()
-	router.GET("/albums", getAlbums)
-	router.GET("/albums/:id", getAlbumByID)
-	router.POST("/albums", postAlbums)
-
-	refl := openapi3.NewReflector()
-	refl.SpecSchema().SetTitle("Albums API")
-	refl.SpecSchema().SetVersion("v1.2.3")
-	refl.SpecSchema().SetDescription("This services keeps track of albums.")
-
-	if err := OpenAPICollect(refl, router.Routes()); err != nil {
-		fmt.Println(err.Error())
+// getAlbumByID locates the album whose ID value matches the id
+// parameter sent by the client, then returns that album as a response.
+func getAlbumByID(c *gin.Context) {
+	if oc := OpenAPICtx(c); oc != nil {
+		oc.SetSummary("Get album")
+		oc.SetTags("Albums")
+		oc.AddReqStructure(struct {
+			ID string `path:"id"`
+		}{})
+		oc.AddRespStructure(album{})
+		oc.AddRespStructure(struct {
+			Message string `json:"message"`
+		}{}, openapi.WithHTTPStatus(http.StatusNotFound))
 	}
 
-	y, _ := refl.Spec.MarshalYAML()
+	id := c.Param("id")
 
-	os.WriteFile("openapi.yaml", y, 0o600)
-	fmt.Println(string(y))
-
-	router.Run("localhost:8080")
+	// Loop through the list of albums, looking for
+	// an album whose ID value matches the parameter.
+	for _, a := range albums {
+		if a.ID == id {
+			c.JSON(http.StatusOK, a)
+			return
+		}
+	}
+	c.JSON(http.StatusNotFound, gin.H{"message": "album not found"})
 }
 
 // getAlbums responds with the list of all albums as JSON.
@@ -156,30 +176,10 @@ func postAlbums(c *gin.Context) {
 	c.JSON(http.StatusCreated, newAlbum)
 }
 
-// getAlbumByID locates the album whose ID value matches the id
-// parameter sent by the client, then returns that album as a response.
-func getAlbumByID(c *gin.Context) {
-	if oc := OpenAPICtx(c); oc != nil {
-		oc.SetSummary("Get album")
-		oc.SetTags("Albums")
-		oc.AddReqStructure(struct {
-			ID string `path:"id"`
-		}{})
-		oc.AddRespStructure(album{})
-		oc.AddRespStructure(struct {
-			Message string `json:"message"`
-		}{}, openapi.WithHTTPStatus(http.StatusNotFound))
-	}
-
-	id := c.Param("id")
-
-	// Loop through the list of albums, looking for
-	// an album whose ID value matches the parameter.
-	for _, a := range albums {
-		if a.ID == id {
-			c.JSON(http.StatusOK, a)
-			return
-		}
-	}
-	c.JSON(http.StatusNotFound, gin.H{"message": "album not found"})
+// album represents data about a record album.
+type album struct {
+	ID     string  `json:"id"`
+	Title  string  `json:"title"`
+	Artist string  `json:"artist"`
+	Price  float64 `json:"price"`
 }

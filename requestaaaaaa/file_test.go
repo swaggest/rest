@@ -1,4 +1,4 @@
-package request_test
+package requestaaaaaa_test
 
 import (
 	"bytes"
@@ -18,23 +18,11 @@ import (
 	"github.com/swaggest/rest/jsonschema"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/openapi"
-	"github.com/swaggest/rest/request"
+	"github.com/swaggest/rest/requestaaaaaa"
 	"github.com/swaggest/rest/response"
 	"github.com/swaggest/rest/web"
 	"github.com/swaggest/usecase"
 )
-
-type ReqEmb struct {
-	Simple         string                  `formData:"simple"`
-	UploadHeader   *multipart.FileHeader   `formData:"upload"`
-	UploadsHeaders []*multipart.FileHeader `formData:"uploads"`
-}
-
-type fileReqTest struct {
-	ReqEmb
-	Upload  multipart.File   `file:"upload"`
-	Uploads []multipart.File `formData:"uploads"`
-}
 
 func TestDecoder_Decode_fileUploadOptional(t *testing.T) {
 	u := usecase.NewIOI(new(ReqEmb), nil, func(_ context.Context, _, _ interface{}) error {
@@ -64,15 +52,15 @@ func TestDecoder_Decode_fileUploadOptional(t *testing.T) {
 func TestDecoder_Decode_fileUploadTag(t *testing.T) {
 	r := chirouter.NewWrapper(chi.NewRouter())
 	apiSchema := openapi.NewCollector(openapi3.NewReflector())
-	decoderFactory := request.NewDecoderFactory()
+	decoderFactory := requestaaaaaa.NewDecoderFactory()
 	validatorFactory := jsonschema.NewFactory(apiSchema, apiSchema)
 
 	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
 	ws := []func(handler http.Handler) http.Handler{
 		nethttp.OpenAPIMiddleware(apiSchema),
-		request.DecoderMiddleware(decoderFactory),
-		request.ValidatorMiddleware(validatorFactory),
+		requestaaaaaa.DecoderMiddleware(decoderFactory),
+		requestaaaaaa.ValidatorMiddleware(validatorFactory),
 		response.EncoderMiddleware,
 	}
 
@@ -161,4 +149,16 @@ func TestDecoder_Decode_fileUploadTag(t *testing.T) {
 	resp, err := srv.Client().Do(hreq)
 	assert.NoError(t, err)
 	assert.NoError(t, resp.Body.Close())
+}
+
+type ReqEmb struct {
+	Simple         string                  `formData:"simple"`
+	UploadHeader   *multipart.FileHeader   `formData:"upload"`
+	UploadsHeaders []*multipart.FileHeader `formData:"uploads"`
+}
+
+type fileReqTest struct {
+	ReqEmb
+	Upload  multipart.File   `file:"upload"`
+	Uploads []multipart.File `formData:"uploads"`
 }

@@ -22,31 +22,6 @@ import (
 	"github.com/swaggest/usecase/status"
 )
 
-var _ rest.JSONSchemaValidator = validatorMock{}
-
-type validatorMock struct {
-	ValidateDataFunc     func(in rest.ParamIn, namedData map[string]interface{}) error
-	ValidateJSONBodyFunc func(jsonBody []byte) error
-	HasConstraintsFunc   func(in rest.ParamIn) bool
-	AddSchemaFunc        func(in rest.ParamIn, name string, schemaData []byte, required bool) error
-}
-
-func (v validatorMock) ValidateData(in rest.ParamIn, namedData map[string]interface{}) error {
-	return v.ValidateDataFunc(in, namedData)
-}
-
-func (v validatorMock) ValidateJSONBody(jsonBody []byte) error {
-	return v.ValidateJSONBodyFunc(jsonBody)
-}
-
-func (v validatorMock) HasConstraints(in rest.ParamIn) bool {
-	return v.HasConstraintsFunc(in)
-}
-
-func (v validatorMock) AddSchema(in rest.ParamIn, name string, schemaData []byte, required bool) error {
-	return v.AddSchemaFunc(in, name, schemaData, required)
-}
-
 func TestCollector_Collect(t *testing.T) {
 	c := openapi.Collector{
 		BasePath: "http://example.com/",
@@ -111,131 +86,6 @@ func TestCollector_Collect(t *testing.T) {
 		},
 	}
 	assert.NoError(t, c.ProvideResponseJSONSchemas(http.StatusOK, "application/json", new(output), nil, val))
-}
-
-func TestCollector_Collect_requestMapping(t *testing.T) {
-	type input struct {
-		InHeader   string `minLength:"2"`
-		InQuery    jschema.Date
-		InCookie   *time.Time
-		InFormData time.Time
-		InPath     bool
-		InFile     multipart.File
-	}
-
-	u := usecase.IOInteractor{}
-
-	u.SetTitle("Title")
-	u.SetName("name")
-	u.SetIsDeprecated(true)
-	u.Input = new(input)
-
-	mapping := rest.RequestMapping{
-		rest.ParamInFormData: map[string]string{"InFormData": "in_form_data", "InFile": "upload"},
-		rest.ParamInCookie:   map[string]string{"InCookie": "in_cookie"},
-		rest.ParamInQuery:    map[string]string{"InQuery": "in_query"},
-		rest.ParamInHeader:   map[string]string{"InHeader": "X-In-Header"},
-		rest.ParamInPath:     map[string]string{"InPath": "in-path"},
-	}
-
-	h := rest.HandlerTrait{
-		ReqMapping: mapping,
-	}
-
-	collector := openapi.Collector{}
-
-	require.NoError(t, collector.CollectUseCase(http.MethodPost, "/test/{in-path}", u, h))
-	require.NoError(t, collector.CollectUseCase(http.MethodPut, "/test/{in-path}", u, h))
-
-	assertjson.EqMarshal(t, `{
-	  "openapi":"3.0.3","info":{"title":"","version":""},
-	  "paths":{
-		"/test/{in-path}":{
-		  "post":{
-			"summary":"Title","operationId":"name",
-			"parameters":[
-			  {
-				"name":"in_query","in":"query",
-				"schema":{"type":"string","format":"date"}
-			  },
-			  {
-				"name":"in-path","in":"path","required":true,
-				"schema":{"type":"boolean"}
-			  },
-			  {
-				"name":"in_cookie","in":"cookie",
-				"schema":{"type":"string","format":"date-time","nullable":true}
-			  },
-			  {
-				"name":"X-In-Header","in":"header",
-				"schema":{"minLength":2,"type":"string"}
-			  }
-			],
-			"requestBody":{
-			  "content":{
-				"multipart/form-data":{"schema":{"$ref":"#/components/schemas/OpenapiTestInput"}}
-			  }
-			},
-			"responses":{"204":{"description":"No Content"}},"deprecated":true
-		  },
-		  "put":{
-			"summary":"Title","operationId":"name2",
-			"parameters":[
-			  {
-				"name":"in_query","in":"query",
-				"schema":{"type":"string","format":"date"}
-			  },
-			  {
-				"name":"in-path","in":"path","required":true,
-				"schema":{"type":"boolean"}
-			  },
-			  {
-				"name":"in_cookie","in":"cookie",
-				"schema":{"type":"string","format":"date-time","nullable":true}
-			  },
-			  {
-				"name":"X-In-Header","in":"header",
-				"schema":{"minLength":2,"type":"string"}
-			  }
-			],
-			"requestBody":{
-			  "content":{
-				"multipart/form-data":{"schema":{"$ref":"#/components/schemas/OpenapiTestInput"}}
-			  }
-			},
-			"responses":{"204":{"description":"No Content"}},"deprecated":true
-		  }
-		}
-	  },
-	  "components":{
-		"schemas":{
-		  "MultipartFile":{"type":"string","format":"binary"},
-		  "OpenapiTestInput":{
-			"type":"object",
-			"properties":{
-			  "in_form_data":{"type":"string","format":"date-time"},
-			  "upload":{"$ref":"#/components/schemas/MultipartFile"}
-			}
-		  }
-		}
-	  }
-	}`, collector.SpecSchema())
-
-	val := validatorMock{
-		AddSchemaFunc: func(_ rest.ParamIn, _ string, _ []byte, _ bool) error {
-			return nil
-		},
-	}
-	assert.NoError(t, collector.ProvideRequestJSONSchemas(http.MethodPost, new(input), mapping, val))
-}
-
-// anotherErr is another custom error.
-type anotherErr struct {
-	Foo int `json:"foo"`
-}
-
-func (anotherErr) Error() string {
-	return "foo happened"
 }
 
 func TestCollector_Collect_CombineErrors(t *testing.T) {
@@ -320,17 +170,56 @@ func TestCollector_Collect_CombineErrors(t *testing.T) {
 	}`, collector.SpecSchema())
 }
 
-// Output that implements OutputWithHTTPStatus interface.
-type outputWithHTTPStatuses struct {
-	Number int `json:"number"`
-}
+func TestCollector_Collect_head_no_response(t *testing.T) {
+	c := openapi.Collector{}
+	u := usecase.IOInteractor{}
 
-func (outputWithHTTPStatuses) HTTPStatus() int {
-	return http.StatusCreated
-}
+	type resp struct {
+		Foo string `json:"foo"`
+		Bar string `header:"X-Bar"`
+	}
 
-func (outputWithHTTPStatuses) ExpectedHTTPStatuses() []int {
-	return []int{http.StatusCreated, http.StatusOK}
+	u.Output = new(resp)
+
+	require.NoError(t, c.CollectUseCase(http.MethodHead, "/foo", u, rest.HandlerTrait{
+		ReqValidator: &jsonschema.Validator{},
+	}))
+
+	require.NoError(t, c.CollectUseCase(http.MethodGet, "/foo", u, rest.HandlerTrait{
+		ReqValidator: &jsonschema.Validator{},
+	}))
+
+	assertjson.EqMarshal(t, `{
+	  "openapi":"3.0.3","info":{"title":"","version":""},
+	  "paths":{
+		"/foo":{
+		  "get":{
+			"responses":{
+			  "200":{
+				"description":"OK",
+				"headers":{"X-Bar":{"style":"simple","schema":{"type":"string"}}},
+				"content":{
+				  "application/json":{"schema":{"$ref":"#/components/schemas/OpenapiTestResp"}}
+				}
+			  }
+			}
+		  },
+		  "head":{
+			"responses":{
+			  "200":{
+				"description":"OK",
+				"headers":{"X-Bar":{"style":"simple","schema":{"type":"string"}}}
+			  }
+			}
+		  }
+		}
+	  },
+	  "components":{
+		"schemas":{
+		  "OpenapiTestResp":{"type":"object","properties":{"foo":{"type":"string"}}}
+		}
+	  }
+	}`, c.SpecSchema())
 }
 
 func TestCollector_Collect_multipleHttpStatuses(t *testing.T) {
@@ -462,54 +351,165 @@ func TestCollector_Collect_queryObject(t *testing.T) {
 	}`, c.SpecSchema())
 }
 
-func TestCollector_Collect_head_no_response(t *testing.T) {
-	c := openapi.Collector{}
-	u := usecase.IOInteractor{}
-
-	type resp struct {
-		Foo string `json:"foo"`
-		Bar string `header:"X-Bar"`
+func TestCollector_Collect_requestMapping(t *testing.T) {
+	type input struct {
+		InHeader   string `minLength:"2"`
+		InQuery    jschema.Date
+		InCookie   *time.Time
+		InFormData time.Time
+		InPath     bool
+		InFile     multipart.File
 	}
 
-	u.Output = new(resp)
+	u := usecase.IOInteractor{}
 
-	require.NoError(t, c.CollectUseCase(http.MethodHead, "/foo", u, rest.HandlerTrait{
-		ReqValidator: &jsonschema.Validator{},
-	}))
+	u.SetTitle("Title")
+	u.SetName("name")
+	u.SetIsDeprecated(true)
+	u.Input = new(input)
 
-	require.NoError(t, c.CollectUseCase(http.MethodGet, "/foo", u, rest.HandlerTrait{
-		ReqValidator: &jsonschema.Validator{},
-	}))
+	mapping := rest.RequestMapping{
+		rest.ParamInFormData: map[string]string{"InFormData": "in_form_data", "InFile": "upload"},
+		rest.ParamInCookie:   map[string]string{"InCookie": "in_cookie"},
+		rest.ParamInQuery:    map[string]string{"InQuery": "in_query"},
+		rest.ParamInHeader:   map[string]string{"InHeader": "X-In-Header"},
+		rest.ParamInPath:     map[string]string{"InPath": "in-path"},
+	}
+
+	h := rest.HandlerTrait{
+		ReqMapping: mapping,
+	}
+
+	collector := openapi.Collector{}
+
+	require.NoError(t, collector.CollectUseCase(http.MethodPost, "/test/{in-path}", u, h))
+	require.NoError(t, collector.CollectUseCase(http.MethodPut, "/test/{in-path}", u, h))
 
 	assertjson.EqMarshal(t, `{
 	  "openapi":"3.0.3","info":{"title":"","version":""},
 	  "paths":{
-		"/foo":{
-		  "get":{
-			"responses":{
-			  "200":{
-				"description":"OK",
-				"headers":{"X-Bar":{"style":"simple","schema":{"type":"string"}}},
-				"content":{
-				  "application/json":{"schema":{"$ref":"#/components/schemas/OpenapiTestResp"}}
-				}
+		"/test/{in-path}":{
+		  "post":{
+			"summary":"Title","operationId":"name",
+			"parameters":[
+			  {
+				"name":"in_query","in":"query",
+				"schema":{"type":"string","format":"date"}
+			  },
+			  {
+				"name":"in-path","in":"path","required":true,
+				"schema":{"type":"boolean"}
+			  },
+			  {
+				"name":"in_cookie","in":"cookie",
+				"schema":{"type":"string","format":"date-time","nullable":true}
+			  },
+			  {
+				"name":"X-In-Header","in":"header",
+				"schema":{"minLength":2,"type":"string"}
 			  }
-			}
+			],
+			"requestBody":{
+			  "content":{
+				"multipart/form-data":{"schema":{"$ref":"#/components/schemas/OpenapiTestInput"}}
+			  }
+			},
+			"responses":{"204":{"description":"No Content"}},"deprecated":true
 		  },
-		  "head":{
-			"responses":{
-			  "200":{
-				"description":"OK",
-				"headers":{"X-Bar":{"style":"simple","schema":{"type":"string"}}}
+		  "put":{
+			"summary":"Title","operationId":"name2",
+			"parameters":[
+			  {
+				"name":"in_query","in":"query",
+				"schema":{"type":"string","format":"date"}
+			  },
+			  {
+				"name":"in-path","in":"path","required":true,
+				"schema":{"type":"boolean"}
+			  },
+			  {
+				"name":"in_cookie","in":"cookie",
+				"schema":{"type":"string","format":"date-time","nullable":true}
+			  },
+			  {
+				"name":"X-In-Header","in":"header",
+				"schema":{"minLength":2,"type":"string"}
 			  }
-			}
+			],
+			"requestBody":{
+			  "content":{
+				"multipart/form-data":{"schema":{"$ref":"#/components/schemas/OpenapiTestInput"}}
+			  }
+			},
+			"responses":{"204":{"description":"No Content"}},"deprecated":true
 		  }
 		}
 	  },
 	  "components":{
 		"schemas":{
-		  "OpenapiTestResp":{"type":"object","properties":{"foo":{"type":"string"}}}
+		  "MultipartFile":{"type":"string","format":"binary"},
+		  "OpenapiTestInput":{
+			"type":"object",
+			"properties":{
+			  "in_form_data":{"type":"string","format":"date-time"},
+			  "upload":{"$ref":"#/components/schemas/MultipartFile"}
+			}
+		  }
 		}
 	  }
-	}`, c.SpecSchema())
+	}`, collector.SpecSchema())
+
+	val := validatorMock{
+		AddSchemaFunc: func(_ rest.ParamIn, _ string, _ []byte, _ bool) error {
+			return nil
+		},
+	}
+	assert.NoError(t, collector.ProvideRequestJSONSchemas(http.MethodPost, new(input), mapping, val))
+}
+
+var _ rest.JSONSchemaValidator = validatorMock{}
+
+// anotherErr is another custom error.
+type anotherErr struct {
+	Foo int `json:"foo"`
+}
+
+func (anotherErr) Error() string {
+	return "foo happened"
+}
+
+// Output that implements OutputWithHTTPStatus interface.
+type outputWithHTTPStatuses struct {
+	Number int `json:"number"`
+}
+
+func (outputWithHTTPStatuses) ExpectedHTTPStatuses() []int {
+	return []int{http.StatusCreated, http.StatusOK}
+}
+
+func (outputWithHTTPStatuses) HTTPStatus() int {
+	return http.StatusCreated
+}
+
+type validatorMock struct {
+	ValidateDataFunc     func(in rest.ParamIn, namedData map[string]interface{}) error
+	ValidateJSONBodyFunc func(jsonBody []byte) error
+	HasConstraintsFunc   func(in rest.ParamIn) bool
+	AddSchemaFunc        func(in rest.ParamIn, name string, schemaData []byte, required bool) error
+}
+
+func (v validatorMock) AddSchema(in rest.ParamIn, name string, schemaData []byte, required bool) error {
+	return v.AddSchemaFunc(in, name, schemaData, required)
+}
+
+func (v validatorMock) HasConstraints(in rest.ParamIn) bool {
+	return v.HasConstraintsFunc(in)
+}
+
+func (v validatorMock) ValidateData(in rest.ParamIn, namedData map[string]interface{}) error {
+	return v.ValidateDataFunc(in, namedData)
+}
+
+func (v validatorMock) ValidateJSONBody(jsonBody []byte) error {
+	return v.ValidateJSONBodyFunc(jsonBody)
 }

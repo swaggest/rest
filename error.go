@@ -7,43 +7,6 @@ import (
 	"github.com/swaggest/usecase/status"
 )
 
-// HTTPCodeAsError exposes HTTP status code as use case error that can be translated to response status.
-type HTTPCodeAsError int
-
-// Error return HTTP status text.
-func (c HTTPCodeAsError) Error() string {
-	return http.StatusText(int(c))
-}
-
-// HTTPStatus returns HTTP status code.
-func (c HTTPCodeAsError) HTTPStatus() int {
-	return int(c)
-}
-
-// ErrWithHTTPStatus exposes HTTP status code.
-type ErrWithHTTPStatus interface {
-	error
-	HTTPStatus() int
-}
-
-// ErrWithFields exposes structured context of error.
-type ErrWithFields interface {
-	error
-	Fields() map[string]interface{}
-}
-
-// ErrWithAppCode exposes application error code.
-type ErrWithAppCode interface {
-	error
-	AppErrCode() int
-}
-
-// ErrWithCanonicalStatus exposes canonical status code.
-type ErrWithCanonicalStatus interface {
-	error
-	Status() status.Code
-}
-
 // Err creates HTTP status code and ErrResponse for error.
 //
 // You can use it with use case status code:
@@ -92,31 +55,6 @@ func Err(err error) (int, ErrResponse) {
 	return er.httpStatusCode, er
 }
 
-// ErrResponse is HTTP error response body.
-type ErrResponse struct {
-	StatusText string                 `json:"status,omitempty" description:"Status text."`
-	AppCode    int                    `json:"code,omitempty" description:"Application-specific error code."`
-	ErrorText  string                 `json:"error,omitempty" description:"Error message."`
-	Context    map[string]interface{} `json:"context,omitempty" description:"Application context."`
-
-	err            error // Original error.
-	httpStatusCode int   // HTTP response status code.
-}
-
-// Error implements error.
-func (e ErrResponse) Error() string {
-	if e.ErrorText != "" {
-		return e.ErrorText
-	}
-
-	return e.StatusText
-}
-
-// Unwrap returns parent error.
-func (e ErrResponse) Unwrap() error {
-	return e.err
-}
-
 // HTTPStatusFromCanonicalCode returns http status accordingly to use case status code.
 func HTTPStatusFromCanonicalCode(c status.Code) int {
 	switch c {
@@ -158,4 +96,66 @@ func HTTPStatusFromCanonicalCode(c status.Code) int {
 	}
 
 	return http.StatusInternalServerError
+}
+
+// ErrResponse is HTTP error response body.
+type ErrResponse struct {
+	StatusText string                 `json:"status,omitempty" description:"Status text."`
+	AppCode    int                    `json:"code,omitempty" description:"Application-specific error code."`
+	ErrorText  string                 `json:"error,omitempty" description:"Error message."`
+	Context    map[string]interface{} `json:"context,omitempty" description:"Application context."`
+
+	err            error // Original error.
+	httpStatusCode int   // HTTP response status code.
+}
+
+// Error implements error.
+func (e ErrResponse) Error() string {
+	if e.ErrorText != "" {
+		return e.ErrorText
+	}
+
+	return e.StatusText
+}
+
+// Unwrap returns parent error.
+func (e ErrResponse) Unwrap() error {
+	return e.err
+}
+
+// ErrWithAppCode exposes application error code.
+type ErrWithAppCode interface {
+	error
+	AppErrCode() int
+}
+
+// ErrWithCanonicalStatus exposes canonical status code.
+type ErrWithCanonicalStatus interface {
+	error
+	Status() status.Code
+}
+
+// ErrWithFields exposes structured context of error.
+type ErrWithFields interface {
+	error
+	Fields() map[string]interface{}
+}
+
+// ErrWithHTTPStatus exposes HTTP status code.
+type ErrWithHTTPStatus interface {
+	error
+	HTTPStatus() int
+}
+
+// HTTPCodeAsError exposes HTTP status code as use case error that can be translated to response status.
+type HTTPCodeAsError int
+
+// Error return HTTP status text.
+func (c HTTPCodeAsError) Error() string {
+	return http.StatusText(int(c))
+}
+
+// HTTPStatus returns HTTP status code.
+func (c HTTPCodeAsError) HTTPStatus() int {
+	return int(c)
 }

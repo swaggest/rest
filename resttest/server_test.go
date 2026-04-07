@@ -15,50 +15,98 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func assertRoundTrip(t *testing.T, baseURL string, expectation httpmock.Expectation) {
-	t.Helper()
+func TestServerMock_ExpectAsync(t *testing.T) {
+	sm, url := httpmock.NewServer()
+	sm.Expect(httpmock.Expectation{
+		Method:       http.MethodGet,
+		RequestURI:   "/",
+		ResponseBody: []byte(`{"bar":"foo"}`),
+	})
+	sm.ExpectAsync(httpmock.Expectation{
+		Method:       http.MethodGet,
+		RequestURI:   "/async1",
+		ResponseBody: []byte(`{"bar":"async1"}`),
+	})
+	sm.ExpectAsync(httpmock.Expectation{
+		Method:       http.MethodGet,
+		RequestURI:   "/async2",
+		ResponseBody: []byte(`{"bar":"async2"}`),
+		Unlimited:    true,
+	})
 
-	var bodyReader io.Reader
+	wg := sync.WaitGroup{}
+	wg.Add(2)
 
-	if expectation.RequestBody != nil {
-		bodyReader = bytes.NewReader(expectation.RequestBody)
-	}
+	go func() {
+		defer wg.Done()
 
-	req, err := http.NewRequest(expectation.Method, baseURL+expectation.RequestURI, bodyReader)
+		req, err := http.NewRequest(http.MethodGet, url+"/async1", nil)
+		require.NoError(t, err)
+
+		resp, err := http.DefaultTransport.RoundTrip(req)
+		require.NoError(t, err)
+
+		body, err := ioutil.ReadAll(resp.Body)
+		require.NoError(t, err)
+
+		require.NoError(t, resp.Body.Close())
+		assert.Equal(t, `{"bar":"async1"}`, string(body))
+	}()
+
+	go func() {
+		defer wg.Done()
+
+		for i := 0; i < 50; i++ {
+			req, err := http.NewRequest(http.MethodGet, url+"/async2", nil)
+			require.NoError(t, err)
+
+			resp, err := http.DefaultTransport.RoundTrip(req)
+			require.NoError(t, err)
+
+			body, err := ioutil.ReadAll(resp.Body)
+			require.NoError(t, err)
+
+			require.NoError(t, resp.Body.Close())
+			assert.Equal(t, `{"bar":"async2"}`, string(body))
+		}
+	}()
+
+	req, err := http.NewRequest(http.MethodGet, url+"/", nil)
 	require.NoError(t, err)
-
-	for k, v := range expectation.RequestHeader {
-		req.Header.Set(k, v)
-	}
-
-	for n, v := range expectation.RequestCookie {
-		req.AddCookie(&http.Cookie{Name: n, Value: v})
-	}
 
 	resp, err := http.DefaultTransport.RoundTrip(req)
 	require.NoError(t, err)
 
 	body, err := ioutil.ReadAll(resp.Body)
-	require.NoError(t, resp.Body.Close())
 	require.NoError(t, err)
 
-	if expectation.Status == 0 {
-		expectation.Status = http.StatusOK
-	}
+	require.NoError(t, resp.Body.Close())
+	assert.Equal(t, `{"bar":"foo"}`, string(body))
 
-	assert.Equal(t, expectation.Status, resp.StatusCode)
-	assert.Equal(t, string(expectation.ResponseBody), string(body))
+	wg.Wait()
+	assert.NoError(t, sm.ExpectationsWereMet())
+}
 
-	// Asserting default for successful responses.
-	if resp.StatusCode != http.StatusInternalServerError {
-		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
-	}
+func TestServerMock_ResetExpectations(t *testing.T) {
+	// Creating REST service mock.
+	mock, _ := httpmock.NewServer()
+	defer mock.Close()
 
-	if len(expectation.ResponseHeader) > 0 {
-		for k, v := range expectation.ResponseHeader {
-			assert.Equal(t, v, resp.Header.Get(k))
-		}
-	}
+	mock.Expect(httpmock.Expectation{
+		Method:       http.MethodGet,
+		RequestURI:   "/test?test=test",
+		ResponseBody: []byte("body"),
+	})
+
+	mock.ExpectAsync(httpmock.Expectation{
+		Method:       http.MethodGet,
+		RequestURI:   "/test-async?test=test",
+		ResponseBody: []byte("body"),
+	})
+
+	assert.Error(t, mock.ExpectationsWereMet())
+	mock.ResetExpectations()
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestServerMock_ServeHTTP(t *testing.T) {
@@ -134,6 +182,50 @@ func TestServerMock_ServeHTTP(t *testing.T) {
 		Status:       http.StatusInternalServerError,
 		ResponseBody: []byte("unexpected request received: GET /test?test=test"),
 	})
+}
+
+func TestServerMock_ServeHTTP_concurrency(t *testing.T) {
+	// Creating REST service mock.
+	mock, url := httpmock.NewServer()
+	defer mock.Close()
+
+	n := 50
+
+	for i := 0; i < n; i++ {
+		// Setting expectations for first request.
+		mock.Expect(httpmock.Expectation{
+			Method:       http.MethodGet,
+			RequestURI:   "/test?test=test",
+			ResponseBody: []byte("body"),
+		})
+	}
+
+	wg := sync.WaitGroup{}
+	wg.Add(n)
+
+	for i := 0; i < n; i++ {
+		go func() {
+			defer wg.Done()
+
+			// Sending request with wrong header.
+			req, err := http.NewRequest(http.MethodGet, url+"/test?test=test", nil)
+			require.NoError(t, err)
+			req.Header.Set("X-Foo", "space")
+
+			resp, err := http.DefaultTransport.RoundTrip(req)
+			require.NoError(t, err)
+
+			respBody, err := ioutil.ReadAll(resp.Body)
+			require.NoError(t, resp.Body.Close())
+			require.NoError(t, err)
+
+			assert.Equal(t, http.StatusOK, resp.StatusCode)
+			assert.Equal(t, `body`, string(respBody))
+		}()
+	}
+
+	wg.Wait()
+	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestServerMock_ServeHTTP_error(t *testing.T) {
@@ -219,72 +311,6 @@ func TestServerMock_ServeHTTP_error(t *testing.T) {
 `, string(respBody))
 }
 
-func TestServerMock_ServeHTTP_concurrency(t *testing.T) {
-	// Creating REST service mock.
-	mock, url := httpmock.NewServer()
-	defer mock.Close()
-
-	n := 50
-
-	for i := 0; i < n; i++ {
-		// Setting expectations for first request.
-		mock.Expect(httpmock.Expectation{
-			Method:       http.MethodGet,
-			RequestURI:   "/test?test=test",
-			ResponseBody: []byte("body"),
-		})
-	}
-
-	wg := sync.WaitGroup{}
-	wg.Add(n)
-
-	for i := 0; i < n; i++ {
-		go func() {
-			defer wg.Done()
-
-			// Sending request with wrong header.
-			req, err := http.NewRequest(http.MethodGet, url+"/test?test=test", nil)
-			require.NoError(t, err)
-			req.Header.Set("X-Foo", "space")
-
-			resp, err := http.DefaultTransport.RoundTrip(req)
-			require.NoError(t, err)
-
-			respBody, err := ioutil.ReadAll(resp.Body)
-			require.NoError(t, resp.Body.Close())
-			require.NoError(t, err)
-
-			assert.Equal(t, http.StatusOK, resp.StatusCode)
-			assert.Equal(t, `body`, string(respBody))
-		}()
-	}
-
-	wg.Wait()
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
-func TestServerMock_ResetExpectations(t *testing.T) {
-	// Creating REST service mock.
-	mock, _ := httpmock.NewServer()
-	defer mock.Close()
-
-	mock.Expect(httpmock.Expectation{
-		Method:       http.MethodGet,
-		RequestURI:   "/test?test=test",
-		ResponseBody: []byte("body"),
-	})
-
-	mock.ExpectAsync(httpmock.Expectation{
-		Method:       http.MethodGet,
-		RequestURI:   "/test-async?test=test",
-		ResponseBody: []byte("body"),
-	})
-
-	assert.Error(t, mock.ExpectationsWereMet())
-	mock.ResetExpectations()
-	assert.NoError(t, mock.ExpectationsWereMet())
-}
-
 func TestServerMock_vars(t *testing.T) {
 	sm, url := httpmock.NewServer()
 	sm.JSONComparer.Vars = &shared.Vars{}
@@ -309,74 +335,48 @@ func TestServerMock_vars(t *testing.T) {
 	assert.Equal(t, `{"bar":"foo","dynEcho":"abc"}`, string(body))
 }
 
-func TestServerMock_ExpectAsync(t *testing.T) {
-	sm, url := httpmock.NewServer()
-	sm.Expect(httpmock.Expectation{
-		Method:       http.MethodGet,
-		RequestURI:   "/",
-		ResponseBody: []byte(`{"bar":"foo"}`),
-	})
-	sm.ExpectAsync(httpmock.Expectation{
-		Method:       http.MethodGet,
-		RequestURI:   "/async1",
-		ResponseBody: []byte(`{"bar":"async1"}`),
-	})
-	sm.ExpectAsync(httpmock.Expectation{
-		Method:       http.MethodGet,
-		RequestURI:   "/async2",
-		ResponseBody: []byte(`{"bar":"async2"}`),
-		Unlimited:    true,
-	})
+func assertRoundTrip(t *testing.T, baseURL string, expectation httpmock.Expectation) {
+	t.Helper()
 
-	wg := sync.WaitGroup{}
-	wg.Add(2)
+	var bodyReader io.Reader
 
-	go func() {
-		defer wg.Done()
+	if expectation.RequestBody != nil {
+		bodyReader = bytes.NewReader(expectation.RequestBody)
+	}
 
-		req, err := http.NewRequest(http.MethodGet, url+"/async1", nil)
-		require.NoError(t, err)
-
-		resp, err := http.DefaultTransport.RoundTrip(req)
-		require.NoError(t, err)
-
-		body, err := ioutil.ReadAll(resp.Body)
-		require.NoError(t, err)
-
-		require.NoError(t, resp.Body.Close())
-		assert.Equal(t, `{"bar":"async1"}`, string(body))
-	}()
-
-	go func() {
-		defer wg.Done()
-
-		for i := 0; i < 50; i++ {
-			req, err := http.NewRequest(http.MethodGet, url+"/async2", nil)
-			require.NoError(t, err)
-
-			resp, err := http.DefaultTransport.RoundTrip(req)
-			require.NoError(t, err)
-
-			body, err := ioutil.ReadAll(resp.Body)
-			require.NoError(t, err)
-
-			require.NoError(t, resp.Body.Close())
-			assert.Equal(t, `{"bar":"async2"}`, string(body))
-		}
-	}()
-
-	req, err := http.NewRequest(http.MethodGet, url+"/", nil)
+	req, err := http.NewRequest(expectation.Method, baseURL+expectation.RequestURI, bodyReader)
 	require.NoError(t, err)
+
+	for k, v := range expectation.RequestHeader {
+		req.Header.Set(k, v)
+	}
+
+	for n, v := range expectation.RequestCookie {
+		req.AddCookie(&http.Cookie{Name: n, Value: v})
+	}
 
 	resp, err := http.DefaultTransport.RoundTrip(req)
 	require.NoError(t, err)
 
 	body, err := ioutil.ReadAll(resp.Body)
+	require.NoError(t, resp.Body.Close())
 	require.NoError(t, err)
 
-	require.NoError(t, resp.Body.Close())
-	assert.Equal(t, `{"bar":"foo"}`, string(body))
+	if expectation.Status == 0 {
+		expectation.Status = http.StatusOK
+	}
 
-	wg.Wait()
-	assert.NoError(t, sm.ExpectationsWereMet())
+	assert.Equal(t, expectation.Status, resp.StatusCode)
+	assert.Equal(t, string(expectation.ResponseBody), string(body))
+
+	// Asserting default for successful responses.
+	if resp.StatusCode != http.StatusInternalServerError {
+		assert.Equal(t, "application/json", resp.Header.Get("Content-Type"))
+	}
+
+	if len(expectation.ResponseHeader) > 0 {
+		for k, v := range expectation.ResponseHeader {
+			assert.Equal(t, v, resp.Header.Get(k))
+		}
+	}
 }

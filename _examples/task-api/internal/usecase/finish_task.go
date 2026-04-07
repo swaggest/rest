@@ -8,10 +8,6 @@ import (
 	"github.com/swaggest/usecase/status"
 )
 
-type finishTaskDeps interface {
-	TaskFinisher() task.Finisher
-}
-
 // FinishTask creates usecase interactor.
 func FinishTask(deps finishTaskDeps) usecase.IOInteractor {
 	u := usecase.NewIOI(new(task.Identity), nil, func(ctx context.Context, input, _ interface{}) error {
@@ -33,4 +29,8 @@ func FinishTask(deps finishTaskDeps) usecase.IOInteractor {
 	u.SetTags("Tasks")
 
 	return u
+}
+
+type finishTaskDeps interface {
+	TaskFinisher() task.Finisher
 }

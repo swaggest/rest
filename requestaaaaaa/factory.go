@@ -1,4 +1,4 @@
-package request
+package requestaaaaaa
 
 import (
 	"bytes"
@@ -17,41 +17,6 @@ import (
 	"github.com/swaggest/rest"
 	"github.com/swaggest/rest/nethttp"
 )
-
-var _ DecoderMaker = &DecoderFactory{}
-
-const (
-	defaultTag  = "default"
-	jsonTag     = "json"
-	fileTag     = "file"
-	formDataTag = "formData"
-)
-
-// DecoderFactory decodes http requests.
-//
-// Please use NewDecoderFactory to create instance.
-type DecoderFactory struct {
-	// ApplyDefaults enables default value assignment for fields missing explicit value in request.
-	// Default value is retrieved from `default` field tag.
-	ApplyDefaults bool
-
-	// JSONReader allows custom JSON decoder for request body.
-	// If not set encoding/json.Decoder is used.
-	JSONReader func(rd io.Reader, v interface{}) error
-
-	// JSONSchemaReflector is optional, it is called to infer "default" values.
-	JSONSchemaReflector *jsonschema.Reflector
-
-	formDecoders      map[rest.ParamIn]*form.Decoder
-	decoderFunctions  map[rest.ParamIn]decoderFunc
-	defaultValDecoder *form.Decoder
-	customDecoders    []customDecoder
-}
-
-type customDecoder struct {
-	types []interface{}
-	fn    form.DecodeFunc
-}
 
 // NewDecoderFactory creates request decoder factory.
 func NewDecoderFactory() *DecoderFactory {
@@ -75,23 +40,25 @@ func NewDecoderFactory() *DecoderFactory {
 	return &df
 }
 
-// SetDecoderFunc adds custom decoder function for values of particular field tag name.
-func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(r *http.Request) (url.Values, error)) {
-	if df.decoderFunctions == nil {
-		df.decoderFunctions = make(map[rest.ParamIn]decoderFunc)
-	}
+// DecoderFactory decodes http requests.
+//
+// Please use NewDecoderFactory to create instance.
+type DecoderFactory struct {
+	// ApplyDefaults enables default value assignment for fields missing explicit value in request.
+	// Default value is retrieved from `default` field tag.
+	ApplyDefaults bool
 
-	if df.formDecoders == nil {
-		df.formDecoders = make(map[rest.ParamIn]*form.Decoder)
-	}
+	// JSONReader allows custom JSON decoder for request body.
+	// If not set encoding/json.Decoder is used.
+	JSONReader func(rd io.Reader, v interface{}) error
 
-	df.decoderFunctions[tagName] = d
-	dec := form.NewDecoder()
-	dec.SetNamespacePrefix("[")
-	dec.SetNamespaceSuffix("]")
-	dec.SetTagName(string(tagName))
-	dec.SetMode(form.ModeExplicit)
-	df.formDecoders[tagName] = dec
+	// JSONSchemaReflector is optional, it is called to infer "default" values.
+	JSONSchemaReflector *jsonschema.Reflector
+
+	formDecoders      map[rest.ParamIn]*form.Decoder
+	decoderFunctions  map[rest.ParamIn]decoderFunc
+	defaultValDecoder *form.Decoder
+	customDecoders    []customDecoder
 }
 
 // MakeDecoder creates request.RequestDecoder for a http method and request structure.
@@ -159,68 +126,37 @@ func (df *DecoderFactory) MakeDecoder(
 	return &d
 }
 
-func initDecoder(input interface{}) decoder {
-	d := decoder{
-		decoders: make([]valueDecoderFunc, 0),
-		in:       make([]rest.ParamIn, 0),
+// RegisterFunc adds custom type handling.
+func (df *DecoderFactory) RegisterFunc(fn form.DecodeFunc, types ...interface{}) {
+	for _, fd := range df.formDecoders {
+		fd.RegisterFunc(fn, types...)
 	}
 
-	loader := reflect.TypeOf((*Loader)(nil)).Elem()
-	d.isReqLoader = reflect.TypeOf(input).Implements(loader) ||
-		reflect.New(reflect.TypeOf(input)).Type().Implements(loader)
+	df.defaultValDecoder.RegisterFunc(fn, types...)
 
-	setter := reflect.TypeOf((*Setter)(nil)).Elem()
-	d.isReqSetter = reflect.TypeOf(input).Implements(setter) ||
-		reflect.New(reflect.TypeOf(input)).Type().Implements(setter)
-
-	return d
+	df.customDecoders = append(df.customDecoders, customDecoder{
+		fn:    fn,
+		types: types,
+	})
 }
 
-func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping rest.RequestMapping) rest.RequestMapping {
-	// Copy custom mapping to avoid mutability issues on original map.
-	cm := make(rest.RequestMapping, len(customMapping))
-	for k, v := range customMapping {
-		cm[k] = v
+// SetDecoderFunc adds custom decoder function for values of particular field tag name.
+func (df *DecoderFactory) SetDecoderFunc(tagName rest.ParamIn, d func(r *http.Request) (url.Values, error)) {
+	if df.decoderFunctions == nil {
+		df.decoderFunctions = make(map[rest.ParamIn]decoderFunc)
 	}
 
-	// Move header names to custom mapping and/or apply canonical form to match net/http request decoder.
-	if hdm, exists := cm[rest.ParamInHeader]; !exists && refl.HasTaggedFields(input, string(rest.ParamInHeader)) {
-		hdm = make(map[string]string)
-
-		refl.WalkTaggedFields(reflect.ValueOf(input), func(_ reflect.Value, sf reflect.StructField, tag string) {
-			hdm[sf.Name] = http.CanonicalHeaderKey(tag)
-		}, string(rest.ParamInHeader))
-
-		cm[rest.ParamInHeader] = hdm
-	} else if exists {
-		for k, v := range hdm {
-			hdm[k] = http.CanonicalHeaderKey(v)
-		}
+	if df.formDecoders == nil {
+		df.formDecoders = make(map[rest.ParamIn]*form.Decoder)
 	}
 
-	fields := make(map[string]bool)
-
-	refl.WalkTaggedFields(reflect.ValueOf(input), func(_ reflect.Value, sf reflect.StructField, _ string) {
-		fields[sf.Name] = true
-	}, "")
-
-	// Check if there are non-existent fields in mapping.
-	var nonExistent []string
-
-	for _, items := range cm {
-		for k := range items {
-			if _, exists := fields[k]; !exists {
-				nonExistent = append(nonExistent, k)
-			}
-		}
-	}
-
-	if len(nonExistent) > 0 {
-		sort.Strings(nonExistent)
-		panic("non existent fields in mapping: " + strings.Join(nonExistent, ", "))
-	}
-
-	return cm
+	df.decoderFunctions[tagName] = d
+	dec := form.NewDecoder()
+	dec.SetNamespacePrefix("[")
+	dec.SetNamespaceSuffix("]")
+	dec.SetTagName(string(tagName))
+	dec.SetMode(form.ModeExplicit)
+	df.formDecoders[tagName] = dec
 }
 
 // jsonParams configures custom decoding for parameters with JSON struct values.
@@ -257,6 +193,37 @@ func (df *DecoderFactory) jsonParams(formDecoder *form.Decoder, in rest.ParamIn,
 			}, fieldVal)
 		}
 	}, string(in))
+}
+
+func (df *DecoderFactory) makeCustomMappingDecoder(customMapping rest.RequestMapping, m *decoder) {
+	for in, mapping := range customMapping {
+		dec := form.NewDecoder()
+		dec.SetNamespacePrefix("[")
+		dec.SetNamespaceSuffix("]")
+		dec.SetTagName(string(in))
+
+		// Copy mapping to avoid mutability.
+		mm := make(map[string]string, len(mapping))
+		for k, v := range mapping {
+			mm[k] = v
+		}
+
+		dec.RegisterTagNameFunc(func(field reflect.StructField) string {
+			n := mm[field.Name]
+			if n == "" && !field.Anonymous {
+				return "-"
+			}
+
+			return n
+		})
+
+		for _, c := range df.customDecoders {
+			dec.RegisterFunc(c.fn, c.types...)
+		}
+
+		m.decoders = append(m.decoders, makeDecoder(in, dec, df.decoderFunctions[in]))
+		m.in = append(m.in, in)
+	}
 }
 
 func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
@@ -316,47 +283,80 @@ func (df *DecoderFactory) makeDefaultDecoder(input interface{}, m *decoder) {
 	m.in = append(m.in, defaultTag)
 }
 
-func (df *DecoderFactory) makeCustomMappingDecoder(customMapping rest.RequestMapping, m *decoder) {
-	for in, mapping := range customMapping {
-		dec := form.NewDecoder()
-		dec.SetNamespacePrefix("[")
-		dec.SetNamespaceSuffix("]")
-		dec.SetTagName(string(in))
-
-		// Copy mapping to avoid mutability.
-		mm := make(map[string]string, len(mapping))
-		for k, v := range mapping {
-			mm[k] = v
-		}
-
-		dec.RegisterTagNameFunc(func(field reflect.StructField) string {
-			n := mm[field.Name]
-			if n == "" && !field.Anonymous {
-				return "-"
-			}
-
-			return n
-		})
-
-		for _, c := range df.customDecoders {
-			dec.RegisterFunc(c.fn, c.types...)
-		}
-
-		m.decoders = append(m.decoders, makeDecoder(in, dec, df.decoderFunctions[in]))
-		m.in = append(m.in, in)
+func (df *DecoderFactory) prepareCustomMapping(input interface{}, customMapping rest.RequestMapping) rest.RequestMapping {
+	// Copy custom mapping to avoid mutability issues on original map.
+	cm := make(rest.RequestMapping, len(customMapping))
+	for k, v := range customMapping {
+		cm[k] = v
 	}
+
+	// Move header names to custom mapping and/or apply canonical form to match net/http request decoder.
+	if hdm, exists := cm[rest.ParamInHeader]; !exists && refl.HasTaggedFields(input, string(rest.ParamInHeader)) {
+		hdm = make(map[string]string)
+
+		refl.WalkTaggedFields(reflect.ValueOf(input), func(_ reflect.Value, sf reflect.StructField, tag string) {
+			hdm[sf.Name] = http.CanonicalHeaderKey(tag)
+		}, string(rest.ParamInHeader))
+
+		cm[rest.ParamInHeader] = hdm
+	} else if exists {
+		for k, v := range hdm {
+			hdm[k] = http.CanonicalHeaderKey(v)
+		}
+	}
+
+	fields := make(map[string]bool)
+
+	refl.WalkTaggedFields(reflect.ValueOf(input), func(_ reflect.Value, sf reflect.StructField, _ string) {
+		fields[sf.Name] = true
+	}, "")
+
+	// Check if there are non-existent fields in mapping.
+	var nonExistent []string
+
+	for _, items := range cm {
+		for k := range items {
+			if _, exists := fields[k]; !exists {
+				nonExistent = append(nonExistent, k)
+			}
+		}
+	}
+
+	if len(nonExistent) > 0 {
+		sort.Strings(nonExistent)
+		panic("non existent fields in mapping: " + strings.Join(nonExistent, ", "))
+	}
+
+	return cm
 }
 
-// RegisterFunc adds custom type handling.
-func (df *DecoderFactory) RegisterFunc(fn form.DecodeFunc, types ...interface{}) {
-	for _, fd := range df.formDecoders {
-		fd.RegisterFunc(fn, types...)
+const (
+	defaultTag  = "default"
+	jsonTag     = "json"
+	fileTag     = "file"
+	formDataTag = "formData"
+)
+
+var _ DecoderMaker = &DecoderFactory{}
+
+func initDecoder(input interface{}) decoder {
+	d := decoder{
+		decoders: make([]valueDecoderFunc, 0),
+		in:       make([]rest.ParamIn, 0),
 	}
 
-	df.defaultValDecoder.RegisterFunc(fn, types...)
+	loader := reflect.TypeOf((*Loader)(nil)).Elem()
+	d.isReqLoader = reflect.TypeOf(input).Implements(loader) ||
+		reflect.New(reflect.TypeOf(input)).Type().Implements(loader)
 
-	df.customDecoders = append(df.customDecoders, customDecoder{
-		fn:    fn,
-		types: types,
-	})
+	setter := reflect.TypeOf((*Setter)(nil)).Elem()
+	d.isReqSetter = reflect.TypeOf(input).Implements(setter) ||
+		reflect.New(reflect.TypeOf(input)).Type().Implements(setter)
+
+	return d
+}
+
+type customDecoder struct {
+	types []interface{}
+	fn    form.DecodeFunc
 }
