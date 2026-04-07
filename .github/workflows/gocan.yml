@@ -12,12 +12,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Annotate layout-only changes
         run: |
           curl -sLO https://github.com/vearutop/gocan/releases/download/v0.0.3/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz
           gocan_hash=$(git hash-object ./gocan)
           [ "$gocan_hash" == "cfcb9c334ed3e887a802f1fde35fbf7f5af2d8e8" ] || (echo "::error::unexpected hash for gocan, possible tampering: $gocan_hash" && exit 1)
           git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
-          #git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.head.sha }}
+          git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.head.sha }}
           ./gocan -gh-annotate -gh-base ${{ github.event.pull_request.base.sha }} -gh-head ${{ github.event.pull_request.head.sha }}
