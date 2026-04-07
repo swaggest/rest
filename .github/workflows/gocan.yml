@@ -15,9 +15,9 @@ jobs:
         uses: actions/checkout@v6
       - name: Annotate layout-only changes
         run: |
-          curl -sLO https://github.com/vearutop/gocan/releases/download/v0.0.4/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz
+          curl -sLO https://github.com/vearutop/gocan/releases/download/v0.0.5/linux_amd64.tar.gz && tar xf linux_amd64.tar.gz
           gocan_hash=$(git hash-object ./gocan)
-          [ "$gocan_hash" == "b4e7572cd799ba302202c1b058e9259c56b4e2c7" ] || (echo "::error::unexpected hash for gocan, possible tampering: $gocan_hash" && exit 1)
+          [ "$gocan_hash" == "98c1ea372abf02d6c8583689c28c8589c442674f" ] || (echo "::error::unexpected hash for gocan, possible tampering: $gocan_hash" && exit 1)
           git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.base.sha }}
           git fetch --no-tags --depth=1 origin ${{ github.event.pull_request.head.sha }}
-          ./gocan -gh-annotate -gh-base ${{ github.event.pull_request.base.sha }} -gh-head ${{ github.event.pull_request.head.sha }}
+          ./gocan -gh-checks -gh-base ${{ github.event.pull_request.base.sha }} -gh-head ${{ github.event.pull_request.head.sha }}
