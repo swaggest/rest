@@ -1,4 +1,4 @@
-name: gocan
+name: layout-only changes
 on:
   pull_request:
 
