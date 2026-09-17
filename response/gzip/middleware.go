@@ -21,6 +21,7 @@ const (
 	contentLengthHeader   = "Content-Length"
 	contentEncodingHeader = "Content-Encoding"
 	acceptEncodingHeader  = "Accept-Encoding"
+	varyHeader            = "Vary"
 
 	defaultBufferSize = 8 * 1024
 )
@@ -28,6 +29,11 @@ const (
 // Middleware enables gzip compression of handler response for requests that accept gzip encoding.
 func Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Whether the response ends up compressed always depends on Accept-Encoding, so without
+		// this a cache could store one representation (e.g. gzip-compressed bytes) and serve it
+		// to a request with a different Accept-Encoding (e.g. one that can't decode gzip).
+		w.Header().Add(varyHeader, acceptEncodingHeader)
+
 		w = maybeGzipResponseWriter(w, r)
 		if closer, ok := w.(io.Closer); ok {
 			defer func() {

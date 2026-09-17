@@ -61,6 +61,35 @@ func TestMiddleware(t *testing.T) {
 	assert.Equal(t, resp, rw.Body.Bytes())
 }
 
+// TestMiddleware_vary checks that Vary: Accept-Encoding is set regardless of whether this
+// particular response ends up compressed, so a cache does not store one representation
+// (e.g. gzip-compressed bytes) and serve it to a request with a different Accept-Encoding
+// that would not be able to decode it.
+func TestMiddleware_vary(t *testing.T) {
+	resp := []byte(strings.Repeat("A", 10000) + "!!!")
+	h := gzip.Middleware(http.HandlerFunc(func(rw http.ResponseWriter, _ *http.Request) {
+		_, err := rw.Write(resp)
+		assert.NoError(t, err)
+	}))
+
+	rw := httptest.NewRecorder()
+	r, err := http.NewRequest(http.MethodGet, "/", nil)
+	require.NoError(t, err)
+
+	r.Header.Set("Accept-Encoding", "gzip")
+	h.ServeHTTP(rw, r)
+
+	assert.Equal(t, "gzip", rw.Header().Get("Content-Encoding"))
+	assert.Equal(t, []string{"Accept-Encoding"}, rw.Header().Values("Vary"))
+
+	rw = httptest.NewRecorder()
+	r.Header.Del("Accept-Encoding")
+	h.ServeHTTP(rw, r)
+
+	assert.Equal(t, "", rw.Header().Get("Content-Encoding"))
+	assert.Equal(t, []string{"Accept-Encoding"}, rw.Header().Values("Vary"))
+}
+
 // BenchmarkMiddleware measures performance of handler with compression.
 //
 // Sample result:
