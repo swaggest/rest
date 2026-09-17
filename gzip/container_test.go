@@ -30,9 +30,16 @@ func TestWriteJSON(t *testing.T) {
 
 	// ETag hashes uncompressed content, so unlike a hash of gzip-compressed bytes,
 	// it is stable across Go versions (compress/flate does not guarantee stable output).
-	const etag = "2cxnp31dco6p1"
+	// GzipETag is salted so it differs from ETag: the gzip and identity representations are
+	// byte-distinct, and sharing one strong validator between them would let a cache serve the
+	// wrong variant.
+	const (
+		etag     = "2cxnp31dco6p1"
+		gzipETag = "386rh02sa3f4u"
+	)
 
 	assert.Equal(t, etag, cont.ETag())
+	assert.Equal(t, gzipETag, cont.GzipETag())
 
 	var vv []string
 
@@ -74,7 +81,7 @@ func TestWriteJSON(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "gzip", w.Header().Get("Content-Encoding"))
-	assert.Equal(t, etag, w.Header().Get("Etag"))
+	assert.Equal(t, gzipETag, w.Header().Get("Etag"))
 	assert.Equal(t, cont.GzipCompressedJSON(), w.Body.Bytes())
 
 	w = httptest.NewRecorder()
