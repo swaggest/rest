@@ -629,7 +629,7 @@
       "name":"in_query","in":"query","description":"Object value in query.",
       "schema":{
        "additionalProperties":{"format":"double","type":"number"},"description":"Object value in query.",
-       "type":["object","null"]
+       "type":"object"
       },
       "style":"deepObject","explode":true
      },

@@ -1,4 +1,4 @@
-package gorillamux_test
+package chirouter_test
 
 import (
 	"encoding/json"
@@ -6,11 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
 	"github.com/swaggest/openapi-go"
 	"github.com/swaggest/openapi-go/openapi3"
 	"github.com/swaggest/rest"
-	"github.com/swaggest/rest/gorillamux"
+	"github.com/swaggest/rest/chirouter"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/request"
 )
@@ -33,10 +33,10 @@ type myResp struct {
 func newMyHandler() *myHandler {
 	decoderFactory := request.NewDecoderFactory()
 	decoderFactory.ApplyDefaults = true
-	decoderFactory.SetDecoderFunc(rest.ParamInPath, gorillamux.PathToURLValues)
+	decoderFactory.SetDecoderFunc(rest.ParamInPath, chirouter.PathToURLValues)
 
 	return &myHandler{
-		dec: decoderFactory.MakeDecoder(http.MethodPost, myRequest{}, nil),
+		dec: decoderFactory.MakeDecoder(http.MethodGet, myRequest{}, nil),
 	}
 }
 
@@ -87,19 +87,17 @@ func (m *myHandler) SetupOpenAPIOperation(oc openapi.OperationContext) error {
 
 func ExampleNewOpenAPICollector() {
 	// Your router does not need special instrumentation.
-	router := mux.NewRouter()
+	router := chi.NewRouter()
 
-	// If handler implements gorillamux.OpenAPIPreparer, it will contribute detailed information to OpenAPI document.
-	router.Handle("/foo/{path1}/bar/{path2}", newMyHandler()).Methods(http.MethodGet)
+	// If handler implements chirouter.OpenAPIPreparer, it will contribute detailed information to OpenAPI document.
+	router.Method(http.MethodGet, "/foo/{path1}/bar/{path2}", newMyHandler())
 
-	// If handler does not implement gorillamux.OpenAPIPreparer, it will be exposed as incomplete.
-	router.Handle("/uninstrumented-handler/{path-item}",
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})).Methods(http.MethodPost)
+	// If handler does not implement chirouter.OpenAPIPreparer, it will be exposed as incomplete.
+	router.Post("/uninstrumented-handler/{path-item}", func(w http.ResponseWriter, r *http.Request) {})
 
-	// A plain http.HandlerFunc can't implement gorillamux.OpenAPIPreparer (funcs can't have methods),
+	// A plain http.HandlerFunc can't implement chirouter.OpenAPIPreparer (funcs can't have methods),
 	// but it can still get full documentation via Collector.AnnotateOperation, keyed by method and pattern.
-	router.Handle("/func-handler/{path-item}",
-		http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})).Methods(http.MethodGet)
+	router.Get("/func-handler/{path-item}", func(w http.ResponseWriter, r *http.Request) {})
 
 	// Setup OpenAPI schema.
 	refl := openapi3.NewReflector()
@@ -108,7 +106,7 @@ func ExampleNewOpenAPICollector() {
 	refl.SpecSchema().SetDescription("This is an example.")
 
 	// Walk the router with OpenAPI collector.
-	c := gorillamux.NewOpenAPICollector(refl)
+	c := chirouter.NewOpenAPICollector(refl)
 
 	// AnnotateOperation is the quickest way to document a func handler, but the method+pattern
 	// key is a second copy of the route: if the route changes and this string is not updated to
@@ -126,8 +124,9 @@ func ExampleNewOpenAPICollector() {
 	// Collector.Describe avoids that duplication: the route registration itself stays the single
 	// source of truth. Use it for func handlers you register yourself, especially routes built
 	// programmatically/in bulk, where keeping a second, string-keyed AnnotateOperation call in
-	// sync would be error-prone.
-	router.Handle("/identified-func/{path-item}", c.Describe(
+	// sync would be error-prone. Describe returns http.Handler, so register it with a method
+	// that accepts one, such as Method, rather than Get/Post/etc which require http.HandlerFunc.
+	router.Method(http.MethodGet, "/identified-func/{path-item}", c.Describe(
 		func(w http.ResponseWriter, r *http.Request) {},
 		func(oc openapi.OperationContext) error {
 			oc.SetSummary("Identified Func Handler")
@@ -138,9 +137,9 @@ func ExampleNewOpenAPICollector() {
 
 			return nil
 		},
-	)).Methods(http.MethodGet)
+	))
 
-	_ = router.Walk(c.Walker)
+	_ = chi.Walk(router, c.Walker)
 
 	// Get the resulting schema.
 	yml, _ := refl.Spec.MarshalYAML()
@@ -181,7 +180,7 @@ func ExampleNewOpenAPICollector() {
 	//           content:
 	//             application/json:
 	//               schema:
-	//                 $ref: '#/components/schemas/GorillamuxTestMyResp'
+	//                 $ref: '#/components/schemas/ChirouterTestMyResp'
 	//           description: OK
 	//         "400":
 	//           content:
@@ -211,7 +210,7 @@ func ExampleNewOpenAPICollector() {
 	//           content:
 	//             application/json:
 	//               schema:
-	//                 $ref: '#/components/schemas/GorillamuxTestMyResp'
+	//                 $ref: '#/components/schemas/ChirouterTestMyResp'
 	//           description: OK
 	//       summary: Func Handler
 	//   /identified-func/{path-item}:
@@ -227,7 +226,7 @@ func ExampleNewOpenAPICollector() {
 	//           content:
 	//             application/json:
 	//               schema:
-	//                 $ref: '#/components/schemas/GorillamuxTestMyResp'
+	//                 $ref: '#/components/schemas/ChirouterTestMyResp'
 	//           description: OK
 	//       summary: Identified Func Handler
 	//   /uninstrumented-handler/{path-item}:
@@ -251,7 +250,7 @@ func ExampleNewOpenAPICollector() {
 	//       - Incomplete
 	// components:
 	//   schemas:
-	//     GorillamuxTestMyResp:
+	//     ChirouterTestMyResp:
 	//       properties:
 	//         concat:
 	//           type: string

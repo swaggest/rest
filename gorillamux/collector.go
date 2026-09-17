@@ -2,10 +2,8 @@ package gorillamux
 
 import (
 	"net/http"
-	"reflect"
 
 	"github.com/gorilla/mux"
-	"github.com/swaggest/jsonschema-go"
 	oapi "github.com/swaggest/openapi-go"
 	"github.com/swaggest/rest/nethttp"
 	"github.com/swaggest/rest/openapi"
@@ -46,7 +44,14 @@ type OpenAPIPreparer interface {
 	SetupOpenAPIOperation(oc oapi.OperationContext) error
 }
 
-type preparerFunc func(oc oapi.OperationContext) error
+// Describe attaches OpenAPI documentation to a http.HandlerFunc. Unlike Collector.AnnotateOperation,
+// which is keyed by a separately maintained method+pattern string that can drift from the actual
+// route, Describe keeps the route registration itself as the single source of truth.
+//
+// The result implements http.Handler, e.g. router.Handle(pattern, c.Describe(h, setup)).Methods(http.MethodGet).
+func (dc *OpenAPICollector) Describe(h http.HandlerFunc, setup func(oc oapi.OperationContext) error) http.Handler {
+	return nethttp.Describe(h, setup)
+}
 
 // Walker walks route tree and collects OpenAPI information.
 func (dc *OpenAPICollector) Walker(route *mux.Route, _ *mux.Router, _ []*mux.Route) error {
@@ -73,63 +78,13 @@ func (dc *OpenAPICollector) Walker(route *mux.Route, _ *mux.Router, _ []*mux.Rou
 		methods = dc.DefaultMethods
 	}
 
-	var (
-		openAPIPreparer OpenAPIPreparer
-		preparer        preparerFunc
-	)
-
-	if nethttp.HandlerAs(handler, &openAPIPreparer) {
-		preparer = openAPIPreparer.SetupOpenAPIOperation
-	} else if dc.OperationExtractor != nil {
-		preparer = dc.OperationExtractor(handler)
-	}
+	preparer := nethttp.Preparer(handler, dc.OperationExtractor)
 
 	for _, method := range methods {
-		if err := dc.Collector.CollectOperation(method, path, dc.collect(method, path, preparer)); err != nil {
+		if err := nethttp.CollectRouteOperation(dc.Collector, method, path, preparer); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func (dc *OpenAPICollector) collect(method, path string, preparer preparerFunc) preparerFunc {
-	return func(oc oapi.OperationContext) error {
-		// Do not apply default parameters to not conflict with custom preparer.
-		if preparer != nil {
-			return preparer(oc)
-		}
-
-		// Do not apply default parameters to not conflict with custom annotation.
-		if dc.Collector.HasAnnotation(method, path) {
-			return nil
-		}
-
-		_, _, pathItems, err := oapi.SanitizeMethodPath(method, path)
-		if err != nil {
-			return err
-		}
-
-		if len(pathItems) > 0 {
-			req := jsonschema.Struct{}
-			for _, p := range pathItems {
-				req.Fields = append(req.Fields, jsonschema.Field{
-					Name:  "F" + p,
-					Tag:   reflect.StructTag(`path:"` + p + `"`),
-					Value: "",
-				})
-			}
-
-			oc.AddReqStructure(req)
-		}
-
-		oc.SetDescription("Information about this operation was obtained using only HTTP method and path pattern. " +
-			"It may be incomplete and/or inaccurate.")
-		oc.SetTags("Incomplete")
-		oc.AddRespStructure(nil, func(cu *oapi.ContentUnit) {
-			cu.ContentType = "text/html"
-		})
-
-		return nil
-	}
 }

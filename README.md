@@ -402,6 +402,11 @@ func main() {
 
 ## Additional Integrations
 
+Router adapters below are for a different, migration-friendly use case: adding OpenAPI docs to an
+*existing* router with plain `http.Handler`/`http.HandlerFunc` routes, without rewriting them as
+typed usecase interactors.
+
+* [`github.com/go-chi/chi`](https://github.com/go-chi/chi), see [example](./chirouter/example_openapi_collector_test.go).
 * [`github.com/gorilla/mux`](https://github.com/gorilla/mux), see [example](./gorillamux/example_openapi_collector_test.go).
 
 ## Performance Optimization
