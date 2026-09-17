@@ -28,6 +28,12 @@ func TestWriteJSON(t *testing.T) {
 	cont := gzip.JSONContainer{}
 	require.NoError(t, cont.PackJSON(v))
 
+	// ETag hashes uncompressed content, so unlike a hash of gzip-compressed bytes,
+	// it is stable across Go versions (compress/flate does not guarantee stable output).
+	const etag = "2cxnp31dco6p1"
+
+	assert.Equal(t, etag, cont.ETag())
+
 	var vv []string
 
 	require.NoError(t, cont.UnpackJSON(&vv))
@@ -68,7 +74,7 @@ func TestWriteJSON(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "gzip", w.Header().Get("Content-Encoding"))
-	assert.Equal(t, "1ofolk6sr5j4r", w.Header().Get("Etag"))
+	assert.Equal(t, etag, w.Header().Get("Etag"))
 	assert.Equal(t, cont.GzipCompressedJSON(), w.Body.Bytes())
 
 	w = httptest.NewRecorder()
@@ -78,7 +84,7 @@ func TestWriteJSON(t *testing.T) {
 
 	assert.Equal(t, http.StatusOK, w.Code)
 	assert.Equal(t, "", w.Header().Get("Content-Encoding"))
-	assert.Equal(t, "1ofolk6sr5j4r", w.Header().Get("Etag"))
+	assert.Equal(t, etag, w.Header().Get("Etag"))
 	assert.Equal(t, append(vj, '\n'), w.Body.Bytes())
 
 	w = httptest.NewRecorder()

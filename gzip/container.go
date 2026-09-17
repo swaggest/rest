@@ -51,13 +51,13 @@ func (jc JSONContainer) UnpackJSON(v interface{}) error {
 
 // PackJSON puts Go value in JSON container.
 func (jc *JSONContainer) PackJSON(v interface{}) error {
-	res, err := MarshalJSON(v)
+	res, hash, err := marshalJSON(v)
 	if err != nil {
 		return err
 	}
 
 	jc.gz = res
-	jc.hash = strconv.FormatUint(xxhash.Sum64(res), 36)
+	jc.hash = hash
 
 	return nil
 }
@@ -86,33 +86,44 @@ func (jc JSONContainer) MarshalJSON() (j []byte, err error) {
 	return ioutil.ReadAll(r)
 }
 
-// ETag returns hash of compressed bytes.
+// ETag returns hash of uncompressed JSON content.
+//
+// Unlike hashing compressed bytes, this is stable across changes to the gzip/flate
+// implementation (e.g. across Go versions), which do not guarantee stable output bytes
+// for the same input.
 func (jc JSONContainer) ETag() string {
 	return jc.hash
 }
 
 // MarshalJSON encodes Go value as JSON and compresses result with gzip.
 func MarshalJSON(v interface{}) ([]byte, error) {
+	res, _, err := marshalJSON(v)
+
+	return res, err
+}
+
+// marshalJSON encodes Go value as JSON, compressing it with gzip and hashing its
+// uncompressed content in a single pass.
+func marshalJSON(v interface{}) (compressed []byte, hash string, err error) {
 	b := bytes.Buffer{}
 	w := gzip.NewWriter(&b)
+	h := xxhash.New()
 
-	enc := json.NewEncoder(w)
+	enc := json.NewEncoder(io.MultiWriter(w, h))
 
-	err := enc.Encode(v)
-	if err != nil {
-		return nil, err
+	if err := enc.Encode(v); err != nil {
+		return nil, "", err
 	}
 
-	err = w.Close()
-	if err != nil {
-		return nil, err
+	if err := w.Close(); err != nil {
+		return nil, "", err
 	}
 
 	// Copying result slice to reduce dynamic capacity.
 	res := make([]byte, len(b.Bytes()))
 	copy(res, b.Bytes())
 
-	return res, nil
+	return res, strconv.FormatUint(h.Sum64(), 36), nil
 }
 
 // UnmarshalJSON decodes compressed JSON bytes into a Go value.
