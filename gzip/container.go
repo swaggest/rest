@@ -135,7 +135,7 @@ func marshalJSON(v interface{}) (compressed []byte, hash, gzipHash string, err e
 		return nil, "", "", err
 	}
 
-	_, _ = gh.Write(gzipETagSalt) // xxhash.Digest.Write never returns an error.
+	_, _ = gh.Write(gzipETagSalt) //nolint:errcheck // xxhash.Digest.Write never returns an error.
 
 	// Copying result slice to reduce dynamic capacity.
 	res := make([]byte, len(b.Bytes()))
