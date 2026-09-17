@@ -26,7 +26,7 @@ func Test_directGzip(t *testing.T) {
 
 	r.ServeHTTP(rw, req)
 	assert.Equal(t, http.StatusOK, rw.Code)
-	assert.Equal(t, "330epditz19z", rw.Header().Get("Etag"))
+	assert.Equal(t, "1bupo1iak1wyx", rw.Header().Get("Etag"))
 	assert.Equal(t, "gzip", rw.Header().Get("Content-Encoding"))
 	assert.Equal(t, "abc", rw.Header().Get("X-Header"))
 	assert.Less(t, len(rw.Body.Bytes()), 500)
@@ -49,7 +49,7 @@ func Test_directGzip_HEAD(t *testing.T) {
 	assert.NoError(t, resp.Body.Close())
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Equal(t, "330epditz19z", resp.Header.Get("Etag"))
+	assert.Equal(t, "1bupo1iak1wyx", resp.Header.Get("Etag"))
 	assert.Equal(t, "gzip", resp.Header.Get("Content-Encoding"))
 	assert.Equal(t, "abc", resp.Header.Get("X-Header"))
 	assert.Empty(t, body)

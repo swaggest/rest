@@ -121,11 +121,12 @@ func ExampleNewOpenAPICollector() {
 		return nil
 	})
 
-	// Collector.Describe avoids that duplication: it keys documentation by the handler's own
-	// identity, so the route registration itself stays the single source of truth. Use it for
-	// func handlers you register yourself, especially routes built programmatically/in bulk,
-	// where keeping a second, string-keyed AnnotateOperation call in sync would be error-prone.
-	router.Get("/identified-func/{path-item}", c.Describe(
+	// Collector.Describe avoids that duplication: the route registration itself stays the single
+	// source of truth. Use it for func handlers you register yourself, especially routes built
+	// programmatically/in bulk, where keeping a second, string-keyed AnnotateOperation call in
+	// sync would be error-prone. Describe returns http.Handler, so register it with a method
+	// that accepts one, such as Method, rather than Get/Post/etc which require http.HandlerFunc.
+	router.Method(http.MethodGet, "/identified-func/{path-item}", c.Describe(
 		func(w http.ResponseWriter, r *http.Request) {},
 		func(oc openapi.OperationContext) error {
 			oc.SetSummary("Identified Func Handler")

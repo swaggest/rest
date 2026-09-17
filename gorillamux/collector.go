@@ -24,8 +24,6 @@ type OpenAPICollector struct {
 	// same method, paths with different hosts. This can not be expressed with a single
 	// OpenAPI document.
 	Host string
-
-	docs nethttp.RouteDocs
 }
 
 // NewOpenAPICollector creates route walker for gorilla/mux, that collects OpenAPI operations.
@@ -46,15 +44,13 @@ type OpenAPIPreparer interface {
 	SetupOpenAPIOperation(oc oapi.OperationContext) error
 }
 
-// Describe attaches OpenAPI documentation to a http.HandlerFunc, keyed by the handler's own
-// identity rather than by its route. Unlike Collector.AnnotateOperation, which is keyed by a
-// separately maintained method+pattern string that can drift from the actual route, Describe
-// keeps the route registration itself as the single source of truth.
+// Describe attaches OpenAPI documentation to a http.HandlerFunc. Unlike Collector.AnnotateOperation,
+// which is keyed by a separately maintained method+pattern string that can drift from the actual
+// route, Describe keeps the route registration itself as the single source of truth.
 //
-// Wrap the handler with it right where it is registered, e.g.
-// router.Handle(pattern, c.Describe(h, setup)).Methods(http.MethodGet).
-func (dc *OpenAPICollector) Describe(h http.HandlerFunc, setup func(oc oapi.OperationContext) error) http.HandlerFunc {
-	return dc.docs.Describe(h, setup)
+// The result implements http.Handler, e.g. router.Handle(pattern, c.Describe(h, setup)).Methods(http.MethodGet).
+func (dc *OpenAPICollector) Describe(h http.HandlerFunc, setup func(oc oapi.OperationContext) error) http.Handler {
+	return nethttp.Describe(h, setup)
 }
 
 // Walker walks route tree and collects OpenAPI information.
@@ -82,7 +78,7 @@ func (dc *OpenAPICollector) Walker(route *mux.Route, _ *mux.Router, _ []*mux.Rou
 		methods = dc.DefaultMethods
 	}
 
-	preparer := dc.docs.Preparer(handler, dc.OperationExtractor)
+	preparer := nethttp.Preparer(handler, dc.OperationExtractor)
 
 	for _, method := range methods {
 		if err := nethttp.CollectRouteOperation(dc.Collector, method, path, preparer); err != nil {

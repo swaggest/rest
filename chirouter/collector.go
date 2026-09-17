@@ -15,8 +15,6 @@ type OpenAPICollector struct {
 
 	// OperationExtractor allows flexible extraction of OpenAPI information.
 	OperationExtractor func(h http.Handler) func(oc oapi.OperationContext) error
-
-	docs nethttp.RouteDocs
 }
 
 // NewOpenAPICollector creates route walker for chi, that collects OpenAPI operations.
@@ -26,14 +24,19 @@ func NewOpenAPICollector(r oapi.Reflector) *OpenAPICollector {
 	}
 }
 
-// Describe attaches OpenAPI documentation to a http.HandlerFunc, keyed by the handler's own
-// identity rather than by its route. Unlike Collector.AnnotateOperation, which is keyed by a
-// separately maintained method+pattern string that can drift from the actual route, Describe
-// keeps the route registration itself as the single source of truth.
+// OpenAPIPreparer defines http.Handler with OpenAPI information.
+type OpenAPIPreparer interface {
+	SetupOpenAPIOperation(oc oapi.OperationContext) error
+}
+
+// Describe attaches OpenAPI documentation to a http.HandlerFunc. Unlike Collector.AnnotateOperation,
+// which is keyed by a separately maintained method+pattern string that can drift from the actual
+// route, Describe keeps the route registration itself as the single source of truth.
 //
-// Wrap the handler with it right where it is registered, e.g. router.Get(pattern, c.Describe(h, setup)).
-func (dc *OpenAPICollector) Describe(h http.HandlerFunc, setup func(oc oapi.OperationContext) error) http.HandlerFunc {
-	return dc.docs.Describe(h, setup)
+// The result implements http.Handler, so register it with a method that accepts one, e.g.
+// router.Method(http.MethodGet, pattern, c.Describe(h, setup)).
+func (dc *OpenAPICollector) Describe(h http.HandlerFunc, setup func(oc oapi.OperationContext) error) http.Handler {
+	return nethttp.Describe(h, setup)
 }
 
 // Walker walks chi route tree and collects OpenAPI information.
@@ -44,7 +47,7 @@ func (dc *OpenAPICollector) Walker(method, route string, handler http.Handler, _
 		return nil
 	}
 
-	preparer := dc.docs.Preparer(handler, dc.OperationExtractor)
+	preparer := nethttp.Preparer(handler, dc.OperationExtractor)
 
 	return nethttp.CollectRouteOperation(dc.Collector, method, route, preparer)
 }
