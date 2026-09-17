@@ -83,6 +83,7 @@ func TestMiddleware_vary(t *testing.T) {
 	assert.Equal(t, []string{"Accept-Encoding"}, rw.Header().Values("Vary"))
 
 	rw = httptest.NewRecorder()
+
 	r.Header.Del("Accept-Encoding")
 	h.ServeHTTP(rw, r)
 
