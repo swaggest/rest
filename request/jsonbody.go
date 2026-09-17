@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"sync"
 
 	"github.com/swaggest/rest"
@@ -72,8 +71,11 @@ func checkJSONBodyContentType(contentType string, tolerateFormData bool) (ret bo
 		return false, nil
 	}
 
-	if len(contentType) < 16 || strings.ToLower(contentType[0:16]) != "application/json" { // allow 'application/json;charset=UTF-8'
-		if tolerateFormData && (contentType == "application/x-www-form-urlencoded" || contentType == "multipart/form-data") {
+	if !compareContentType(contentType, "application/json") { // allow 'application/json;charset=UTF-8'
+		if tolerateFormData && (compareContentType(
+			contentType,
+			"application/x-www-form-urlencoded",
+		) || compareContentType(contentType, "multipart/form-data")) {
 			return true, nil
 		}
 
